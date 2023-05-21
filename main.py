@@ -6,8 +6,6 @@ from tiktoken.core import Encoding
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 encoding: Encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
 MAX_TOKENS = 4000
 
@@ -64,7 +62,7 @@ class MyBot(discord.Client):
             self.message_history.append(new_message)
 
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4",
                 messages=[
                     system_message,
                     *self.message_history

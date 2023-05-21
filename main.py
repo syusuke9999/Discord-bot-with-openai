@@ -71,9 +71,10 @@ class MyBot(discord.Client):
             while sum(count_tokens(m["content"]) for m in self.message_history) > total_tokens:
                 self.message_history.pop(0)
             self.message_history.append(new_message)
-            # メッセージ履歴をRedisに保存
+            # メッセージ履歴をRedisに保存し、TTLを設定
             message_history_json = json.dumps(self.message_history)
             r.set('message_history', message_history_json)
+            r.expire('message_history', 3600 * 24 * 20)  # TTLを20日間（1,728,000秒）に設定
             response = openai.ChatCompletion.create(
                 model=model_name,
                 messages=[

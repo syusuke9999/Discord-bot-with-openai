@@ -10,6 +10,7 @@ import logging
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 REDIS_PASSWORD = os.getenv("OPENAI_API_KEY")
+REDIS_USERNAME = os.getenv("REDIS_USERNAME")
 
 model_name = "gpt-4"
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
@@ -22,6 +23,7 @@ logger.setLevel(logging.WARNING)
 r = redis.Redis(
     host='redis-15769.c290.ap-northeast-1-2.ec2.cloud.redislabs.com',
     port=15769,
+    username=REDIS_USERNAME,
     password=REDIS_PASSWORD)
 
 

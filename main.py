@@ -13,7 +13,7 @@ REDIS_PASSWORD = os.getenv("OPENAI_API_KEY")
 
 model_name = "gpt-4"
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
-MAX_TOKENS = 4000
+MAX_TOKENS = 5000
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.WARNING)

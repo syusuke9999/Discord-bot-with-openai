@@ -3,11 +3,26 @@ import discord
 import openai
 import tiktoken
 from tiktoken.core import Encoding
+import redis
+import json
+import logging
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-encoding: Encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+REDIS_PASSWORD = os.getenv("OPENAI_API_KEY")
+
+model_name = "gpt-4"
+encoding: Encoding = tiktoken.encoding_for_model(model_name)
 MAX_TOKENS = 4000
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.WARNING)
+
+# Redis接続を初期化
+r = redis.Redis(
+    host='redis-15769.c290.ap-northeast-1-2.ec2.cloud.redislabs.com',
+    port=15769,
+    password=REDIS_PASSWORD)
 
 
 def count_tokens(text):
@@ -17,10 +32,14 @@ def count_tokens(text):
 
 
 class MyBot(discord.Client):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.message_history = []  # `__init__`メソッド内で初期化
+        # Redisからメッセージ履歴を読み込む
+        message_history_json = r.get('message_history')
+        if message_history_json is not None:
+            self.message_history = json.loads(message_history_json)
+        else:
+            self.message_history = []
 
     async def on_ready(self):
         print(f"We have logged in as {self.user}")
@@ -28,41 +47,37 @@ class MyBot(discord.Client):
     async def on_message(self, message):
         if message.author == self.user:
             return
-
         if message.content.startswith('check!'):
             # '/check' command functionality
             playing_dbd_members = []
             for member in message.guild.members:
                 if member.activity and member.activity.name == 'Dead by Daylight':
                     playing_dbd_members.append(member.name)
-
             if len(playing_dbd_members) > 0:
                 message_content = ', '.join(playing_dbd_members)
                 await message.channel.send(f'{message_content} はDead by Daylightをプレイしています！')
             else:
                 await message.channel.send('現在Dead by Daylightをプレイしているサーバーメンバーはいません。')
             return  # '/check' アクションが実行された場合、これ以上処理を続行しないでください。
-
         if self.user.mentioned_in(message):
             new_message = {"role": "user", "content": message.content}
             message_tokens = count_tokens(message.content)
-
             system_message = {"role": "system",
                               "content": "You are a chatbot participating in a small Discord channel for "
                                          "people who play Dead by Daylight.Please be willing to discuss Dead "
                                          "by Daylight topics. Please do not use English in your "
                                          "conversations. Please use only Japanese in all conversations."}
             system_message_tokens = count_tokens(system_message["content"])
-
-            # Remove old messages if adding a new message exceeds the token limit
+            # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
             total_tokens = MAX_TOKENS - (message_tokens + system_message_tokens)
             while sum(count_tokens(m["content"]) for m in self.message_history) > total_tokens:
                 self.message_history.pop(0)
-
             self.message_history.append(new_message)
-
+            # メッセージ履歴をRedisに保存
+            message_history_json = json.dumps(self.message_history)
+            r.set('message_history', message_history_json)
             response = openai.ChatCompletion.create(
-                model="gpt-4",
+                model=model_name,
                 messages=[
                     system_message,
                     *self.message_history

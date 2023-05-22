@@ -98,6 +98,7 @@ class MyBot(discord.Client):
             r.expire('message_history', 3600 * 24 * 20)  # TTLを20日間（1,728,000秒）に設定
             print("message was save to redis!")
             response = openai.ChatCompletion.create(
+                tempature=0.7,
                 model=model_name,
                 messages=[
                     system_message,

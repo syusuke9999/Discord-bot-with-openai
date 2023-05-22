@@ -100,9 +100,10 @@ class MyBot(discord.Client):
 
 
 def main():
-    intents = discord.Intents.all()
+    intents = discord.Intents.default()
+    intents.message_contents = True
     client = MyBot(intents=intents)
-    client.run(DISCORD_TEST_TOKEN)
+    client.run(DISCORD_TOKEN)
 
 
 if __name__ == "__main__":

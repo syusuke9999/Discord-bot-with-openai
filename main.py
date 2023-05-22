@@ -7,10 +7,9 @@ import redis
 import json
 import logging
 
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+DISCORD_TEST_TOKEN = os.getenv("DISCORD_TEST_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-REDIS_PASSWORD = os.getenv("OPENAI_API_KEY")
-REDIS_USERNAME = os.getenv("REDIS_USERNAME")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
 model_name = "gpt-4"
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
@@ -21,9 +20,8 @@ logger.setLevel(logging.WARNING)
 
 # Redis接続を初期化
 r = redis.Redis(
-    host='redis-15769.c290.ap-northeast-1-2.ec2.cloud.redislabs.com',
-    port=15769,
-    username=REDIS_USERNAME,
+    host='redis-16894.c290.ap-northeast-1-2.ec2.cloud.redislabs.com',
+    port=16894,
     password=REDIS_PASSWORD)
 
 
@@ -47,9 +45,11 @@ class MyBot(discord.Client):
         print(f"We have logged in as {self.user}")
 
     async def on_message(self, message):
+        print("message.content: ", message.content)
         if message.author == self.user:
             return
         if message.content.startswith('check!'):
+            print("check!")
             # '/check' command functionality
             playing_dbd_members = []
             for member in message.guild.members:
@@ -62,6 +62,8 @@ class MyBot(discord.Client):
                 await message.channel.send('現在Dead by Daylightをプレイしているサーバーメンバーはいません。')
             return  # '/check' アクションが実行された場合、これ以上処理を続行しないでください。
         if self.user.mentioned_in(message):
+            print("mentioned!")
+            print("user:" + self.user.display_name + "message.content: ", message.content)
             new_message = {"role": "user", "content": message.content}
             message_tokens = count_tokens(message.content)
             system_message = {"role": "system",
@@ -78,6 +80,7 @@ class MyBot(discord.Client):
             message_history_json = json.dumps(self.message_history)
             r.set('message_history', message_history_json)
             r.expire('message_history', 3600 * 24 * 20)  # TTLを20日間（1,728,000秒）に設定
+            print("message was save to redis!")
             response = openai.ChatCompletion.create(
                 model=model_name,
                 messages=[
@@ -87,13 +90,17 @@ class MyBot(discord.Client):
             )
             bot_response = response['choices'][0]['message']['content']
             self.message_history.append({"role": "assistant", "content": bot_response})
+            print("bot_response: ", bot_response)
+            print("bot_response_tokens: ", count_tokens(bot_response))
+            print("massage have sent to discord with await function!")
             await message.channel.send(bot_response)
+            print("message was send to discord!")
 
 
 def main():
-    intents = discord.Intents.default()
+    intents = discord.Intents.all()
     client = MyBot(intents=intents)
-    client.run(DISCORD_TOKEN)
+    client.run(DISCORD_TEST_TOKEN)
 
 
 if __name__ == "__main__":

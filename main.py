@@ -10,7 +10,7 @@ import logging
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 REDIS_HOST = os.getenv("REDIS_HOST")
-REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_PORT: int = int(os.getenv("REDIS_PORT"))
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
 model_name = "gpt-4"
@@ -22,8 +22,8 @@ logger.setLevel(logging.WARNING)
 
 # Redis接続を初期化
 r = redis.Redis(
-    host='redis-16894.c290.ap-northeast-1-2.ec2.cloud.redislabs.com',
-    port=16894,
+    host=REDIS_HOST,
+    port=REDIS_PORT,
     password=REDIS_PASSWORD)
 
 

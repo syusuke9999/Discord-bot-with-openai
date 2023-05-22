@@ -48,7 +48,7 @@ class MyBot(discord.Client):
         print("message.content: ", message.content)
         if message.author == self.user:
             return
-        if message.content.startswith('check!'):
+        if message.content.startswith('/check'):
             print("check!")
             # '/check' command functionality
             playing_dbd_members = []

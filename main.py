@@ -70,9 +70,15 @@ class MyBot(discord.Client):
             now = datetime.datetime.now()
             # 日付と時刻を文字列に変換（例: 2022年10月12日 15:24）
             formatted_now = now.strftime("%Y/%m/%d %H:%M")
+            now_of_year = now.strftime("%Y")
+            now_of_month = now.strftime("%m")
+            now_of_day = now.strftime("%d")
+            now_of_time = now.strftime("%H:%M")
             system_message = {"role": "system",
-                              "content": f"Now is {formatted_now}. You are a chatbot joining a small Discord channel "
-                                         f"focused on"
+                              "content": f"Today is the year {now_of_year}, "
+                                         f"the month is {now_of_month} and the date {now_of_day}. "
+                                         f"The current time is {now_of_time}."
+                                         f"You are a chatbot joining a small Discord channel focused on"
                                          f"Dead by Daylight. Please communicate only in Japanese."}
             print("user:" + self.user.display_name + "message.content: ", message.content)
             new_message = {"role": "user", "content": message.content}

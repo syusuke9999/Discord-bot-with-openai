@@ -71,7 +71,7 @@ class MyBot(discord.Client):
             # 日付と時刻を文字列に変換（例: 2022年10月12日 15:24）
             formatted_now = now.strftime("%Y/%m/%d %H:%M")
             system_message = {"role": "system",
-                              "content": f"{formatted_now} - You are a chatbot joining a small Discord channel "
+                              "content": f"Today is {formatted_now}. You are a chatbot joining a small Discord channel "
                                          f"focused on"
                                          f"Dead by Daylight. Please communicate only in Japanese."}
             print("user:" + self.user.display_name + "message.content: ", message.content)

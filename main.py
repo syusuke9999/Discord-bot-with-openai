@@ -7,8 +7,10 @@ import redis
 import json
 import logging
 
-DISCORD_TEST_TOKEN = os.getenv("DISCORD_TEST_TOKEN")
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
 model_name = "gpt-4"

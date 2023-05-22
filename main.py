@@ -69,9 +69,7 @@ class MyBot(discord.Client):
             new_message = {"role": "user", "content": message.content}
             message_tokens = count_tokens(message.content)
             system_message = {"role": "system",
-                              "content": "You are a chatbot joining a small Discord channel focused on "
-                                         "Dead by Daylight. Please communicate only in Japanese and engage in "
-                                         "discussions related to the game."}
+                              "content": "You are a chatbot joining a small Discord channel focused on Dead by Daylight. Please communicate only in Japanese."}
             system_message_tokens = count_tokens(system_message["content"])
             # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
             total_tokens = MAX_TOKENS - (message_tokens + system_message_tokens)

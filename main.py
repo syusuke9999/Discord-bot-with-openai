@@ -100,8 +100,7 @@ class MyBot(discord.Client):
 
 
 def main():
-    intents = discord.Intents.default()
-    intents.messages = True
+    intents = discord.Intents.all()
     client = MyBot(intents=intents)
     client.run(DISCORD_TOKEN)
 

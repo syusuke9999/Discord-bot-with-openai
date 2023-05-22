@@ -6,6 +6,7 @@ from tiktoken.core import Encoding
 import redis
 import json
 import logging
+import datetime
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -65,11 +66,21 @@ class MyBot(discord.Client):
             return  # '/check' アクションが実行された場合、これ以上処理を続行しないでください。
         if self.user.mentioned_in(message):
             print("mentioned!")
+            # 現在の日付と時刻を取得
+            now = datetime.datetime.now()
+            # 日付と時刻を文字列に変換（例: 2022年10月12日 15:24）
+            formatted_now = now.strftime("%Y/%m/%d %H:%M")
+            system_message = {"role": "system",
+                              "content": f"{formatted_now} - You are a chatbot joining a small Discord channel "
+                                         f"focused on"
+                                         f"Dead by Daylight. Please communicate only in Japanese."}
             print("user:" + self.user.display_name + "message.content: ", message.content)
             new_message = {"role": "user", "content": message.content}
             message_tokens = count_tokens(message.content)
             system_message = {"role": "system",
-                              "content": "You are a chatbot joining a small Discord channel focused on Dead by Daylight. Please communicate only in Japanese."}
+                              "content": "You are a chatbot joining a small Discord channel focused on "
+                                         "Dead by Daylight. Please communicate only in Japanese."}
+
             system_message_tokens = count_tokens(system_message["content"])
             # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
             total_tokens = MAX_TOKENS - (message_tokens + system_message_tokens)

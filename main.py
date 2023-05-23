@@ -10,9 +10,7 @@ import datetime
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-REDIS_HOST = os.getenv("REDIS_HOST")
-REDIS_PORT: int = int(os.getenv("REDIS_PORT"))
-REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+REDISGREEN_URL = os.environ.get('REDISGREEN_URL')
 
 model_name = "gpt-4"
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
@@ -22,7 +20,7 @@ logger = logging.getLogger('discord')
 logger.setLevel(logging.WARNING)
 
 # Redis接続を初期化
-r = redis.StrictRedis.from_url(os.environ.get('REDISGREEN_URL'))
+r = redis.StrictRedis.from_url(REDISGREEN_URL)
 
 
 def count_tokens(text):

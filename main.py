@@ -7,6 +7,9 @@ import redis
 import json
 import logging
 import datetime
+import pytz
+jst = pytz.timezone('Asia/Tokyo')
+
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -49,7 +52,8 @@ class MyBot(discord.Client):
         if self.user.mentioned_in(message):
             print("mentioned!")
             # 現在の日付と時刻を取得
-            now = datetime.datetime.now()
+            datetime_jst = datetime.datetime.now(jst)
+            now = datetime_jst
             now_of_year = now.strftime("%Y")
             now_of_month = now.strftime("%m")
             now_of_day = now.strftime("%d")

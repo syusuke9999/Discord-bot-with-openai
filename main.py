@@ -46,19 +46,6 @@ class MyBot(discord.Client):
         print("message.content: ", message.content)
         if message.author == self.user:
             return
-        if message.content.startswith('/check'):
-            print("check!")
-            # '/check' command functionality
-            playing_dbd_members = []
-            for member in message.guild.members:
-                if member.activity and member.activity.name == 'Dead by Daylight':
-                    playing_dbd_members.append(member.name)
-            if len(playing_dbd_members) > 0:
-                message_content = ', '.join(playing_dbd_members)
-                await message.channel.send(f'{message_content} はDead by Daylightをプレイしています！')
-            else:
-                await message.channel.send('現在Dead by Daylightをプレイしているサーバーメンバーはいません。')
-            return  # '/check' アクションが実行された場合、これ以上処理を続行しないでください。
         if self.user.mentioned_in(message):
             print("mentioned!")
             # 現在の日付と時刻を取得
@@ -71,7 +58,7 @@ class MyBot(discord.Client):
                                      f"the month is {now_of_month} and the date {now_of_day}. " \
                                      f"The current time is {now_of_time}." \
                                      f"You are a Discord bot joining a Discord channel where people enjoy " \
-                                     f"Dead by Daylight and other games. Have fun talking about Dead by Daylight " \
+                                     f"oneline games. Have fun talking about Dead by Daylight and Apex legend." \
                                      f"with the channel participants." \
                                      f"Don't use English, please communicate only in Japanese."
             system_message = {"role": "system", "content": system_message_content}

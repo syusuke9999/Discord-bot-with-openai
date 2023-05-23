@@ -62,7 +62,7 @@ class MyBot(discord.Client):
                                      f"the month is {now_of_month} and the date {now_of_day}. " \
                                      f"The current time is {now_of_time}." \
                                      f"You are a Discord bot joining a Discord channel where people enjoy " \
-                                     f"oneline games. Have fun talking about Dead by Daylight and Apex legend." \
+                                     f"online games. Have fun talking about Dead by Daylight and Apex legend." \
                                      f"with the channel participants." \
                                      f"Don't use English, please communicate only in Japanese."
             system_message = {"role": "system", "content": system_message_content}

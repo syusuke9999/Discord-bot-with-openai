@@ -22,10 +22,7 @@ logger = logging.getLogger('discord')
 logger.setLevel(logging.WARNING)
 
 # Redis接続を初期化
-r = redis.Redis(
-    host=REDIS_HOST,
-    port=REDIS_PORT,
-    password=REDIS_PASSWORD)
+r = redis.StrictRedis.from_url(os.environ.get('REDISGREEN_URL'))
 
 
 def count_tokens(text):
@@ -93,7 +90,7 @@ class MyBot(discord.Client):
             # メッセージ履歴をRedisに保存し、TTLを設定
             message_history_json = json.dumps(self.message_history)
             r.set('message_history', message_history_json)
-            r.expire('message_history', 3600 * 24 * 20)  # TTLを20日間（1,728,000秒）に設定
+            r.expire('message_history', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
             print("message was save to redis!")
             response = openai.ChatCompletion.create(
                 temperature=0.7,

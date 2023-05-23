@@ -68,24 +68,22 @@ class MyBot(discord.Client):
             print("mentioned!")
             # 現在の日付と時刻を取得
             now = datetime.datetime.now()
-            # 日付と時刻を文字列に変換（例: 2022年10月12日 15:24）
-            formatted_now = now.strftime("%Y/%m/%d %H:%M")
             now_of_year = now.strftime("%Y")
             now_of_month = now.strftime("%m")
             now_of_day = now.strftime("%d")
             now_of_time = now.strftime("%H:%M")
-            system_message = {"role": "system",
-                              "content": f"Today is the year {now_of_year}, "
-                                         f"the month is {now_of_month} and the date {now_of_day}. "
-                                         f"The current time is {now_of_time}."
-                                         f"You are a chatbot joining a small Discord channel focused on"
-                                         f"Dead by Daylight. Please communicate only in Japanese."}
+            system_message_content = f"Today is the year {now_of_year}, " \
+                                     f"the month is {now_of_month} and the date {now_of_day}. " \
+                                     f"The current time is {now_of_time}." \
+                                     f"You are a Discord bot joining a Discord channel where people enjoy " \
+                                     f"Dead by Daylight and other games. Have fun talking about Dead by Daylight " \
+                                     f"with the channel participants." \
+                                     f"Don't use English, please communicate only in Japanese."
+            system_message = {"role": "system", "content": system_message_content}
+            print(system_message)
             print("user:" + self.user.display_name + "message.content: ", message.content)
             new_message = {"role": "user", "content": message.content}
             message_tokens = count_tokens(message.content)
-            system_message = {"role": "system",
-                              "content": system_message}
-
             system_message_tokens = count_tokens(system_message["content"])
             # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
             total_tokens = MAX_TOKENS - (message_tokens + system_message_tokens)
@@ -98,7 +96,7 @@ class MyBot(discord.Client):
             r.expire('message_history', 3600 * 24 * 20)  # TTLを20日間（1,728,000秒）に設定
             print("message was save to redis!")
             response = openai.ChatCompletion.create(
-                tempature=0.7,
+                temperature=0.7,
                 model=model_name,
                 messages=[
                     system_message,

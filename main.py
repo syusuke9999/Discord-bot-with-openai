@@ -1,7 +1,7 @@
 import os
 import discord
 from discord.ext import commands
-import asyncio
+from asyncio import sleep
 import openai
 import tiktoken
 from tiktoken.core import Encoding
@@ -105,7 +105,7 @@ class MyBot(commands.Bot):
             print("typing_time: ", typing_time)
             print("sending message to discord with await typing function!")
             async with message.channel.typing():
-                await asyncio.sleep(typing_time)  # 計算された時間まで待つ
+                await sleep(typing_time)  # 計算された時間まで待つ
                 await message.reply(bot_response)
             print("massage have sent to discord with await function!")
 

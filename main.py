@@ -5,8 +5,7 @@ import openai
 import tiktoken
 from tiktoken.core import Encoding
 import redis
-import asyncio
-import aiohttp
+from asyncio import sleep
 import json
 import logging
 import datetime

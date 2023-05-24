@@ -1,7 +1,6 @@
 import os
 import discord
 from discord.ext import commands
-from asyncio import sleep
 import openai
 import tiktoken
 from tiktoken.core import Encoding
@@ -107,8 +106,9 @@ class MyBot(commands.Bot):
             else:
                 print("message was not save to redis!")
             print("Now send message to OpenAI API.")
-            try:
-                async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession() as session:
+                count = 0
+                while True:
                     response = await fetch_openai_api(
                         session,
                         "https://api.openai.com/v1/chat/completions",
@@ -117,28 +117,31 @@ class MyBot(commands.Bot):
                             "Authorization": f"Bearer {OPENAI_API_KEY}"
                         },
                         {
-                            "model": model_name,
+                            "model": "gpt-4",
                             "messages": [
                                 system_message,
                                 self.message_history
                             ]
                         }
                     )
-            except Exception as e:
-                print("Error: ", e)
-            else:
-                async with response['choices'][0]['message']['content'] is not None:
-                    bot_response = response['choices'][0]['message']['content']
-                    typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
-                    print("bot_response: ", bot_response)
-                    print("bot_response_tokens: ", count_tokens(bot_response))
-                    print("typing_time: ", typing_time)
-                    async with message.channel.typing():
-                        await sleep(typing_time)  # 計算された時間まで待つ
+                    # Check if the response has the expected format
+                    if 'choices' in response and 'message' in response['choices'][0] and 'content' in \
+                            response['choices'][0]['message']:
+                        print("OpenAI API response: ", response)
+                        bot_response = response['choices'][0]['message']['content']
+                        print("bot_response: ", bot_response)
+                        print("bot_response_tokens: ", count_tokens(bot_response))
                         await message.reply(bot_response)
+                        self.message_history.append({"role": "assistant", "content": bot_response})
                         print("massage have sent to discord with await function!")
-                    print("response: ", response)
-                    self.message_history.append({"role": "assistant", "content": bot_response})
+                        break
+                    else:
+                        print("Unexpected response format. Retrying...")
+                        count += 1
+                        if count > 20:
+                            print("OpenAI API call retry count exceeded. Aborting.")
+                            break
+                        await asyncio.sleep(3)  # Wait for a second before retrying
 
 
 def main():

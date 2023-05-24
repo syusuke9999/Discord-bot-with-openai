@@ -107,7 +107,7 @@ class MyBot(commands.Bot):
             async with message.channel.typing():
                 await sleep(typing_time)  # 計算された時間まで待つ
                 await message.reply(bot_response)
-            print("massage have sent to discord with await function!")
+                print("massage have sent to discord with await function!")
 
 
 def main():

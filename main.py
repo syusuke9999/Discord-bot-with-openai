@@ -11,7 +11,7 @@ import logging
 import datetime
 import pytz
 
-debug_mode = True
+debug_mode = False
 
 # Discord接続を初期化
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())

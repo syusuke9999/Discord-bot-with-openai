@@ -10,7 +10,7 @@ import logging
 import datetime
 import pytz
 
-bot = commands.Bot(command_prefix='!')
+bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
 jst = pytz.timezone('Asia/Tokyo')
 

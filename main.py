@@ -1,6 +1,7 @@
 import os
 import discord
 from discord.ext import commands
+import asyncio
 import openai
 import tiktoken
 from tiktoken.core import Encoding
@@ -20,7 +21,7 @@ REDISGREEN_URL = os.environ.get('REDISGREEN_URL')
 
 model_name = "gpt-4"
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
-MAX_TOKENS = 5000
+MAX_TOKENS = 4000
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.WARNING)
@@ -87,24 +88,26 @@ class MyBot(commands.Bot):
             r.set('message_history', message_history_json)
             r.expire('message_history', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
             print("message was save to redis!")
-            async with message.channel.typing():  # タイピングアニメーションを開始
-                response = openai.ChatCompletion.create(
-                    temperature=0.7,
-                    model=model_name,
-                    messages=[
-                        system_message,
-                        *self.message_history
-                    ]
-                )
-                print("massage have sent to discord with await function!")
-                print("Getting response from OpenAI API...")
-                bot_response = response['choices'][0]['message']['content']
-                self.message_history.append({"role": "assistant", "content": bot_response})
-                print("bot_response: ", bot_response)
-                print("bot_response_tokens: ", count_tokens(bot_response))
-                print("massage have sent to discord with await function!")
-                await message.reply(bot_response)  # ユーザーに直接返信
-            print("message was send to discord!")
+            print("Getting response from OpenAI API...")
+            response = openai.ChatCompletion.create(
+                temperature=0.7,
+                model=model_name,
+                messages=[
+                    system_message,
+                    *self.message_history
+                ]
+            )
+            bot_response = response['choices'][0]['message']['content']
+            typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
+            self.message_history.append({"role": "assistant", "content": bot_response})
+            print("bot_response: ", bot_response)
+            print("bot_response_tokens: ", count_tokens(bot_response))
+            print("typing_time: ", typing_time)
+            print("sending message to discord with await typing function!")
+            async with message.channel.typing():
+                await asyncio.sleep(typing_time)  # 計算された時間まで待つ
+                await message.reply(bot_response)
+            print("massage have sent to discord with await function!")
 
 
 def main():

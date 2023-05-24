@@ -64,6 +64,8 @@ class MyBot(discord.Client):
                                      f"You are a Discord bot joining a Discord channel where people enjoy " \
                                      f"online games. Have fun talking about Dead by Daylight and Apex legend, " \
                                      f"and other everyday conversation. with the channel participants." \
+                                     f"Avoid mentioning the topic of the prompt and greet them considering " \
+                                     f"the current time." \
                                      f"Don't use English, please communicate only in Japanese."
             system_message = {"role": "system", "content": system_message_content}
             print(system_message)
@@ -89,11 +91,16 @@ class MyBot(discord.Client):
                     *self.message_history
                 ]
             )
+            print("massage have sent to discord with await function!")
+            await message.channel.trigger_typing()  # タイピングアニメーションを開始
+            print("Getting response from OpenAI API...")
             bot_response = response['choices'][0]['message']['content']
             self.message_history.append({"role": "assistant", "content": bot_response})
             print("bot_response: ", bot_response)
             print("bot_response_tokens: ", count_tokens(bot_response))
             print("massage have sent to discord with await function!")
+            await message.channel.trigger_typing()  # タイピングアニメーションを開始
+            print("message was send to discord!")
             await message.channel.send(bot_response)
             print("message was send to discord!")
 

@@ -6,18 +6,28 @@ import openai
 import tiktoken
 from tiktoken.core import Encoding
 import redis
+import asyncio
+import aiohttp
 import json
 import logging
 import datetime
 import pytz
 
+debug_mode = True
+
+# Discord接続を初期化
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
 jst = pytz.timezone('Asia/Tokyo')
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+DISCORD_TEST_TOKEN = os.getenv("DISCORD_TEST_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 REDISGREEN_URL = os.environ.get('REDISGREEN_URL')
+
+if not debug_mode:
+    # Redis接続を初期化
+    r = redis.StrictRedis.from_url(REDISGREEN_URL)
 
 model_name = "gpt-4"
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
@@ -26,9 +36,6 @@ MAX_TOKENS = 4000
 logger = logging.getLogger('discord')
 logger.setLevel(logging.WARNING)
 
-# Redis接続を初期化
-r = redis.StrictRedis.from_url(REDISGREEN_URL)
-
 
 def count_tokens(text):
     tokens = encoding.encode(text)
@@ -36,13 +43,21 @@ def count_tokens(text):
     return tokens_count
 
 
+async def fetch_openai_api(session, url, headers, data):
+    async with session.post(url, headers=headers, data=json.dumps(data)) as response:
+        return await response.json()
+
+
 class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Redisからメッセージ履歴を読み込む
-        message_history_json = r.get('message_history')
-        if message_history_json is not None:
-            self.message_history = json.loads(message_history_json)
+        if not debug_mode:
+            # Redisからメッセージ履歴を読み込む
+            message_history_json = r.get('message_history')
+            if message_history_json is not None:
+                self.message_history = json.loads(message_history_json)
+            else:
+                self.message_history = []
         else:
             self.message_history = []
 
@@ -83,37 +98,56 @@ class MyBot(commands.Bot):
             while sum(count_tokens(m["content"]) for m in self.message_history) > total_tokens:
                 self.message_history.pop(0)
             self.message_history.append(new_message)
-            # メッセージ履歴をRedisに保存し、TTLを設定
-            message_history_json = json.dumps(self.message_history)
-            r.set('message_history', message_history_json)
-            r.expire('message_history', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
-            print("message was save to redis!")
-            print("Getting response from OpenAI API...")
-            response = openai.ChatCompletion.create(
-                temperature=0.7,
-                model=model_name,
-                messages=[
-                    system_message,
-                    *self.message_history
-                ]
-            )
-            bot_response = response['choices'][0]['message']['content']
-            typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
-            self.message_history.append({"role": "assistant", "content": bot_response})
-            print("bot_response: ", bot_response)
-            print("bot_response_tokens: ", count_tokens(bot_response))
-            print("typing_time: ", typing_time)
-            print("sending message to discord with await typing function!")
-            async with message.channel.typing():
-                await sleep(typing_time)  # 計算された時間まで待つ
-                await message.reply(bot_response)
-                print("massage have sent to discord with await function!")
+            # テストモードでない場合は、メッセージ履歴をRedisに保存しTTLを設定
+            if not debug_mode:
+                message_history_json = json.dumps(self.message_history)
+                r.set('message_history', message_history_json)
+                r.expire('message_history', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+                print("message was save to redis!")
+            else:
+                print("message was not save to redis!")
+            print("Now send message to OpenAI API.")
+            try:
+                async with aiohttp.ClientSession() as session:
+                    response = await fetch_openai_api(
+                        session,
+                        "https://api.openai.com/v1/chat/completions",
+                        {
+                            "Content-Type": "application/json",
+                            "Authorization": f"Bearer {OPENAI_API_KEY}"
+                        },
+                        {
+                            "model": model_name,
+                            "messages": [
+                                system_message,
+                                self.message_history
+                            ]
+                        }
+                    )
+            except Exception as e:
+                print("Error: ", e)
+            else:
+                bot_response = response['choices'][0]['message']['content']
+                typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
+                print("bot_response: ", bot_response)
+                print("bot_response_tokens: ", count_tokens(bot_response))
+                print("typing_time: ", typing_time)
+                async with message.channel.typing():
+                    await sleep(typing_time)  # 計算された時間まで待つ
+                    await message.reply(bot_response)
+                    print("massage have sent to discord with await function!")
+                print("response: ", response)
+                self.message_history.append({"role": "assistant", "content": bot_response})
 
 
 def main():
+    global DISCORD_TEST_TOKEN, DISCORD_TOKEN, OPENAI_API_KEY, REDISGREEN_URL, debug_mode, r
     intents = discord.Intents.all()
     client = MyBot(command_prefix='!', intents=intents)
-    client.run(DISCORD_TOKEN)
+    if debug_mode:
+        client.run(DISCORD_TEST_TOKEN)
+    else:
+        client.run(DISCORD_TOKEN)
 
 
 if __name__ == "__main__":

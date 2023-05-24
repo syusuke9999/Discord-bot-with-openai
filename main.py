@@ -87,24 +87,23 @@ class MyBot(commands.Bot):
             r.set('message_history', message_history_json)
             r.expire('message_history', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
             print("message was save to redis!")
-            response = openai.ChatCompletion.create(
-                temperature=0.7,
-                model=model_name,
-                messages=[
-                    system_message,
-                    *self.message_history
-                ]
-            )
-            print("massage have sent to discord with await function!")
-            print("Getting response from OpenAI API...")
-            bot_response = response['choices'][0]['message']['content']
-            self.message_history.append({"role": "assistant", "content": bot_response})
-            print("bot_response: ", bot_response)
-            print("bot_response_tokens: ", count_tokens(bot_response))
-            print("massage have sent to discord with await function!")
             async with message.channel.typing():  # タイピングアニメーションを開始
+                response = openai.ChatCompletion.create(
+                    temperature=0.7,
+                    model=model_name,
+                    messages=[
+                        system_message,
+                        *self.message_history
+                    ]
+                )
+                print("massage have sent to discord with await function!")
+                print("Getting response from OpenAI API...")
+                bot_response = response['choices'][0]['message']['content']
+                self.message_history.append({"role": "assistant", "content": bot_response})
+                print("bot_response: ", bot_response)
+                print("bot_response_tokens: ", count_tokens(bot_response))
+                print("massage have sent to discord with await function!")
                 await message.reply(bot_response)  # ユーザーに直接返信
-            await message.reply(bot_response)
             print("message was send to discord!")
 
 

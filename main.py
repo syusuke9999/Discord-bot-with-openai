@@ -96,14 +96,14 @@ class MyBot(commands.Bot):
                 ]
             )
             print("massage have sent to discord with await function!")
-            await message.channel.trigger_typing()  # タイピングアニメーションを開始
             print("Getting response from OpenAI API...")
             bot_response = response['choices'][0]['message']['content']
             self.message_history.append({"role": "assistant", "content": bot_response})
             print("bot_response: ", bot_response)
             print("bot_response_tokens: ", count_tokens(bot_response))
             print("massage have sent to discord with await function!")
-            await message.channel.trigger_typing()  # タイピングアニメーションを開始
+            async with message.channel.typing():  # タイピングアニメーションを開始
+                await message.reply(bot_response)  # ユーザーに直接返信
             await message.reply(bot_response)
             print("message was send to discord!")
 

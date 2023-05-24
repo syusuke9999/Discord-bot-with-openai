@@ -138,10 +138,10 @@ class MyBot(commands.Bot):
                     else:
                         print("Unexpected response format. Retrying...")
                         count += 1
-                        if count > 20:
+                        if count > 30:
                             print("OpenAI API call retry count exceeded. Aborting.")
                             break
-                        await asyncio.sleep(3)  # Wait for a second before retrying
+                        await asyncio.sleep(5)  # Wait for a second before retrying
 
 
 def main():

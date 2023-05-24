@@ -100,8 +100,7 @@ class MyBot(discord.Client):
             print("bot_response_tokens: ", count_tokens(bot_response))
             print("massage have sent to discord with await function!")
             await message.channel.trigger_typing()  # タイピングアニメーションを開始
-            print("message was send to discord!")
-            await message.channel.send(bot_response)
+            await message.reply(bot_response)
             print("message was send to discord!")
 
 

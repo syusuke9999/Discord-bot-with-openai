@@ -127,17 +127,18 @@ class MyBot(commands.Bot):
             except Exception as e:
                 print("Error: ", e)
             else:
-                bot_response = response['choices'][0]['message']['content']
-                typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
-                print("bot_response: ", bot_response)
-                print("bot_response_tokens: ", count_tokens(bot_response))
-                print("typing_time: ", typing_time)
-                async with message.channel.typing():
-                    await sleep(typing_time)  # 計算された時間まで待つ
-                    await message.reply(bot_response)
-                    print("massage have sent to discord with await function!")
-                print("response: ", response)
-                self.message_history.append({"role": "assistant", "content": bot_response})
+                async with response['choices'][0]['message']['content'] is not None:
+                    bot_response = response['choices'][0]['message']['content']
+                    typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
+                    print("bot_response: ", bot_response)
+                    print("bot_response_tokens: ", count_tokens(bot_response))
+                    print("typing_time: ", typing_time)
+                    async with message.channel.typing():
+                        await sleep(typing_time)  # 計算された時間まで待つ
+                        await message.reply(bot_response)
+                        print("massage have sent to discord with await function!")
+                    print("response: ", response)
+                    self.message_history.append({"role": "assistant", "content": bot_response})
 
 
 def main():

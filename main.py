@@ -1,5 +1,6 @@
 import os
 import discord
+from discord.ext import commands
 import openai
 import tiktoken
 from tiktoken.core import Encoding
@@ -8,6 +9,8 @@ import json
 import logging
 import datetime
 import pytz
+
+bot = commands.Bot(command_prefix='!')
 
 jst = pytz.timezone('Asia/Tokyo')
 
@@ -32,7 +35,7 @@ def count_tokens(text):
     return tokens_count
 
 
-class MyBot(discord.Client):
+class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Redisからメッセージ履歴を読み込む
@@ -46,6 +49,7 @@ class MyBot(discord.Client):
         print(f"We have logged in as {self.user}")
 
     async def on_message(self, message):
+        await super().on_message(message)  # 追加: commands.Botのon_messageメソッドを呼び出す
         print("message.content: ", message.content)
         if message.author == self.user:
             return
@@ -106,7 +110,7 @@ class MyBot(discord.Client):
 
 def main():
     intents = discord.Intents.all()
-    client = MyBot(intents=intents)
+    client = MyBot(command_prefix='!', intents=intents)
     client.run(DISCORD_TOKEN)
 
 

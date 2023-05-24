@@ -6,6 +6,8 @@ import openai
 import tiktoken
 from tiktoken.core import Encoding
 import redis
+import asyncio
+import aiohttp
 import json
 import logging
 import datetime
@@ -120,6 +122,7 @@ class MyBot(commands.Bot):
 
 
 def main():
+    global debug_mode
     intents = discord.Intents.all()
     client = MyBot(command_prefix='!', intents=intents)
     if debug_mode:

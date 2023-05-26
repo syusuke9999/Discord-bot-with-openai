@@ -61,7 +61,10 @@ class MyBot(commands.Bot):
         if message.author == self.user:
             return
         # メンションされた場合
-        if self.user.mentioned_in(message):
+        print("mentioned!  Message content: ", message.content)
+        if self.user in message.mentions:
+            # メッセージの内容を表示
+            print("Message content: ", message.content)
             # デバックモードでない場合、Redisからメッセージ履歴を読み込む
             if not debug_mode:
                 # メンションしたユーザーのIDを取得
@@ -77,7 +80,6 @@ class MyBot(commands.Bot):
             # デバッグモードの場合、メッセージ履歴をリセットする
             else:
                 self.message_history = {}
-            print("mentioned!")
             user_id = str(message.author.id)
             user_name = message.author.display_name
             user_key = f'{user_id}_{user_name}'
@@ -106,9 +108,10 @@ class MyBot(commands.Bot):
             system_message_tokens = count_tokens(system_message["content"])
             # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
             total_tokens = MAX_TOKENS - (message_tokens + system_message_tokens)
-            while sum(count_tokens(m["content"]) for m in self.message_history[user_key]) > total_tokens:
-                self.message_history[user_key].append(new_message)
-            self.message_history[user_key].append(new_message)
+            while sum(count_tokens(m["content"]) for m in self.message_history[user_key]) + \
+                    count_tokens(new_message["content"]) > total_tokens:
+                self.message_history[user_key].pop(0)  # 最初のメッセージを削除
+            self.message_history[user_key].append(new_message)  # 新しいメッセージを追加
             if not debug_mode:
                 # メッセージ履歴をRedisに保存し、TTLを設定
                 message_history_json = json.dumps(self.message_history[user_key])
@@ -158,6 +161,8 @@ class MyBot(commands.Bot):
 def main():
     global debug_mode
     intents = discord.Intents.all()
+    intents.messages = True
+    intents.guilds = True
     client = MyBot(command_prefix='!', intents=intents)
     if debug_mode:
         client.run(DISCORD_TEST_TOKEN)

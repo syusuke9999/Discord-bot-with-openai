@@ -120,7 +120,10 @@ class MyBot(commands.Bot):
                 messages=[
                     system_message,
                     *self.message_history[user_key]
-                ]
+                ],
+                max_tokens=500,
+                frequency_penalty=0,
+                presence_penalty=0.6,
             )
             bot_response = response['choices'][0]['message']['content']
             print("bot_response: ", bot_response)

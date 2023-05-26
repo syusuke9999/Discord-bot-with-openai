@@ -52,6 +52,7 @@ class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.message_history = {}
+        self.total_tokens = 0  # 修正: トークン数の合計を保持するための変数を追加
 
     async def on_ready(self):
         print(f"We have logged in as {self.user}")
@@ -139,6 +140,8 @@ class MyBot(commands.Bot):
             print("ボットの応答: ", bot_response)
             bot_response_tokens = count_tokens(bot_response)
             print("bot_response_tokens: ", bot_response_tokens)
+            self.total_tokens += bot_response_tokens  # 修正: トークン数の合計にボットの応答のトークン数を追加
+            print("これまでに使用したトークンの総数: ", self.total_tokens)  # 修正: トークン数の合計を出力
             # メッセージ履歴にボットの返答を追加
             self.message_history[user_key].append({"role": "assistant", "content": bot_response})
             # デバッグモードでない場合はボットからの応答を含めたメッセージ履歴をRedisに保存

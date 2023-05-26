@@ -135,7 +135,7 @@ class MyBot(commands.Bot):
             bot_response = response['choices'][0]['message']['content']
             print("ボットの応答: ", bot_response)
             bot_response_tokens = count_tokens(bot_response)
-            print("bot_response_tokens: ", count_tokens(bot_response))
+            print("bot_response_tokens: ", bot_response_tokens)
             # 修正: system_messageとself.message_history[user_key]のトークン数をそれぞれ数え、それらを合計する
             total_tokens_used = count_tokens(system_message["content"]) + sum(count_tokens(m["content"])
                                                                               for m in self.message_history[user_key])

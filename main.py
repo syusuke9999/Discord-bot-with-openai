@@ -39,7 +39,7 @@ encoding: Encoding = tiktoken.encoding_for_model(model_name)
 MAX_TOKENS = 2000
 
 logger = logging.getLogger('discord')
-logger.setLevel(logging.Logger)
+logger.setLevel(logging.DEBUG)
 
 
 def count_tokens(text):

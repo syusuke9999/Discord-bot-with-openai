@@ -66,17 +66,21 @@ class MyBot(commands.Bot):
             if not debug_mode:
                 # メンションしたユーザーのIDを取得
                 user_id = str(message.author.id)
-                # ユーザーIDをキーとしてRedisからメッセージ履歴を読み込む
-                message_history_json = r.get(f'message_history_{user_id}')
+                user_name = message.author.display_name
+                user_key = f'{user_id}_{user_name}'
+                # Redisからメッセージ履歴を読み込む
+                message_history_json = r.get(f'message_history_{user_key}')
                 if message_history_json is not None:
-                    self.message_history[user_id] = json.loads(message_history_json)
+                    self.message_history[user_key] = json.loads(message_history_json)
                 else:
-                    self.message_history[user_id] = []
+                    self.message_history[user_key] = []
             # デバッグモードの場合、メッセージ履歴をリセットする
             else:
                 self.message_history = {}
             print("mentioned!")
             user_id = str(message.author.id)
+            user_name = message.author.display_name
+            user_key = f'{user_id}_{user_name}'
             # 現在の日付と時刻を取得
             datetime_jst = datetime.datetime.now(jst)
             now = datetime_jst
@@ -100,14 +104,14 @@ class MyBot(commands.Bot):
             system_message_tokens = count_tokens(system_message["content"])
             # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
             total_tokens = MAX_TOKENS - (message_tokens + system_message_tokens)
-            while sum(count_tokens(m["content"]) for m in self.message_history[user_id]) > total_tokens:
-                self.message_history[user_id].pop(0)
-            self.message_history[user_id].append(new_message)
+            while sum(count_tokens(m["content"]) for m in self.message_history[user_key]) > total_tokens:
+                self.message_history[user_key].append(new_message)
+            self.message_history[user_key].append(new_message)
             if not debug_mode:
                 # メッセージ履歴をRedisに保存し、TTLを設定
-                message_history_json = json.dumps(self.message_history[user_id])
-                r.set(f'message_history_{user_id}', message_history_json)
-                r.expire(f'message_history_{user_id}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+                message_history_json = json.dumps(self.message_history[user_key])
+                r.set(f'message_history_{user_key}', message_history_json)
+                r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
                 print("message was save to redis!")
             print("Getting response from OpenAI API...")
             response = openai.ChatCompletion.create(
@@ -115,18 +119,18 @@ class MyBot(commands.Bot):
                 model=model_name,
                 messages=[
                     system_message,
-                    *self.message_history[user_id]
+                    *self.message_history[user_key]
                 ]
             )
             bot_response = response['choices'][0]['message']['content']
             print("bot_response: ", bot_response)
             print("bot_response_tokens: ", count_tokens(bot_response))
             # メッセージ履歴にボットの返答を追加
-            self.message_history[user_id].append({"role": "assistant", "content": bot_response})
+            self.message_history[user_key].append({"role": "assistant", "content": bot_response})
             # メッセージ履歴をRedisにすぐに保存
-            message_history_json = json.dumps(self.message_history[user_id])
-            r.set(f'message_history_{user_id}', message_history_json)
-            r.expire(f'message_history_{user_id}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+            message_history_json = json.dumps(self.message_history[user_key])
+            r.set(f'message_history_{user_key}', message_history_json)
+            r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
             # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
             typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
             print("typing_time: ", typing_time)

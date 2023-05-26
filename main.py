@@ -136,10 +136,6 @@ class MyBot(commands.Bot):
             print("ボットの応答: ", bot_response)
             bot_response_tokens = count_tokens(bot_response)
             print("bot_response_tokens: ", bot_response_tokens)
-            # 修正: system_messageとself.message_history[user_key]のトークン数をそれぞれ数え、それらを合計する
-            total_tokens_used = count_tokens(system_message["content"]) + sum(count_tokens(m["content"]) for m in self.message_history[user_key])
-            # 今回のリクエスト時に消費したトークン数を表示
-            print("今回のリクエストで消費した合計トークン数: ", total_tokens_used)
             # メッセージ履歴にボットの返答を追加
             self.message_history[user_key].append({"role": "assistant", "content": bot_response})
             # デバッグモードでない場合はボットからの応答を含めたメッセージ履歴をRedisに保存

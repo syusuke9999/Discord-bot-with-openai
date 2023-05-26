@@ -58,7 +58,6 @@ class MyBot(commands.Bot):
 
     async def on_message(self, message):
         await super().on_message(message)  # 追加: commands.Botのon_messageメソッドを呼び出す
-        print("message.content: ", message.content)
         if message.author == self.user:
             return
         # メンションされた場合
@@ -82,6 +81,7 @@ class MyBot(commands.Bot):
             user_id = str(message.author.id)
             user_name = message.author.display_name
             user_key = f'{user_id}_{user_name}'
+            print("user_key: " + user_key + " message.content: ", message.content)
             # 現在の日付と時刻を取得
             datetime_jst = datetime.datetime.now(jst)
             now = datetime_jst
@@ -90,11 +90,12 @@ class MyBot(commands.Bot):
             now_of_day = now.strftime("%d")
             now_of_time = now.strftime("%H:%M")
             system_message_content = f"Today is the year {now_of_year}, the month is {now_of_month} and the date " \
-                                     f"{now_of_day}. The current time is {now_of_time}. " \
-                                     f"You are a Discord bot residing in a Discord channel for people " \
-                                     f"interested in \"Discord bots that work with OpenAI's API\". Please have a " \
+                                     f"{now_of_day}. The current time is {now_of_time}. You are a Discord " \
+                                     f"bot residing in a Discord channel for people interested in " \
+                                     f"\"Discord bots that work with OpenAI's API\". Please have a " \
                                      f"conversation with users about how \"Discord bots running on OpenAI's API\" " \
-                                     f"can be useful to them. Avoid mentioning the topic of the prompt and greet them " \
+                                     f"can be useful to them. " \
+                                     f"Avoid mentioning the topic of the prompt and greet them " \
                                      f"considering the current time. Don't use English, " \
                                      f"please communicate only in Japanese."
             system_message = {"role": "system", "content": system_message_content}

@@ -36,10 +36,10 @@ if not debug_mode:
 
 model_name = "gpt-4"
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
-MAX_TOKENS = 3000
+MAX_TOKENS = 2000
 
 logger = logging.getLogger('discord')
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.Logger)
 
 
 def count_tokens(text):

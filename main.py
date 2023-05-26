@@ -114,26 +114,32 @@ class MyBot(commands.Bot):
                 r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
                 print("message was save to redis!")
             print("Getting response from OpenAI API...")
-            response = openai.ChatCompletion.create(
-                temperature=0.7,
-                model=model_name,
-                messages=[
-                    system_message,
-                    *self.message_history[user_key]
-                ],
-                max_tokens=500,
-                frequency_penalty=0,
-                presence_penalty=0.6,
-            )
+            async with message.channel.typing():
+                response = openai.ChatCompletion.create(
+                    temperature=0.7,
+                    model=model_name,
+                    messages=[
+                        system_message,
+                        *self.message_history[user_key]
+                    ],
+                    max_tokens=500,
+                    frequency_penalty=0,
+                    presence_penalty=0.6,
+                )
             bot_response = response['choices'][0]['message']['content']
             print("bot_response: ", bot_response)
+            bot_response_tokens = count_tokens(bot_response)
             print("bot_response_tokens: ", count_tokens(bot_response))
+            # システムメッセージとユーザーのメッセージのトークン数を合計
+            total_tokens_used = message_tokens + system_message_tokens + bot_response_tokens
+            # 今回のリクエスト時に消費したトークン数を表示
+            print("total_tokens_used: in this request: ", total_tokens_used)
             # メッセージ履歴にボットの返答を追加
             self.message_history[user_key].append({"role": "assistant", "content": bot_response})
             # メッセージ履歴をRedisにすぐに保存
             message_history_json = json.dumps(self.message_history[user_key])
             r.set(f'message_history_{user_key}', message_history_json)
-            r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+            r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを10日間（1,728,000秒）に設定
             # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
             typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
             print("typing_time: ", typing_time)

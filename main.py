@@ -50,15 +50,7 @@ def count_tokens(text):
 class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not debug_mode:
-            # Redisからメッセージ履歴を読み込む
-            message_history_json = r.get('message_history')
-            if message_history_json is not None:
-                self.message_history = json.loads(message_history_json)
-            else:
-                self.message_history = []
-        else:
-            self.message_history = []
+        self.message_history = {}
 
     async def on_ready(self):
         print(f"We have logged in as {self.user}")
@@ -68,8 +60,23 @@ class MyBot(commands.Bot):
         print("message.content: ", message.content)
         if message.author == self.user:
             return
+        # メンションされた場合
         if self.user.mentioned_in(message):
+            # デバックモードでない場合、Redisからメッセージ履歴を読み込む
+            if not debug_mode:
+                # メンションしたユーザーのIDを取得
+                user_id = str(message.author.id)
+                # ユーザーIDをキーとしてRedisからメッセージ履歴を読み込む
+                message_history_json = r.get(f'message_history_{user_id}')
+                if message_history_json is not None:
+                    self.message_history[user_id] = json.loads(message_history_json)
+                else:
+                    self.message_history[user_id] = []
+            # デバッグモードの場合、メッセージ履歴をリセットする
+            else:
+                self.message_history = {}
             print("mentioned!")
+            user_id = str(message.author.id)
             # 現在の日付と時刻を取得
             datetime_jst = datetime.datetime.now(jst)
             now = datetime_jst
@@ -78,14 +85,12 @@ class MyBot(commands.Bot):
             now_of_day = now.strftime("%d")
             now_of_time = now.strftime("%H:%M")
             system_message_content = f"Today is the year {now_of_year}, the month is {now_of_month} and the date " \
-                                     f"{now_of_day}. The current time is {now_of_time}.You are a Discord bot " \
-                                     f"participating in a Discord channel where people interested in a Discord bot " \
-                                     f"that works with OpenAI's API, are welcome to drop by." \
-                                     f"Have a conversation with the user about " \
-                                     f"how a Discord bot working with OpenAI's API can be useful, " \
-                                     f"without specifying the topic." \
-                                     f"Avoid mentioning the topic of the prompt and greet them " \
-                                     f"considering the current time.Don't use English, " \
+                                     f"{now_of_day}. The current time is {now_of_time}. " \
+                                     f"You are a Discord bot residing in a Discord channel for people " \
+                                     f"interested in \"Discord bots that work with OpenAI's API\". Please have a " \
+                                     f"conversation with users about how \"Discord bots running on OpenAI's API\" " \
+                                     f"can be useful to them. Avoid mentioning the topic of the prompt and greet them " \
+                                     f"considering the current time. Don't use English, " \
                                      f"please communicate only in Japanese."
             system_message = {"role": "system", "content": system_message_content}
             print(system_message)
@@ -95,14 +100,14 @@ class MyBot(commands.Bot):
             system_message_tokens = count_tokens(system_message["content"])
             # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
             total_tokens = MAX_TOKENS - (message_tokens + system_message_tokens)
-            while sum(count_tokens(m["content"]) for m in self.message_history) > total_tokens:
-                self.message_history.pop(0)
-            self.message_history.append(new_message)
+            while sum(count_tokens(m["content"]) for m in self.message_history[user_id]) > total_tokens:
+                self.message_history[user_id].pop(0)
+            self.message_history[user_id].append(new_message)
             if not debug_mode:
                 # メッセージ履歴をRedisに保存し、TTLを設定
-                message_history_json = json.dumps(self.message_history)
-                r.set('message_history', message_history_json)
-                r.expire('message_history', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+                message_history_json = json.dumps(self.message_history[user_id])
+                r.set(f'message_history_{user_id}', message_history_json)
+                r.expire(f'message_history_{user_id}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
                 print("message was save to redis!")
             print("Getting response from OpenAI API...")
             response = openai.ChatCompletion.create(
@@ -110,20 +115,27 @@ class MyBot(commands.Bot):
                 model=model_name,
                 messages=[
                     system_message,
-                    *self.message_history
+                    *self.message_history[user_id]
                 ]
             )
             bot_response = response['choices'][0]['message']['content']
-            typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
-            self.message_history.append({"role": "assistant", "content": bot_response})
             print("bot_response: ", bot_response)
             print("bot_response_tokens: ", count_tokens(bot_response))
+            # メッセージ履歴にボットの返答を追加
+            self.message_history[user_id].append({"role": "assistant", "content": bot_response})
+            # メッセージ履歴をRedisにすぐに保存
+            message_history_json = json.dumps(self.message_history[user_id])
+            r.set(f'message_history_{user_id}', message_history_json)
+            r.expire(f'message_history_{user_id}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+            # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
+            typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
             print("typing_time: ", typing_time)
-            print("sending message to discord with await typing function!")
+            print("await sending message to discord with async typing function!")
             async with message.channel.typing():
                 await sleep(typing_time)  # 計算された時間まで待つ
                 await message.reply(bot_response)
-                print("massage have sent to discord with await function!")
+                print("massage have sent to discord!")
+            print("message_history: ", self.message_history)
 
 
 def main():

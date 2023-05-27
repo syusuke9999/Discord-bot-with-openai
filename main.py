@@ -140,7 +140,8 @@ class MyBot(commands.Bot):
                 # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
                 message_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_history[user_key])
                 # 新しいメッセージとシステムメッセージのトークン数を追加
-                message_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(system_message))
+                message_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(system_message)) + \
+                                  count_tokens(json.dumps(bot_response))
                 # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
                 while message_tokens > MAX_TOKENS:
                     # 最初のメッセージを削除する
@@ -149,6 +150,7 @@ class MyBot(commands.Bot):
                     message_tokens -= count_tokens(json.dumps(removed_message))
                 # トークン数が制限以下になったら新しいメッセージを追加
                 self.message_history[user_key].append(new_message)
+                self.message_history[user_key].append({"role": "assistant", "content": bot_response})
                 # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
                 self.total_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_history[user_key])
                 # 新しいメッセージとシステムメッセージのトークン数を追加

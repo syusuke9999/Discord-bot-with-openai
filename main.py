@@ -102,7 +102,6 @@ class MyBot(commands.Bot):
                                      f"considering the current time. Don't use English, " \
                                      f"please communicate only in Japanese."
             system_message = {"role": "system", "content": system_message_content}
-            print(system_message)
             print("user:" + self.user.display_name + "message.content: ", message.content)
             new_message = {"role": "user", "content": message.content}
             print("Getting response from OpenAI API...")
@@ -149,6 +148,10 @@ class MyBot(commands.Bot):
                     message_tokens -= count_tokens(json.dumps(removed_message))
                 # トークン数が制限以下になったら新しいメッセージを追加
                 self.message_history[user_key].append(new_message)
+                # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
+                self.total_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_history[user_key])
+                # 新しいメッセージとシステムメッセージのトークン数を追加
+                self.total_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(system_message))
                 if not debug_mode:
                     # メッセージ履歴をRedisに保存し、TTLを設定
                     message_history_json = json.dumps(self.message_history[user_key])
@@ -172,10 +175,10 @@ def main():
     intents.messages = True
     intents.guilds = True
     client = MyBot(command_prefix='!', intents=intents)
-    if debug_mode:
-        client.run(DISCORD_TEST_TOKEN)
-    else:
+    if not debug_mode:
         client.run(DISCORD_TOKEN)
+    else:
+        client.run(DISCORD_TEST_TOKEN)
 
 
 if __name__ == "__main__":

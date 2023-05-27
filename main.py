@@ -100,7 +100,8 @@ class MyBot(commands.Bot):
                                      f"can be useful to them. " \
                                      f"Avoid mentioning the topic of the prompt and greet them " \
                                      f"considering the current time. Don't use English, " \
-                                     f"please communicate only in Japanese."
+                                     f"please communicate only in Japanese." \
+                                     f"Also, please keep your replies to 450 tokens or less."
             system_message = {"role": "system", "content": system_message_content}
             print("user:" + self.user.display_name + "message.content: ", message.content)
             new_message = {"role": "user", "content": message.content}

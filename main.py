@@ -36,7 +36,7 @@ if not debug_mode:
 
 model_name = "gpt-4"
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
-MAX_TOKENS = 2000
+MAX_TOKENS = 3000
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.WARNING)
@@ -105,20 +105,6 @@ class MyBot(commands.Bot):
             print(system_message)
             print("user:" + self.user.display_name + "message.content: ", message.content)
             new_message = {"role": "user", "content": message.content}
-            message_tokens = count_tokens(message.content)
-            system_message_tokens = count_tokens(system_message["content"])
-            # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
-            total_tokens = MAX_TOKENS - (message_tokens + system_message_tokens)
-            while sum(count_tokens(m["content"]) for m in self.message_history[user_key]) + \
-                    count_tokens(new_message["content"]) > total_tokens:
-                self.message_history[user_key].pop(0)  # 最初のメッセージを削除
-            self.message_history[user_key].append(new_message)  # 新しいメッセージを追加
-            if not debug_mode:
-                # メッセージ履歴をRedisに保存し、TTLを設定
-                message_history_json = json.dumps(self.message_history[user_key])
-                r.set(f'message_history_{user_key}', message_history_json)
-                r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
-                print("message was save to redis!")
             print("Getting response from OpenAI API...")
             async with message.channel.typing():
                 start_time = time.time()  # 追加: リクエストの前に時間を記録
@@ -140,16 +126,35 @@ class MyBot(commands.Bot):
             print("ボットの応答: ", bot_response)
             bot_response_tokens = count_tokens(bot_response)
             print("bot_response_tokens: ", bot_response_tokens)
-            self.total_tokens += bot_response_tokens  # 修正: トークン数の合計にボットの応答のトークン数を追加
-            print("これまでに使用したトークンの総数: ", self.total_tokens)  # 修正: トークン数の合計を出力
-            # メッセージ履歴にボットの返答を追加
-            self.message_history[user_key].append({"role": "assistant", "content": bot_response})
             # デバッグモードでない場合はボットからの応答を含めたメッセージ履歴をRedisに保存
             if not debug_mode:
-                message_history_json = json.dumps(self.message_history[user_key])
-                r.set(f'message_history_{user_key}', message_history_json)
-                r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを10日間（1,728,000秒）に設定
-                print("bot message was save to redis!")
+                # 新しいメッセージを追加する前に、既存のメッセージ履歴をチェック
+                for i, old_message in list(enumerate(self.message_history[user_key])):  # list()を使用してリストのコピーを作成
+                    # ユーザーのメッセージと同じ内容のメッセージが存在する場合
+                    if old_message["role"] == "user" and old_message["content"] == new_message["content"]:
+                        # 次のメッセージが存在し、そのメッセージがボットからのものであることを確認
+                        if i + 1 < len(self.message_history[user_key]) and \
+                                self.message_history[user_key][i + 1]["role"] == "assistant":
+                            # そのメッセージと次のメッセージ（ボットの応答）を削除
+                            del self.message_history[user_key][i:i + 2]
+                # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
+                message_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_history[user_key])
+                # 新しいメッセージとシステムメッセージのトークン数を追加
+                message_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(system_message))
+                # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
+                while message_tokens > MAX_TOKENS:
+                    # 最初のメッセージを削除する
+                    removed_message = self.message_history[user_key].pop(0)
+                    # 削除したメッセージのトークン数を引く
+                    message_tokens -= count_tokens(json.dumps(removed_message))
+                # トークン数が制限以下になったら新しいメッセージを追加
+                self.message_history[user_key].append(new_message)
+                if not debug_mode:
+                    # メッセージ履歴をRedisに保存し、TTLを設定
+                    message_history_json = json.dumps(self.message_history[user_key])
+                    r.set(f'message_history_{user_key}', message_history_json)
+                    r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+                    print("message was save to redis!")
             # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
             typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
             print("typing_time: ", typing_time)

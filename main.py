@@ -68,9 +68,9 @@ async def call_openai_api(system_message, new_message, user_key, self):
         "presence_penalty": 0.6,
     }
     # 最大リトライ回数
-    max_retries = 5
+    max_retries = 10
     # リトライ間隔（秒）
-    retry_interval = 5
+    retry_interval = 15
 
     for i in range(max_retries):
         try:
@@ -80,6 +80,7 @@ async def call_openai_api(system_message, new_message, user_key, self):
                 return response.json()
         except (httpx.HTTPStatusError, Exception) as e:
             print(f"An error occurred: {e}")
+            print(httpx.HTTPStatusError.with_traceback(self))
             if i < max_retries - 1:  # 最後のリトライでなければ、次のリトライまで待つ
                 print(f"Retrying in {retry_interval} seconds...")
                 await asyncio.sleep(retry_interval)

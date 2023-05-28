@@ -67,14 +67,24 @@ async def call_openai_api(system_message, new_message, user_key, self):
         "frequency_penalty": 0,
         "presence_penalty": 0.6,
     }
+    # 最大リトライ回数
+    max_retries = 5
+    # リトライ間隔（秒）
+    retry_interval = 5
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, headers=headers, data=json.dumps(data))
-        if response.status_code == 200:
-            return response.json()
-        else:
-            print(f"Request failed with status code {response.status_code}")
-            return None
+    for i in range(max_retries):
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, headers=headers, data=json.dumps(data))
+                response.raise_for_status()  # ステータスコードが200系以外の場合に例外を発生させる
+                return response.json()
+        except (httpx.HTTPStatusError, Exception) as e:
+            print(f"An error occurred: {e}")
+            if i < max_retries - 1:  # 最後のリトライでなければ、次のリトライまで待つ
+                print(f"Retrying in {retry_interval} seconds...")
+                await asyncio.sleep(retry_interval)
+            else:  # 最後のリトライでもエラーが発生した場合、エラーを再度送出する
+                raise
 
 
 class MyBot(commands.Bot):

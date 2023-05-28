@@ -56,10 +56,7 @@ async def call_openai_api(system_message, new_message, message_history):
     data = {
         "temperature": 0.7,
         "model": model_name,
-        "messages": [
-            system_message,
-            new_message,
-            ] + message_history,
+        "messages": [system_message] + message_history + [new_message],
         "max_tokens": 500,
         "frequency_penalty": 0,
         "presence_penalty": 0.6,

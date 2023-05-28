@@ -1,5 +1,6 @@
 import os
 import time  # 追加: timeモジュールをインポート
+import traceback
 import discord
 from discord.ext import commands
 import asyncio
@@ -70,22 +71,21 @@ async def call_openai_api(system_message, new_message, user_key, self):
     # 最大リトライ回数
     max_retries = 10
     # リトライ間隔（秒）
-    retry_interval = 15
-
+    retry_interval = 20
     for i in range(max_retries):
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(url, headers=headers, data=json.dumps(data))
                 response.raise_for_status()  # ステータスコードが200系以外の場合に例外を発生させる
                 return response.json()
-        except (httpx.HTTPStatusError, Exception) as e:
+        except Exception as e:
             print(f"An error occurred: {e}")
-            print(httpx.HTTPStatusError.with_traceback(self, tb=MyBot.on_message))
-            if i < max_retries - 1:  # 最後のリトライでなければ、次のリトライまで待つ
-                print(f"Retrying in {retry_interval} seconds...")
-                await asyncio.sleep(retry_interval)
-            else:  # 最後のリトライでもエラーが発生した場合、エラーを再度送出する
-                raise
+            traceback.print_exc()
+        if i < max_retries - 1:  # 最後のリトライでなければ、次のリトライまで待つ
+            print(f"Retrying in {retry_interval} seconds...")
+            await asyncio.sleep(retry_interval)
+        else:  # 最後のリトライでもエラーが発生した場合、エラーを再度送出する
+            raise
 
 
 class MyBot(commands.Bot):

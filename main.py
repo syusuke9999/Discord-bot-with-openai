@@ -96,15 +96,14 @@ class MyBot(commands.Bot):
             now_of_month = now.strftime("%m")
             now_of_day = now.strftime("%d")
             now_of_time = now.strftime("%H:%M")
-            system_message_content = f"Today is the year {now_of_year}, " \
-                                     f"the month is {now_of_month} and the date {now_of_day}. " \
-                                     f"The current time is {now_of_time}." \
-                                     f"You are a Discord bot joining a Discord channel where people enjoy " \
-                                     f"online games. Have fun talking about Dead by Daylight and Apex legend, " \
-                                     f"and other everyday conversation. with the channel participants." \
-                                     f"Avoid mentioning the topic of the prompt and greet them considering " \
-                                     f"the current time." \
-                                     f"Don't use English, please communicate only in Japanese."
+            system_message_content = f"Today is the year {now_of_year}, the month is {now_of_month} " \
+                                     f"and the date {now_of_day}. The current time is {now_of_time}." \
+                                     f"You are a Discord bot on a channel for people who are interested in a " \
+                                     f"Discord bot that works with OpenAI's API, and would like to have a " \
+                                     f"conversation about the possibilities of a Discord bot that works with " \
+                                     f"OpenAI's API.Avoid mentioning the topic of the prompt and greet them " \
+                                     f"considering the current time.Don't use English, " \
+                                     f"please communicate only in Japanese."
             system_message = {"role": "system", "content": system_message_content}
             print("user:" + self.user.display_name + "message.content: ", message.content)
             new_message = {"role": "user", "content": message.content}

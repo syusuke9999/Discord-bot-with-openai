@@ -12,15 +12,12 @@ import redis
 from asyncio import sleep
 import json
 import logging
-import datetime
-import pytz
+from system_message import SystemMessage
 
 debug_mode = False
 
 # Discord接続を初期化
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-
-jst = pytz.timezone('Asia/Tokyo')
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 DISCORD_TEST_TOKEN = os.getenv("DISCORD_TEST_TOKEN")
@@ -78,7 +75,8 @@ async def call_openai_api(system_message, new_message, user_key, self):
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.post(url, headers=headers, data=json.dumps(data))
-                response.raise_for_status()  # ステータスコードが200系以外の場合に例外を発生させる
+                # ステータスコードが200系以外の場合に例外を発生させる
+                response.raise_for_status()
                 return response.json()
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -131,21 +129,9 @@ class MyBot(commands.Bot):
             user_name = message.author.display_name
             user_key = f'{user_id}_{user_name}'
             print("user_key: " + user_key + " message.content: ", message.content)
-            # 現在の日付と時刻を取得
-            datetime_jst = datetime.datetime.now(jst)
-            now = datetime_jst
-            now_of_year = now.strftime("%Y")
-            now_of_month = now.strftime("%m")
-            now_of_day = now.strftime("%d")
-            now_of_time = now.strftime("%H:%M")
-            system_message_content = f"Today is the year {now_of_year}, the month is {now_of_month} " \
-                                     f"and the date {now_of_day}. The current time is {now_of_time}." \
-                                     f"You are a Discord bot on a channel for people who are interested in a " \
-                                     f"Discord bot that works with OpenAI's API, and would like to have a " \
-                                     f"conversation about the possibilities of a Discord bot that works with " \
-                                     f"OpenAI's API.Avoid mentioning the topic of the prompt and greet them " \
-                                     f"considering the current time.Don't use English, " \
-                                     f"please communicate only in Japanese."
+            system_message_instance = SystemMessage()
+            # システムメッセージの取得
+            system_message_content = system_message_instance.get_system_message_content()
             system_message = {"role": "system", "content": system_message_content}
             print("user:" + self.user.display_name + "message.content: ", message.content)
             new_message = {"role": "user", "content": message.content}

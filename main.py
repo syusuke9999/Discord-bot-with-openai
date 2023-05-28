@@ -80,7 +80,7 @@ async def call_openai_api(system_message, new_message, user_key, self):
                 return response.json()
         except (httpx.HTTPStatusError, Exception) as e:
             print(f"An error occurred: {e}")
-            print(httpx.HTTPStatusError.with_traceback(self))
+            print(httpx.HTTPStatusError.with_traceback(self, tb=MyBot.on_message))
             if i < max_retries - 1:  # 最後のリトライでなければ、次のリトライまで待つ
                 print(f"Retrying in {retry_interval} seconds...")
                 await asyncio.sleep(retry_interval)

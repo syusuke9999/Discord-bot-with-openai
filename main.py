@@ -3,8 +3,10 @@ import time  # 追加: timeモジュールをインポート
 import discord
 from discord.ext import commands
 import openai
+import asyncio
 import tiktoken
 from tiktoken.core import Encoding
+import httpx
 import redis
 from asyncio import sleep
 import json
@@ -46,6 +48,34 @@ def count_tokens(text):
     tokens = encoding.encode(text)
     tokens_count = len(tokens)
     return tokens_count
+
+
+async def call_openai_api(system_message, new_message, user_key, self):
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {OPENAI_API_KEY}"
+    }
+    data = {
+        "temperature": 0.7,
+        "model": model_name,
+        "messages": [
+            system_message,
+            new_message,
+            *self.message_history[user_key]
+        ],
+        "max_tokens": 500,
+        "frequency_penalty": 0,
+        "presence_penalty": 0.6,
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, headers=headers, data=json.dumps(data))
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"Request failed with status code {response.status_code}")
+            return None
 
 
 class MyBot(commands.Bot):
@@ -108,23 +138,16 @@ class MyBot(commands.Bot):
             print("user:" + self.user.display_name + "message.content: ", message.content)
             new_message = {"role": "user", "content": message.content}
             print("Getting response from OpenAI API...")
+            start_time = time.time()  # 追加: OpenAIのAPIへのリクエストを送信する前に時間を記録
             async with message.channel.typing():
-                start_time = time.time()  # 追加: リクエストの前に時間を記録
-                response = openai.ChatCompletion.create(
-                    temperature=0.7,
-                    model=model_name,
-                    messages=[
-                        system_message,
-                        new_message,
-                        *self.message_history[user_key]
-                    ],
-                    max_tokens=500,
-                    frequency_penalty=0,
-                    presence_penalty=0.6,
-                )
-                end_time = time.time()  # 追加: リクエストの後に時間を記録
-                elapsed_time = end_time - start_time  # 追加: 経過時間を計算
-                print(f"OpenAIのAPIへのリクエストから応答があるまでに要した時間: {elapsed_time} 秒。")  # 追加: 経過時間を表示
+                response = asyncio.run(call_openai_api(system_message, new_message, user_key, self))
+                if response is not None:
+                    print(response)
+                else:
+                    print("OpenAI's API call failed.")
+            end_time = time.time()  # 追加: リクエストの後に時間を記録
+            elapsed_time = end_time - start_time  # 追加: 経過時間を計算
+            print(f"OpenAIのAPIへのリクエストから応答があるまでに要した時間: {elapsed_time} 秒。")  # 追加: 経過時間を表示
             bot_response = response['choices'][0]['message']['content']
             print("ボットの応答: ", bot_response)
             bot_response_tokens = count_tokens(bot_response)

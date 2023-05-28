@@ -73,7 +73,11 @@ class MyBot(commands.Bot):
                 user_name = message.author.display_name
                 user_key = f'{user_id}_{user_name}'
                 # Redisからメッセージ履歴を読み込む
+                start_time = time.time()  # 追加: Redisサーバーからメッセージの履歴を取得する前に時間を記録
                 message_history_json = r.get(f'message_history_{user_key}')
+                end_time = time.time()  # 追加: リクエストの後に時間を記録
+                elapsed_time = end_time - start_time  # 追加: 経過時間を計算
+                print(f"Redisサーバーからメッセージの履歴を取得するのにかかった時間:  {elapsed_time} 秒。")  # 追加: 経過時間を表示
                 if message_history_json is not None:
                     self.message_history[user_key] = json.loads(message_history_json)
                 else:
@@ -158,9 +162,13 @@ class MyBot(commands.Bot):
                 if not debug_mode:
                     # メッセージ履歴をRedisに保存し、TTLを設定
                     message_history_json = json.dumps(self.message_history[user_key])
+                    start_time = time.time()  # 追加: Redisサーバーへメッセージの履歴を保存する前に時間を記録
                     r.set(f'message_history_{user_key}', message_history_json)
                     r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
-                    print("message was save to redis!")
+                    end_time = time.time()  # 追加: 保存の後に時間を記録
+                    elapsed_time = end_time - start_time  # 追加: 経過時間を計算
+                    print(f"Redisへ会話履歴を保存するのにかかった時間: {elapsed_time} 秒。")  # 追加: 経過時間を表示
+                    print("message was saved to redis!")
             # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
             typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
             print("typing_time: ", typing_time)

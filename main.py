@@ -48,7 +48,7 @@ def count_tokens(text):
     return tokens_count
 
 
-async def call_openai_api(system_message, new_message, user_key, self):
+async def call_openai_api(system_message, new_message, message_history):
     url = "https://api.openai.com/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
@@ -60,32 +60,21 @@ async def call_openai_api(system_message, new_message, user_key, self):
         "messages": [
             system_message,
             new_message,
-            *self.message_history[user_key]
-        ],
+            ] + message_history,
         "max_tokens": 500,
         "frequency_penalty": 0,
         "presence_penalty": 0.6,
     }
     # 最大リトライ回数
-    max_retries = 10
+    max_retries = 3
     # リトライ間隔（秒）
-    retry_interval = 20
-    timeout = Timeout(60.0)  # Set timeout to 60 seconds
-    for i in range(max_retries):
-        try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                response = await client.post(url, headers=headers, data=json.dumps(data))
-                # ステータスコードが200系以外の場合に例外を発生させる
-                response.raise_for_status()
-                return response.json()
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            traceback.print_exc()
-        if i < max_retries - 1:  # 最後のリトライでなければ、次のリトライまで待つ
-            print(f"Retrying in {retry_interval} seconds...")
-            await asyncio.sleep(retry_interval)
-        else:  # 最後のリトライでもエラーが発生した場合、エラーを再度送出する
-            raise
+    retry_interval = 10
+    timeout = Timeout(100)  # Set timeout to 60 seconds
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        response = await client.post(url, headers=headers, data=json.dumps(data))
+        # ステータスコードが200系以外の場合に例外を発生させる
+        response.raise_for_status()
+        return response.json()
 
 
 class MyBot(commands.Bot):
@@ -133,12 +122,11 @@ class MyBot(commands.Bot):
             # システムメッセージの取得
             system_message_content = system_message_instance.get_system_message_content()
             system_message = {"role": "system", "content": system_message_content}
-            print("user:" + self.user.display_name + "message.content: ", message.content)
             new_message = {"role": "user", "content": message.content}
             print("Getting response from OpenAI API...")
             start_time = time.time()  # 追加: OpenAIのAPIへのリクエストを送信する前に時間を記録
             async with message.channel.typing():
-                response = await call_openai_api(system_message, new_message, user_key, self)
+                response = await call_openai_api(system_message, new_message, self.message_history[user_key])
                 if response is not None:
                     print(response)
                 else:

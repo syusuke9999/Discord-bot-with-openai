@@ -115,6 +115,7 @@ class MyBot(commands.Bot):
                     model=model_name,
                     messages=[
                         system_message,
+                        new_message,
                         *self.message_history[user_key]
                     ],
                     max_tokens=500,

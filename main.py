@@ -2,7 +2,6 @@ import os
 import time  # 追加: timeモジュールをインポート
 import discord
 from discord.ext import commands
-import openai
 import asyncio
 import tiktoken
 from tiktoken.core import Encoding
@@ -140,7 +139,7 @@ class MyBot(commands.Bot):
             print("Getting response from OpenAI API...")
             start_time = time.time()  # 追加: OpenAIのAPIへのリクエストを送信する前に時間を記録
             async with message.channel.typing():
-                response = asyncio.run(call_openai_api(system_message, new_message, user_key, self))
+                response = await call_openai_api(system_message, new_message, user_key, self)
                 if response is not None:
                     print(response)
                 else:
@@ -167,7 +166,7 @@ class MyBot(commands.Bot):
                 message_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_history[user_key])
                 # 新しいメッセージとシステムメッセージのトークン数を追加
                 message_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(system_message)) + \
-                                  count_tokens(json.dumps(bot_response))
+                    count_tokens(json.dumps(bot_response))
                 # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
                 while message_tokens > MAX_TOKENS:
                     # 最初のメッセージを削除する

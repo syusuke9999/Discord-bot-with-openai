@@ -7,6 +7,7 @@ import asyncio
 import tiktoken
 from tiktoken.core import Encoding
 import httpx
+from httpx import Timeout
 import redis
 from asyncio import sleep
 import json
@@ -72,9 +73,10 @@ async def call_openai_api(system_message, new_message, user_key, self):
     max_retries = 10
     # リトライ間隔（秒）
     retry_interval = 20
+    timeout = Timeout(60.0)  # Set timeout to 60 seconds
     for i in range(max_retries):
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.post(url, headers=headers, data=json.dumps(data))
                 response.raise_for_status()  # ステータスコードが200系以外の場合に例外を発生させる
                 return response.json()

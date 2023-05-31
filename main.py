@@ -36,7 +36,7 @@ if not debug_mode:
 
 model_name = "gpt-4"
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
-MAX_TOKENS = 3000
+MAX_TOKENS = 2500
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.WARNING)
@@ -88,7 +88,6 @@ class MyBot(commands.Bot):
         super().__init__(*args, **kwargs)
         self.message_history = {}
         self.total_tokens = 0  # 修正: トークン数の合計を保持するための変数を追加
-        self.memory = ConversationBufferMemory()
 
     async def on_ready(self):
         print(f"We have logged in as {self.user}")
@@ -109,8 +108,6 @@ class MyBot(commands.Bot):
             user_key = f'{user_id}_{user_name}'
             # デバックモードでない場合、Redisからメッセージ履歴を読み込む
             if not debug_mode:
-                # ConversationBufferMemoryにユーザーのメッセージを追加
-                self.memory.chat_memory.add_user_message(message.content)
                 # Redisからメッセージ履歴を読み込む
                 start_time = time.time()  # 追加: Redisサーバーからメッセージの履歴を取得する前に時間を記録
                 message_history_json = r.get(f'message_history_{user_key}')
@@ -124,7 +121,6 @@ class MyBot(commands.Bot):
             # デバッグモードの場合、メッセージ履歴をリセットする
             else:
                 self.message_history = {}
-            self.memory.chat_memory.add_user_message(message.content)
             print("user_key: " + user_key + " message.content: ", message.content)
             system_message_instance = SystemMessage(topic=Topic.Discord_Bot_General)
             system_message_content = system_message_instance.get_system_message_content()
@@ -132,20 +128,21 @@ class MyBot(commands.Bot):
             print("system_message: ", system_message)
             new_message = {"role": "user", "content": message.content}
             print("Getting response from OpenAI API...")
-            start_time = time.time()  # 追加: OpenAIのAPIへのリクエストを送信する前に時間を記録
+            # OpenAIのAPIへのリクエストを送信してから返事が返って来るまでの時間を測定する
+            start_time = time.time()
             async with message.channel.typing():
                 response = await call_openai_api(system_message, new_message, self.message_history[user_key])
                 if response is not None:
                     print(response)
                 else:
                     print("OpenAI's API call failed.")
-            end_time = time.time()  # 追加: リクエストの後に時間を記録
-            elapsed_time = end_time - start_time  # 追加: 経過時間を計算
-            print(f"OpenAIのAPIへのリクエストから応答があるまでに要した時間: {elapsed_time} 秒。")  # 追加: 経過時間を表示
+            # リクエストの後に時間を記録
+            end_time = time.time()
+            # OpenAIのAPIへのリクエストを送信してから返事が返って来るまでの時間を計算して表示
+            elapsed_time = end_time - start_time
+            print(f"OpenAIのAPIへのリクエストから応答があるまでに要した時間: {elapsed_time} 秒")  # 追加: 経過時間を表示
             bot_response = response['choices'][0]['message']['content']
             print("ボットの応答: ", bot_response)
-            # ConversationBufferMemoryにボットの応答を追加
-            self.memory.chat_memory.add_ai_message(bot_response)
             bot_response_tokens = count_tokens(bot_response)
             print("bot_response_tokens: ", bot_response_tokens)
             # デバッグモードでない場合はボットからの応答を含めたメッセージ履歴をRedisに保存
@@ -186,7 +183,7 @@ class MyBot(commands.Bot):
                     end_time = time.time()  # 追加: 保存の後に時間を記録
                     elapsed_time = end_time - start_time  # 追加: 経過時間を計算
                     print(f"Redisへ会話履歴を保存するのにかかった時間: {elapsed_time} 秒。")  # 追加: 経過時間を表示
-                    print("message was saved to redis!")
+                    print("メッセージはRedisサーバーへ送信されました。")
             # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
             typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
             print("typing_time: ", typing_time)
@@ -201,8 +198,6 @@ class MyBot(commands.Bot):
 def main():
     global debug_mode
     intents = discord.Intents.all()
-    intents.messages = True
-    intents.guilds = True
     client = MyBot(command_prefix='!', intents=intents)
     if not debug_mode:
         client.run(DISCORD_TOKEN)

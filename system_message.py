@@ -10,6 +10,7 @@ class Topic(Enum):
 
 class SystemMessage:
     def __init__(self, topic=None, *args, **kwargs):
+        self.topics = topic
         if topic is None:
             self.topics = 'None'
             self.system_message_content = 'You are useful assistant.'

@@ -65,7 +65,7 @@ async def call_openai_api(system_message, new_message, message_history):
     max_retries = 3
     # リトライ間隔（秒）
     retry_interval = 10
-    timeout = Timeout(100)  # Set timeout to 60 seconds
+    timeout = Timeout(120)  # Set timeout to 60 seconds
     for i in range(max_retries):
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
@@ -77,6 +77,7 @@ async def call_openai_api(system_message, new_message, message_history):
             if i < max_retries - 1:  # 最後のリトライでなければ、次のリトライまで待つ
                 print(f"Retrying in {retry_interval} seconds...")
                 await asyncio.sleep(retry_interval)
+                print("Retrying now!")
             else:  # 最後のリトライでもエラーが発生した場合、エラーを再度送出する
                 raise
 

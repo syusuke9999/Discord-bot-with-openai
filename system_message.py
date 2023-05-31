@@ -1,21 +1,23 @@
 import datetime
 import pytz
+from enum import Enum
+
+
+class Topic(Enum):
+    Discord_Bot_General = 1
+    Online_Game_DBD_APEX_AND_Daily_Conversation = 2
 
 
 class SystemMessage:
-    def __init__(self, *args, **kwargs):
-        if args is None:
+    def __init__(self, topic=None, *args, **kwargs):
+        if topic is None:
             self.topics = 'None'
             self.system_message_content = 'You are useful assistant.'
         else:
             self.system_message_content = self.set_system_message_content()
 
-    def set_system_message_topics(self, topics):
-        self.topics = topics
-        self.set_system_message_content()
-
     def set_system_message_content(self):
-        if self.topics == 'discord_bot':
+        if self.topics == Topic.Discord_Bot_General:
             jst = pytz.timezone('Asia/Tokyo')
             # 現在の日付と時刻を取得
             datetime_jst = datetime.datetime.now(jst)
@@ -33,7 +35,7 @@ class SystemMessage:
                              f'considering the current time.Don\'t use English, ' \
                              f'please communicate only in Japanese.'
             return system_message
-        elif self.topics == 'dbd_apex_online_etc':
+        elif self.topics == Topic.Online_Game_DBD_APEX_AND_Daily_Conversation:
             jst = pytz.timezone('Asia/Tokyo')
             # 現在の日付と時刻を取得
             datetime_jst = datetime.datetime.now(jst)
@@ -51,9 +53,6 @@ class SystemMessage:
                              f"Avoid mentioning the topic of the prompt and greet them considering " \
                              f"the current time." \
                              f"Don't use English, please communicate only in Japanese."
-            return system_message
-        else:
-            system_message = 'You are useful assistant.'
             return system_message
 
     def get_system_message_content(self):

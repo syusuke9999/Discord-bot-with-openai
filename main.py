@@ -12,8 +12,8 @@ from asyncio import sleep
 import json
 import logging
 from langchain.memory import ConversationBufferMemory
-from langchain.schema import HumanMessage, AIMessage
-from system_message import SystemMessage
+from system_message import SystemMessage, Topic
+
 
 debug_mode = False
 
@@ -127,9 +127,7 @@ class MyBot(commands.Bot):
                 self.message_history = {}
             self.memory.chat_memory.add_user_message(message.content)
             print("user_key: " + user_key + " message.content: ", message.content)
-            system_message_instance = SystemMessage()
-            # インスタンスにトピックを設定
-            system_message_instance.set_system_message_topics("discord_bot")
+            system_message_instance = SystemMessage(topic=Topic.Discord_Bot_General)
             system_message_content = system_message_instance.get_system_message_content()
             system_message = {"role": "system", "content": system_message_content}
             print("system_message: ", system_message)
@@ -166,7 +164,7 @@ class MyBot(commands.Bot):
                 message_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_history[user_key])
                 # 新しいメッセージとシステムメッセージのトークン数を追加
                 message_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(system_message)) + \
-                    count_tokens(json.dumps(bot_response))
+                                  count_tokens(json.dumps(bot_response))
                 # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
                 while message_tokens > MAX_TOKENS:
                     # 最初のメッセージを削除する

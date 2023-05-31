@@ -26,6 +26,7 @@ REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 
+
 if not debug_mode:
     # Redis接続を初期化
     r = redis.Redis(
@@ -122,7 +123,10 @@ class MyBot(commands.Bot):
             else:
                 self.message_history = {}
             print("user_key: " + user_key + " message.content: ", message.content)
-            system_message_instance = SystemMessage(topic=Topic.Discord_Bot_General)
+            env_var = os.getenv('TOPIC_ENUM')
+            # 環境変数の値をTopic列挙体のメンバーに変換
+            topic = Topic[env_var]
+            system_message_instance = SystemMessage(topic=topic)
             system_message_content = system_message_instance.get_system_message_content()
             system_message = {"role": "system", "content": system_message_content}
             print("system_message: ", system_message)

@@ -4,8 +4,8 @@ from enum import Enum
 
 
 class Topic(Enum):
-    Discord_Bot_General = 1
-    Online_Game_DBD_APEX_AND_Daily_Conversation = 2
+    General_Discord_Bot = 1
+    Online_Game = 2
 
 
 class SystemMessage:
@@ -18,7 +18,7 @@ class SystemMessage:
             self.system_message_content = self.set_system_message_content()
 
     def set_system_message_content(self):
-        if self.topics == Topic.Discord_Bot_General:
+        if self.topics == Topic.General_Discord_Bot:
             jst = pytz.timezone('Asia/Tokyo')
             # 現在の日付と時刻を取得
             datetime_jst = datetime.datetime.now(jst)
@@ -36,7 +36,7 @@ class SystemMessage:
                              f"considering the current time." \
                              f"Don't use English, please communicate only in Japanese."
             return system_message
-        elif self.topics == Topic.Online_Game_DBD_APEX_AND_Daily_Conversation:
+        elif self.topics == Topic.Online_Game:
             jst = pytz.timezone('Asia/Tokyo')
             # 現在の日付と時刻を取得
             datetime_jst = datetime.datetime.now(jst)
@@ -48,12 +48,12 @@ class SystemMessage:
             system_message = f"Today is the year {now_of_year}, " \
                              f"the month is {now_of_month} and the date {now_of_day}. " \
                              f"The current time is {now_of_time}." \
-                             f"You are a Discord bot joining a Discord channel where people enjoy " \
-                             f"online games. Have fun talking about Dead by Daylight and Apex legend, " \
-                             f"and other everyday conversation. with the channel participants." \
-                             f"Avoid mentioning the topic of the prompt and greet them considering " \
-                             f"the current time." \
-                             f"Don't use English, please communicate only in Japanese."
+                             f"As a Discord bot in a gaming community, engage with members who have a shared " \
+                             f"interest in online games like Dead by Daylight and Apex Legends, while maintaining " \
+                             f"a balanced conversation that includes everyday topics. When interacting with users, " \
+                             f"incorporate greetings that correspond to the current time. Participate in casual " \
+                             f"conversations with channel members when prompted by users. Don't use English. " \
+                             f"Communicate in Japanese only. Avoid bringing up the topic of the prompt."
             return system_message
 
     def get_system_message_content(self):

@@ -14,7 +14,6 @@ import logging
 from langchain.memory import ConversationBufferMemory
 from system_message import SystemMessage, Topic
 
-
 debug_mode = False
 
 # Discord接続を初期化
@@ -164,7 +163,7 @@ class MyBot(commands.Bot):
                 message_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_history[user_key])
                 # 新しいメッセージとシステムメッセージのトークン数を追加
                 message_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(system_message)) + \
-                                  count_tokens(json.dumps(bot_response))
+                    count_tokens(json.dumps(bot_response))
                 # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
                 while message_tokens > MAX_TOKENS:
                     # 最初のメッセージを削除する

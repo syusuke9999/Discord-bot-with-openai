@@ -129,8 +129,7 @@ class MyBot(commands.Bot):
             print("user_key: " + user_key + " message.content: ", message.content)
             system_message_instance = SystemMessage()
             # インスタンスにトピックを設定
-            system_message_instance.topics = "discord_bot"
-            system_message_instance.set_system_message_content()
+            system_message_instance.set_system_message_topics("discord")
             system_message_content = system_message_instance.get_system_message_content()
             system_message = {"role": "system", "content": system_message_content}
             print("system_message: ", system_message)

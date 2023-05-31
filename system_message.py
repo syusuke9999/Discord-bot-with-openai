@@ -8,8 +8,11 @@ class SystemMessage:
             self.topics = 'None'
             self.system_message_content = 'You are useful assistant.'
         else:
-            self.topics = args[0]
             self.system_message_content = self.set_system_message_content()
+
+    def set_system_message_topics(self, topics):
+        self.topics = topics
+        self.set_system_message_content()
 
     def set_system_message_content(self):
         if self.topics is 'discord_bot':

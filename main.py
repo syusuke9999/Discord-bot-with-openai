@@ -11,6 +11,8 @@ import redis
 from asyncio import sleep
 import json
 import logging
+from langchain.memory import ConversationBufferMemory
+from langchain.schema import HumanMessage, AIMessage
 from system_message import SystemMessage
 
 debug_mode = False
@@ -87,6 +89,7 @@ class MyBot(commands.Bot):
         super().__init__(*args, **kwargs)
         self.message_history = {}
         self.total_tokens = 0  # 修正: トークン数の合計を保持するための変数を追加
+        self.memory = ConversationBufferMemory()
 
     async def on_ready(self):
         print(f"We have logged in as {self.user}")
@@ -100,16 +103,19 @@ class MyBot(commands.Bot):
         if self.user in message.mentions:
             # メッセージの内容を表示
             print("Message content: ", message.content)
+            # メンションしたユーザーのIDと名前を取得
+            user_id = str(message.author.id)
+            user_name = message.author.display_name
+            # ユーザーのIDと名前を組み合わせて、ユーザーを一意に識別するユーザーキーを作成
+            user_key = f'{user_id}_{user_name}'
             # デバックモードでない場合、Redisからメッセージ履歴を読み込む
             if not debug_mode:
-                # メンションしたユーザーのIDを取得
-                user_id = str(message.author.id)
-                user_name = message.author.display_name
-                user_key = f'{user_id}_{user_name}'
+                # ConversationBufferMemoryにユーザーのメッセージを追加
+                self.memory.chat_memory.add_user_message(message.content)
                 # Redisからメッセージ履歴を読み込む
                 start_time = time.time()  # 追加: Redisサーバーからメッセージの履歴を取得する前に時間を記録
                 message_history_json = r.get(f'message_history_{user_key}')
-                end_time = time.time()  # 追加: リクエストの後に時間を記録
+                end_time = time.time()  # Redisサーバーからのデータ取得にかかった時間を計算
                 elapsed_time = end_time - start_time  # 追加: 経過時間を計算
                 print(f"Redisサーバーからメッセージの履歴を取得するのにかかった時間:  {elapsed_time} 秒。")  # 追加: 経過時間を表示
                 if message_history_json is not None:
@@ -119,14 +125,15 @@ class MyBot(commands.Bot):
             # デバッグモードの場合、メッセージ履歴をリセットする
             else:
                 self.message_history = {}
-            user_id = str(message.author.id)
-            user_name = message.author.display_name
-            user_key = f'{user_id}_{user_name}'
+            self.memory.chat_memory.add_user_message(message.content)
             print("user_key: " + user_key + " message.content: ", message.content)
             system_message_instance = SystemMessage()
-            # システムメッセージの取得
+            # インスタンスにトピックを設定
+            system_message_instance.topics = "discord_bot"
+            system_message_instance.set_system_message_content()
             system_message_content = system_message_instance.get_system_message_content()
             system_message = {"role": "system", "content": system_message_content}
+            print("system_message: ", system_message)
             new_message = {"role": "user", "content": message.content}
             print("Getting response from OpenAI API...")
             start_time = time.time()  # 追加: OpenAIのAPIへのリクエストを送信する前に時間を記録
@@ -141,6 +148,8 @@ class MyBot(commands.Bot):
             print(f"OpenAIのAPIへのリクエストから応答があるまでに要した時間: {elapsed_time} 秒。")  # 追加: 経過時間を表示
             bot_response = response['choices'][0]['message']['content']
             print("ボットの応答: ", bot_response)
+            # ConversationBufferMemoryにボットの応答を追加
+            self.memory.chat_memory.add_ai_message(bot_response)
             bot_response_tokens = count_tokens(bot_response)
             print("bot_response_tokens: ", bot_response_tokens)
             # デバッグモードでない場合はボットからの応答を含めたメッセージ履歴をRedisに保存

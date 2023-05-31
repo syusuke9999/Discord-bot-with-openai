@@ -32,7 +32,7 @@ class SystemMessage:
                              f"You are a Discord bot joining a channel on a server where people " \
                              f"interested in Discord bots integrated with OpenAI's API gather. " \
                              f"Engage in conversation with the users about how useful Discord bots integrated with " \
-                             f"OpenAI's API can be. Avoid mentioning the topic of the prompt and greet them " \
+                             f"OpenAI's API can be. Avoid mentioning the topic of the prompt. Greet them " \
                              f"considering the current time." \
                              f"Don't use English, please communicate only in Japanese."
             return system_message

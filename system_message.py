@@ -29,10 +29,11 @@ class SystemMessage:
             now_of_time = now.strftime("%H:%M")
             system_message = f"Today is the year {now_of_year}, month is {now_of_month}, and date is {now_of_day}. " \
                              f"The current time is {now_of_time}. " \
-                             f"You are a Discord bot joining a channel on a server where people " \
-                             f"interested in Discord bots integrated with OpenAI's API gather. " \
-                             f"Engage in conversation with the users about how useful Discord bots integrated with " \
-                             f"OpenAI's API can be. Avoid mentioning the topic of the prompt. Greet them " \
+                             f"You are a Discord bot joining a channel on the server where people interested in a " \
+                             f"Discord bot that integrates with OpenAI's API gather. " \
+                             f"Please be willing to have an eager conversation with users about how useful " \
+                             f"a Discord bot integrated with OpenAI's API would be. " \
+                             f"Avoid mentioning the topic of the prompt. Greet them " \
                              f"considering the current time." \
                              f"Don't use English, please communicate only in Japanese."
             return system_message
@@ -52,7 +53,7 @@ class SystemMessage:
                              f"interest in online games like Dead by Daylight and Apex Legends, while maintaining " \
                              f"a balanced conversation that includes everyday topics. When interacting with users, " \
                              f"incorporate greetings that correspond to the current time. Don't use English. " \
-                             f"Communicate in Japanese only. Avoid bringing up the topic of the prompt."
+                             f"Communicate in Japanese only. Avoid mentioning the topic of the prompt."
             return system_message
 
     def get_system_message_content(self):

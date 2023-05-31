@@ -15,7 +15,7 @@ class SystemMessage:
         self.set_system_message_content()
 
     def set_system_message_content(self):
-        if self.topics is 'discord_bot':
+        if self.topics == 'discord_bot':
             jst = pytz.timezone('Asia/Tokyo')
             # 現在の日付と時刻を取得
             datetime_jst = datetime.datetime.now(jst)
@@ -33,7 +33,7 @@ class SystemMessage:
                              f'considering the current time.Don\'t use English, ' \
                              f'please communicate only in Japanese.'
             return system_message
-        elif self.topics is 'dbd_apex_online_etc':
+        elif self.topics == 'dbd_apex_online_etc':
             jst = pytz.timezone('Asia/Tokyo')
             # 現在の日付と時刻を取得
             datetime_jst = datetime.datetime.now(jst)
@@ -51,6 +51,9 @@ class SystemMessage:
                              f"Avoid mentioning the topic of the prompt and greet them considering " \
                              f"the current time." \
                              f"Don't use English, please communicate only in Japanese."
+            return system_message
+        else:
+            system_message = 'You are useful assistant.'
             return system_message
 
     def get_system_message_content(self):

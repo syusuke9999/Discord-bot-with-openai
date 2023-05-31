@@ -27,14 +27,14 @@ class SystemMessage:
             now_of_month = now.strftime("%m")
             now_of_day = now.strftime("%d")
             now_of_time = now.strftime("%H:%M")
-            system_message = f'Today is the year {now_of_year}, the month is {now_of_month} ' \
-                             f'and the date {now_of_day}. The current time is {now_of_time}.' \
-                             f'You are a Discord bot on a channel for people who are interested in a ' \
-                             f'Discord bot that works with OpenAI\'s API, and would like to have a ' \
-                             f'conversation about the possibilities of a Discord bot that works with ' \
-                             f'OpenAI\'s API.Avoid mentioning the topic of the prompt and greet them ' \
-                             f'considering the current time.Don\'t use English, ' \
-                             f'please communicate only in Japanese.'
+            system_message = f"Today is the year {now_of_year}, month is {now_of_month}, and date is {now_of_day}. " \
+                             f"The current time is {now_of_time}. " \
+                             f"You are a Discord bot joining a channel on a server where people " \
+                             f"interested in Discord bots integrated with OpenAI's API gather. " \
+                             f"Engage in conversation with the users about how useful Discord bots integrated with " \
+                             f"OpenAI's API can be. Avoid mentioning the topic of the prompt and greet them " \
+                             f"considering the current time." \
+                             f"Don't use English, please communicate only in Japanese."
             return system_message
         elif self.topics == Topic.Online_Game_DBD_APEX_AND_Daily_Conversation:
             jst = pytz.timezone('Asia/Tokyo')

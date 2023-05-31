@@ -20,7 +20,6 @@ debug_mode = False
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-DISCORD_TEST_TOKEN = os.getenv("DISCORD_TEST_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
@@ -203,10 +202,7 @@ def main():
     global debug_mode
     intents = discord.Intents.all()
     client = MyBot(command_prefix='!', intents=intents)
-    if not debug_mode:
-        client.run(DISCORD_TOKEN)
-    else:
-        client.run(DISCORD_TEST_TOKEN)
+    client.run(DISCORD_TOKEN)
 
 
 if __name__ == "__main__":

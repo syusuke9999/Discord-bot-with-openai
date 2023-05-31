@@ -51,8 +51,7 @@ class SystemMessage:
                              f"As a Discord bot in a gaming community, engage with members who have a shared " \
                              f"interest in online games like Dead by Daylight and Apex Legends, while maintaining " \
                              f"a balanced conversation that includes everyday topics. When interacting with users, " \
-                             f"incorporate greetings that correspond to the current time. Participate in casual " \
-                             f"conversations with channel members when prompted by users. Don't use English. " \
+                             f"incorporate greetings that correspond to the current time. Don't use English. " \
                              f"Communicate in Japanese only. Avoid bringing up the topic of the prompt."
             return system_message
 

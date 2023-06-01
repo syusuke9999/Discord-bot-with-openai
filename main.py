@@ -1,17 +1,16 @@
-import os
 import time
 import discord
 from discord.ext import commands
-import asyncio
 import tiktoken
 from tiktoken.core import Encoding
-import httpx
-from httpx import Timeout
 import redis
-from asyncio import sleep
-import json
 import logging
 from system_message import SystemMessage, Topic
+import httpx
+from httpx import Timeout
+import asyncio
+import os
+import json
 
 debug_mode = False
 
@@ -24,7 +23,6 @@ REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 
-
 if not debug_mode:
     # Redis接続を初期化
     r = redis.Redis(
@@ -34,7 +32,9 @@ if not debug_mode:
     print("Redis connection established!")
 
 model_name = "gpt-4"
+
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
+
 MAX_TOKENS = 2500
 
 logger = logging.getLogger('discord')
@@ -66,7 +66,7 @@ async def call_openai_api(system_message, new_message, message_history):
     # リトライ間隔（秒）
     retry_interval = 10
     # タイムアウトを120秒に設定
-    timeout = Timeout(120)  # Set timeout to 60 seconds
+    timeout = Timeout(120)  # Set timeout to 120 seconds
     for i in range(max_retries):
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
@@ -104,7 +104,6 @@ class MyBot(commands.Bot):
                         self.message_history[user_key][i + 1]["role"] == "assistant":
                     skip_next = True
                     continue
-
             new_message_history.append(old_message)
         self.message_history[user_key] = new_message_history
 
@@ -124,7 +123,7 @@ class MyBot(commands.Bot):
             user_key = f'{user_id}_{user_name}'
             # Redisサーバーからメッセージの履歴を取得する前に時間を記録
             start_time = time.time()
-            message_history_json = r.get(f'message_history_{user_key}') # ユーザーキーを指定してメッセージの履歴を取得
+            message_history_json = r.get(f'message_history_{user_key}')  # ユーザーキーを指定してメッセージの履歴を取得
             end_time = time.time()
             # Redisサーバーからのデータ取得にかかった時間を計算
             elapsed_time = end_time - start_time
@@ -170,7 +169,7 @@ class MyBot(commands.Bot):
             self.total_tokens = total_tokens
             # 新しいメッセージとシステムメッセージのトークン数を追加
             self.total_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(system_message)) + \
-                count_tokens(json.dumps(bot_response))
+                                 count_tokens(json.dumps(bot_response))
             # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
             while self.total_tokens > MAX_TOKENS:
                 # 最初のメッセージを削除する
@@ -199,14 +198,9 @@ class MyBot(commands.Bot):
                 elapsed_time = end_time - start_time
                 print(f"Redisへ会話履歴を保存するのにかかった時間: {elapsed_time} 秒。")  # 追加: 経過時間を表示
                 print("メッセージはRedisサーバーへ送信されました。")
-            # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
-            typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
-            print("typing_time: ", typing_time)
             print("await sending message to discord with async typing function!")
-            async with message.channel.typing():
-                await sleep(typing_time)  # 計算された時間まで待つ
-                await message.reply(bot_response)
-                print("massage have sent to discord!")
+            await message.reply(bot_response)
+            print("massage have sent to discord!")
             print("message_history: ", self.message_history)
 
 

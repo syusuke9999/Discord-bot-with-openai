@@ -200,8 +200,15 @@ class MyBot(commands.Bot):
                 print(f"Redisへ会話履歴を保存するのにかかった時間: {elapsed_time} 秒。")  # 追加: 経過時間を表示
                 print("メッセージはRedisサーバーへ送信されました。")
             print("await sending message to discord with async typing function!")
-            await message.reply(bot_response)
-            print("massage have sent to discord!")
+            # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
+            typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
+            print("typing_time: ", typing_time)
+            print("await sending message to discord with async typing function!")
+            async with message.channel.typing():
+                await sleep(typing_time)  # 計算された時間まで待つ
+                await message.reply(bot_response)
+                print("massage have sent to discord!")
+            print("message_history: ", self.message_history)
             print("message_history: ", self.message_history)
 
 

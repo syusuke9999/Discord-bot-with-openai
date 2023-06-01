@@ -47,6 +47,7 @@ def count_tokens(text):
 
 class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
+        # commands.__init__を呼び出す
         super().__init__(*args, **kwargs)
         self.message_histories = {}
         self.total_tokens = 0  # トークン数の合計を保持するための変数を追加
@@ -70,7 +71,8 @@ class MyBot(commands.Bot):
         self.message_histories[user_key] = new_message_history
 
     async def on_message(self, message):
-        await super().on_message(message)  # commands.Botのon_messageメソッドを呼び出す
+        # commands.Botのon_messageメソッドを呼び出す
+        await super().on_message(message)
         if message.author == self.user:
             return
         # メンションされた場合
@@ -85,7 +87,8 @@ class MyBot(commands.Bot):
             user_key = f'{user_id}_{user_name}'
             # Redisサーバーからメッセージの履歴を取得する前に時間を記録
             start_time = time.time()
-            message_history_json = r.get(f'message_history_{user_key}')  # ユーザーキーを指定してメッセージの履歴を取得
+            # ユーザーキーを指定してRedisサーバーからメッセージの履歴を取得
+            message_history_json = r.get(f'message_history_{user_key}')
             end_time = time.time()
             # Redisサーバーからのデータ取得にかかった時間を計算
             elapsed_time = end_time - start_time

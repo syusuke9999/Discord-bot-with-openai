@@ -142,9 +142,6 @@ class MyBot(commands.Bot):
             # トークン数が制限以下になったら新しいメッセージを追加
             self.message_histories[user_key].append(new_message)
             self.message_histories[user_key].append({"role": "assistant", "content": bot_response})
-            # 新しいメッセージを追加する前に既存のメッセージ履歴をチェックする。
-            # その際ユーザーの発言で同じ物が重複して存在している場合は、最新のユーザーのメッセージとそれに対する応答のみを残す
-            self.remove_duplicate_messages(user_key, new_message)
             # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
             self.total_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_histories[user_key])
             # 新しいメッセージとシステムメッセージのトークン数を追加

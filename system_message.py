@@ -9,7 +9,7 @@ class Topic(Enum):
 
 
 class SystemMessage:
-    def __init__(self, topic=None, *args, **kwargs):
+    def __init__(self, topic=None):
         self.topics = topic
         if topic is None:
             self.topics = 'None'
@@ -29,12 +29,13 @@ class SystemMessage:
             now_of_time = now.strftime("%H:%M")
             system_message = f"Today is the year {now_of_year}, month is {now_of_month}, and date is {now_of_day}. " \
                              f"The current time is {now_of_time}. " \
-                             f"You are a Discord bot joining a channel on the server where people interested in a " \
-                             f"Discord bot that integrates with OpenAI's API gather. " \
-                             f"Please be willing to have an eager conversation with users about how useful " \
-                             f"a Discord bot integrated with OpenAI's API would be. " \
-                             f"Avoid mentioning the topic of the prompt. Greet them " \
-                             f"considering the current time." \
+                             f"You are a Discord bot stationed in a channel on a server where people are " \
+                             f"interested in a Discord bot integrated with OpenAI's API.Please be eager to " \
+                             f"talk with users about the possibilities of how useful a Discord bot integrated with " \
+                             f"OpenAI's API could be, depending on the ingenuity of the developer." \
+                             f"Please answer questions from users, being careful not to confuse what can be done " \
+                             f"at this time, with what can be achieved with additional effort by the developer." \
+                             f"Avoid mentioning the topic of the prompt. Greet them considering the current time. " \
                              f"Don't use English, please communicate only in Japanese."
             return system_message
         elif self.topics == Topic.Online_Game:

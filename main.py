@@ -48,46 +48,10 @@ def count_tokens(text):
     return tokens_count
 
 
-async def call_openai_api(system_message, new_message, message_history):
-    url = "https://api.openai.com/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {OPENAI_API_KEY}"
-    }
-    data = {
-        "temperature": 0.7,
-        "model": model_name,
-        "messages": [system_message] + message_history + [new_message],
-        "max_tokens": 500,
-        "frequency_penalty": 0,
-        "presence_penalty": 0.6,
-    }
-    # 最大リトライ回数
-    max_retries = 3
-    # リトライ間隔（秒）
-    retry_interval = 10
-    # タイムアウトを120秒に設定
-    timeout = Timeout(120)  # Set timeout to 120 seconds
-    for i in range(max_retries):
-        try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                response = await client.post(url, headers=headers, data=json.dumps(data))
-                response.raise_for_status()  # ステータスコードが200系以外の場合に例外を発生させる
-                return response.json()
-        except (httpx.HTTPStatusError, Exception) as e:
-            print(f"An error occurred: {e}")
-            if i < max_retries - 1:  # 最後のリトライでなければ、次のリトライまで待つ
-                print(f"Retrying in {retry_interval} seconds...")
-                await asyncio.sleep(retry_interval)
-                print("Retrying now!")
-            else:  # 最後のリトライでもエラーが発生した場合、エラーを再度送出する
-                raise
-
-
 class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.message_history = {}
+        self.message_histories = {}
         self.total_tokens = 0  # トークン数の合計を保持するための変数を追加
 
     async def on_ready(self):
@@ -96,17 +60,17 @@ class MyBot(commands.Bot):
     def remove_duplicate_messages(self, user_key, new_message):
         new_message_history = []
         skip_next = False
-        for i, old_message in enumerate(self.message_history[user_key]):
+        for i, old_message in enumerate(self.message_histories[user_key]):
             if skip_next:
                 skip_next = False
                 continue
             if old_message["role"] == "user" and old_message["content"] == new_message["content"]:
-                if i + 1 < len(self.message_history[user_key]) and \
-                        self.message_history[user_key][i + 1]["role"] == "assistant":
+                if i + 1 < len(self.message_histories[user_key]) and \
+                        self.message_histories[user_key][i + 1]["role"] == "assistant":
                     skip_next = True
                     continue
             new_message_history.append(old_message)
-        self.message_history[user_key] = new_message_history
+        self.message_histories[user_key] = new_message_history
 
     async def on_message(self, message):
         await super().on_message(message)  # commands.Botのon_messageメソッドを呼び出す
@@ -131,9 +95,9 @@ class MyBot(commands.Bot):
             # 経過時間を表示
             print(f"Elapsed time to get data from Redis server: {elapsed_time} seconds")
             if message_history_json is not None:
-                self.message_history[user_key] = json.loads(message_history_json)
+                self.message_histories[user_key] = json.loads(message_history_json)
             else:
-                self.message_history[user_key] = []
+                self.message_histories[user_key] = []
             print("user_key: " + user_key + " message.content: ", message.content)
             topic_enum = os.getenv('TOPIC_ENUM')
             # 環境変数の値をTopic列挙体のメンバーに変換
@@ -159,9 +123,9 @@ class MyBot(commands.Bot):
             # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
             total_tokens = 0
             # ユーザーのメッセージ履歴にある各メッセージをループ処理
-            for message in self.message_history[user_key]:
+            for message_history in self.message_histories[user_key]:
                 # メッセージをJSON文字列に変換
-                message_as_json = json.dumps(message)
+                message_as_json = json.dumps(message_history)
                 # JSON文字列のトークン数をカウント
                 num_tokens_in_message = count_tokens(message_as_json)
                 # 現在のメッセージに含まれるトークンの総数を合計に加算
@@ -170,26 +134,26 @@ class MyBot(commands.Bot):
             self.total_tokens = total_tokens
             # 新しいメッセージとシステムメッセージのトークン数を追加
             self.total_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(system_message)) + \
-                                 count_tokens(json.dumps(bot_response))
+                count_tokens(json.dumps(bot_response))
             # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
             while self.total_tokens > MAX_TOKENS:
                 # 最初のメッセージを削除する
-                removed_message = self.message_history[user_key].pop(0)
+                removed_message = self.message_histories[user_key].pop(0)
                 # 削除したメッセージのトークン数を引く
                 self.total_tokens -= count_tokens(json.dumps(removed_message))
             # トークン数が制限以下になったら新しいメッセージを追加
-            self.message_history[user_key].append(new_message)
-            self.message_history[user_key].append({"role": "assistant", "content": bot_response})
+            self.message_histories[user_key].append(new_message)
+            self.message_histories[user_key].append({"role": "assistant", "content": bot_response})
             # 新しいメッセージを追加する前に既存のメッセージ履歴をチェックする。
             # その際ユーザーの発言で同じ物が重複して存在している場合は、最新のユーザーのメッセージとそれに対する応答のみを残す
             self.remove_duplicate_messages(user_key, new_message)
             # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
-            self.total_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_history[user_key])
+            self.total_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_histories[user_key])
             # 新しいメッセージとシステムメッセージのトークン数を追加
             self.total_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(system_message))
             if not debug_mode:
                 # メッセージ履歴をRedisに保存し、TTLを設定
-                message_history_json = json.dumps(self.message_history[user_key])
+                message_history_json = json.dumps(self.message_histories[user_key])
                 # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
                 start_time = time.time()
                 r.set(f'message_history_{user_key}', message_history_json)
@@ -208,8 +172,7 @@ class MyBot(commands.Bot):
                 await sleep(typing_time)  # 計算された時間まで待つ
                 await message.reply(bot_response)
                 print("massage have sent to discord!")
-            print("message_history: ", self.message_history)
-            print("message_history: ", self.message_history)
+            print("message_history: ", self.message_histories)
 
 
 def main():

@@ -1,16 +1,17 @@
+import os
 import time
 import discord
 from discord.ext import commands
+import asyncio
 import tiktoken
 from tiktoken.core import Encoding
-import redis
-import logging
-from system_message import SystemMessage, Topic
 import httpx
 from httpx import Timeout
-import asyncio
-import os
+import redis
+from asyncio import sleep
 import json
+import logging
+from system_message import SystemMessage, Topic
 
 debug_mode = False
 

@@ -4,7 +4,6 @@ import discord
 from discord.ext import commands
 import tiktoken
 from tiktoken.core import Encoding
-from openai_api import call_openai_api
 import redis
 from asyncio import sleep
 import json
@@ -107,6 +106,7 @@ class MyBot(commands.Bot):
             print("Getting response from OpenAI API...")
             # OpenAIのAPIへのリクエストを送信してから返事が返って来るまでの時間を測定する
             start_time = time.time()
+            from openai_api import call_openai_api
             async with message.channel.typing():
                 response = await call_openai_api(system_message, new_message, self.message_histories[user_key])
                 if response is not None:

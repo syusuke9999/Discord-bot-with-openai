@@ -2,11 +2,9 @@ import os
 import time
 import discord
 from discord.ext import commands
-import asyncio
 import tiktoken
 from tiktoken.core import Encoding
-import httpx
-from httpx import Timeout
+from openai_api import call_openai_api
 import redis
 from asyncio import sleep
 import json
@@ -110,7 +108,7 @@ class MyBot(commands.Bot):
             # OpenAIのAPIへのリクエストを送信してから返事が返って来るまでの時間を測定する
             start_time = time.time()
             async with message.channel.typing():
-                response = await call_openai_api(system_message, new_message, self.message_history[user_key])
+                response = await call_openai_api(system_message, new_message, self.message_histories[user_key])
                 if response is not None:
                     print(response)
                 else:

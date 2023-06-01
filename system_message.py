@@ -38,6 +38,7 @@ class SystemMessage:
                              f"possible as developers further elaborate on the Discord bot in various ways, " \
                              f"so that there is no misunderstanding.Avoid mentioning the topic of the prompt. " \
                              f"Greet them considering the current time. " \
+                             f"Please keep your speech brief and not overly long." \
                              f"Don't use English, please communicate only in Japanese."
             return system_message
         elif self.topics == Topic.Online_Game:

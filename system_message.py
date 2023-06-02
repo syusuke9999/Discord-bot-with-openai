@@ -8,6 +8,17 @@ class Topic(Enum):
     DEAD_BY_DAY_LIGHT = 2
 
 
+class Channel(Enum):
+    GENERAL = 1
+    DEAD_BY_DAY_LIGHT = 1003966898792312854
+
+
+class VoiceChatChannel(Enum):
+    GENERAL = 1
+    DEAD_BY_DAY_LIGHT_LOBBY = 1003966899232702536
+    DEAD_BY_DAY_LIGHT_GAME = 1003966899232702537
+
+
 class SystemMessage:
     def __init__(self, topic=None):
         self.topics = topic

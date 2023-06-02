@@ -1,7 +1,7 @@
 import os
 import time
 import discord
-from discord.ext import commands
+from discord.ext import tasks, commands
 import tiktoken
 from tiktoken.core import Encoding
 import redis
@@ -20,6 +20,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
+topic_enum = os.getenv('TOPIC_ENUM')
 
 if not debug_mode:
     # Redis接続を初期化
@@ -46,10 +47,11 @@ def count_tokens(text):
 
 
 class MyBot(commands.Bot):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, enum_of_topic, *args, **kwargs):
         # commands.__init__を呼び出す
         super().__init__(*args, **kwargs)
         self.message_histories = {}
+        self.topic = Topic[topic_enum]
         self.total_tokens = 0  # トークン数の合計を保持するための変数を追加
 
     async def on_ready(self):
@@ -99,10 +101,7 @@ class MyBot(commands.Bot):
             else:
                 self.message_histories[user_key] = []
             print("user_key: " + user_key + " message.content: ", message.content)
-            topic_enum = os.getenv('TOPIC_ENUM')
-            # 環境変数の値をTopic列挙体のメンバーに変換
-            what_topic = Topic[topic_enum]
-            system_message_instance = SystemMessage(topic=what_topic)
+            system_message_instance = SystemMessage(topic=self.topic)
             system_message_content = system_message_instance.get_system_message_content()
             system_message = {"role": "system", "content": system_message_content}
             new_message = {"role": "user", "content": message.content}
@@ -172,10 +171,26 @@ class MyBot(commands.Bot):
                 print("massage have sent to discord!")
             print("message_history: ", self.message_histories)
 
+    @bot.event
+    async def on_voice_state_update(self, member, before, after):
+        if self.topic == Topic.DEAD_BY_DAY_LIGHT:
+            # Dead by Daylightの「ゲーム」のボイスチャットチャンネルのIDを指定
+            voice_channel_id = 1003966899232702537
+            # ボイスチャットの状態を取得
+            voice_channel = self.get_channel(voice_channel_id)
+            voice_states = voice_channel.voice_states
+            # Dead by Daylightをプレイ中のメンバーの数をカウント
+            dbd_players = sum(1 for voice_member in voice_states.values() if voice_member.activity and
+                              voice_member.activity.name == "Dead by Daylight")
+            print(f"ボイスチャットに参加しているメンバーの数: {dbd_players}")
+            if dbd_players >= 2:
+                print("2人以上のメンバーがボイスチャットに参加しています。")
+
 
 def main():
     intents = discord.Intents.all()
-    client = MyBot(command_prefix='!', intents=intents)
+    intents.voice_states = True
+    client = MyBot(topic_enum, command_prefix='!', intents=intents)
     client.run(DISCORD_TOKEN)
 
 

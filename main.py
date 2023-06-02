@@ -1,7 +1,7 @@
 import os
 import time
 import discord
-from discord.ext import tasks, commands
+from discord.ext import commands
 import tiktoken
 from tiktoken.core import Encoding
 import redis
@@ -47,7 +47,7 @@ def count_tokens(text):
 
 
 class MyBot(commands.Bot):
-    def __init__(self, enum_of_topic, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         # commands.__init__を呼び出す
         super().__init__(*args, **kwargs)
         self.message_histories = {}

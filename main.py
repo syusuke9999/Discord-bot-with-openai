@@ -191,10 +191,9 @@ class MyBot(commands.Bot):
             # ボイスチャットに参加しているメンバーが2人以上いて、その2人がDead by Daylightをプレイしている場合
             if dbd_players >= 2:
                 # メンバーの名前を取得してメッセージを作成
-                members = [self.get_user(member).name for member, voice_member in voice_states.items()
-                           if voice_member.activity and voice_member.activity.name == "Dead by Daylight" and
-                           voice_member.channel == voice_channel]
-                message = f"{', '.join(members)}さん、Dead by Daylightを楽しんでください！"
+                members = [member.name for member in voice_states.keys() if
+                       member.activity and member.activity.name == "Dead by Daylight" and
+                       member.channel == voice_channel]
                 # メッセージ送信の条件チェック
                 current_time = time.time()
                 last_message_time = self.last_message_times.get("bot", 0)

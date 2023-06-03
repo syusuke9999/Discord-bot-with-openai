@@ -190,7 +190,7 @@ class MyBot(commands.Bot):
             print(f"ボイスチャットに参加しているメンバーの数: {dbd_players}")
             # ボイスチャットに参加しているメンバーが2人以上いて、その2人がDead by Daylightをプレイしている場合
             if dbd_players >= 2:
-                # メンバーの名前を取得してメッセージを作成
+               # メンバーの名前を取得してメッセージを作成
                 members = [member.name for member in voice_states.keys() if
                        member.activity and member.activity.name == "Dead by Daylight" and
                        member.channel == voice_channel]

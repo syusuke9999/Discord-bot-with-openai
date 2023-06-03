@@ -176,11 +176,12 @@ class MyBot(commands.Bot):
     @client.event
     async def on_voice_state_update(member, before, after):
         if after.channel is not None:
-            if after.channel.id == 1003966899232702537:  # VCチャンネルIDを指定します
+            VOICE_CHAT_ID = 1003966899232702537
+            if after.channel.id == VOICE_CHAT_ID:  # VCチャンネルIDを指定します
                 if len(after.channel.members) >= 1:  # チャンネルのメンバーが2人以上いるか確認します
                     member_names = ', '.join([member.name for member in after.channel.members])
                     YOUR_TEXT_CHANNEL_ID = 1003966898792312854
-                    await client.get_channel(1003966898792312854).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')  # メッセージを送信するテキストチャンネルIDを指定します
+                    await client.get_channel(YOUR_TEXT_CHANNEL_ID).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')  # メッセージを送信するテキストチャンネルIDを指定します
                 # ボイスチャットに参加しているメンバーが2人以上いて、その2人がDead by Daylightをプレイしている場合
                 last_message_time = self.last_message_times.get("bot", 0)
                 # 最終発言時刻を更新

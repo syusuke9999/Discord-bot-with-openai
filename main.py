@@ -202,7 +202,7 @@ class MyBot(commands.Bot):
 def main():
     intents = discord.Intents.all()
     intents.voice_states = True
-    client = MyBot(topic_enum, command_prefix='!', intents=intents)
+    client = MyBot(topic_enum, intents=intents)
     client.run(DISCORD_TOKEN)
 
 

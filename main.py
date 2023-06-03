@@ -179,12 +179,24 @@ class MyBot(commands.Bot):
             # ボイスチャットの状態を取得
             voice_channel = self.get_channel(voice_channel_id)
             voice_states = voice_channel.voice_states
-            # Dead by Daylightをプレイ中のメンバーの数をカウント
-            dbd_players = sum(1 for voice_member in voice_states.values() if voice_member.activity and
-                              voice_member.activity.name == "Dead by Daylight")
+            # Dead by Daylightをプレイ中かつ特定のボイスチャットで話しているメンバーの数をカウント
+            dbd_players = sum(1 for voice_member in voice_states.values() if
+                              voice_member.activity and voice_member.activity.name == "Dead by Daylight" and
+                              voice_member.channel == voice_channel)
             print(f"ボイスチャットに参加しているメンバーの数: {dbd_players}")
+            # ボイスチャットに参加しているメンバーが2人以上いて、その2人がDead by Daylightをプレイしている場合
             if dbd_players >= 2:
-                print("2人以上のメンバーがボイスチャットに参加しています。")
+                # メッセージを送信するチャンネルのIDを指定
+                message_channel_id = 1003966898792312854
+                # メッセージを送信するチャンネルを取得
+                message_channel = self.get_channel(message_channel_id)
+                # メンバーの名前を取得してメッセージを作成
+                members = [self.get_user(member).name for member, voice_member in voice_states.items()
+                           if voice_member.activity and voice_member.activity.name == "Dead by Daylight" and
+                           voice_member.channel == voice_channel]
+                message = f"{', '.join(members)}さん、Dead by Daylightを楽しんでください！"
+                # メッセージを送信
+                await message_channel.send(message)
 
 
 def main():

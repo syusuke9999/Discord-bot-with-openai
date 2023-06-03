@@ -175,6 +175,8 @@ class MyBot(commands.Bot):
 
     @bot.event
     async def on_voice_state_update(self, member, before, after):
+        print(self.topic)
+        print(Topic.DEAD_BY_DAY_LIGHT)
         if self.topic == Topic.DEAD_BY_DAY_LIGHT:
             # Dead by Daylightの「ゲーム」のボイスチャットチャンネルのIDを指定
             voice_channel_id = 1003966899232702537

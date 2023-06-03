@@ -53,6 +53,8 @@ class MyBot(commands.Bot):
         self.message_histories = {}
         self.topic = Topic[topic_enum]
         self.total_tokens = 0  # トークン数の合計を保持するための変数を追加
+        # 最終発言時刻を管理するディクショナリを初期化
+        self.last_message_times = {}
 
     async def on_ready(self):
         print(f"We have logged in as {self.user}")
@@ -186,17 +188,22 @@ class MyBot(commands.Bot):
             print(f"ボイスチャットに参加しているメンバーの数: {dbd_players}")
             # ボイスチャットに参加しているメンバーが2人以上いて、その2人がDead by Daylightをプレイしている場合
             if dbd_players >= 2:
-                # メッセージを送信するチャンネルのIDを指定
-                message_channel_id = 1003966898792312854
-                # メッセージを送信するチャンネルを取得
-                message_channel = self.get_channel(message_channel_id)
                 # メンバーの名前を取得してメッセージを作成
                 members = [self.get_user(member).name for member, voice_member in voice_states.items()
                            if voice_member.activity and voice_member.activity.name == "Dead by Daylight" and
                            voice_member.channel == voice_channel]
                 message = f"{', '.join(members)}さん、Dead by Daylightを楽しんでください！"
-                # メッセージを送信
-                await message_channel.send(message)
+                # メッセージ送信の条件チェック
+                current_time = time.time()
+                last_message_time = self.last_message_times.get("bot", 0)
+                if (current_time - last_message_time) > 7200:
+                    # メッセージを送信するチャンネルのIDを指定
+                    message_channel_id = 1003966898792312854
+                    # メッセージを送信するチャンネルを取得
+                    message_channel = self.get_channel(message_channel_id)
+                    await message_channel.send(message)
+                    # 最終発言時刻を更新
+                    self.last_message_times["bot"] = current_time
 
 
 def main():

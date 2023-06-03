@@ -45,13 +45,11 @@ def count_tokens(text):
     tokens_count = len(tokens)
     return tokens_count
 
-
 class MyBot(commands.Bot):
-    def __init__(self, *args, **kwargs):
-        # commands.__init__を呼び出す
-        super().__init__(*args, **kwargs)
+    def __init__(self, command_prefix, intents, topic_enum):
+        super().__init__(command_prefix, intents=intents)
+        self.topic_enum = topic_enum
         self.message_histories = {}
-        self.topic = Topic[topic_enum]
         self.total_tokens = 0  # トークン数の合計を保持するための変数を追加
         # 最終発言時刻を管理するディクショナリを初期化
         self.last_message_times = {}
@@ -173,26 +171,25 @@ class MyBot(commands.Bot):
                 print("massage have sent to discord!")
             print("message_history: ", self.message_histories)
 
-    @client.event
-    async def on_voice_state_update(member, before, after):
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
         if after.channel is not None:
-            VOICE_CHAT_ID = 1003966899232702537
-            if after.channel.id == VOICE_CHAT_ID:  # VCチャンネルIDを指定します
-                if len(after.channel.members) >= 1:  # チャンネルのメンバーが2人以上いるか確認します
+            YOUR_CHANNEL_ID = 1003966899232702537
+            if after.channel.id == YOUR_CHANNEL_ID:  # チャンネルIDを指定します
+                if len(after.channel.members) >= 2:  # チャンネルのメンバーが2人以上いるか確認します
                     member_names = ', '.join([member.name for member in after.channel.members])
                     YOUR_TEXT_CHANNEL_ID = 1003966898792312854
-                    await client.get_channel(YOUR_TEXT_CHANNEL_ID).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')  # メッセージを送信するテキストチャンネルIDを指定します
-                # ボイスチャットに参加しているメンバーが2人以上いて、その2人がDead by Daylightをプレイしている場合
-                last_message_time = self.last_message_times.get("bot", 0)
-                # 最終発言時刻を更新
-                self.last_message_times["bot"] = current_time
+                    # ボイスチャットに参加しているメンバーが2人以上いる場合
+                    # テキストチャットチャンネルにメッセージを送信する
+                    await self.get_channel(YOUR_TEXT_CHANNEL_ID).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
 
 
 def main():
     intents = discord.Intents.all()
     intents.voice_states = True
-    client = MyBot(topic_enum, intents=intents)
-    client.run(DISCORD_TOKEN)
+    topic_enum = YOUR_TOPIC_ENUM  # ここにあなたのtopic_enumを指定します
+    bot = MyBot(command_prefix='!', intents=intents, topic_enum=topic_enum)
+    bot.run(DISCORD_TOKEN)  # ここにあなたのDiscordボットのトークンを指定します
 
 
 if __name__ == "__main__":

@@ -177,7 +177,7 @@ class MyBot(commands.Bot):
     async def on_voice_state_update(self, member, before, after):
         print(self.topic)
         print(Topic.DEAD_BY_DAY_LIGHT)
-        @client.event
+    @client.event
     async def on_voice_state_update(member, before, after):
         if after.channel is not None:
             if after.channel.id == 1003966899232702537:  # VCチャンネルIDを指定します

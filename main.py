@@ -174,7 +174,7 @@ class MyBot(commands.Bot):
         if after.channel is not None:
             your_channel_id = 1003966899232702537
             if after.channel.id == your_channel_id:  # チャンネルIDを指定します
-                if len(after.channel.members) >= 2:  # チャンネルのメンバーが2人以上いるか確認します
+                if len(after.channel.members) >= 1:  # チャンネルのメンバーが2人以上いるか確認します
                     member_names = ', '.join([member.name for member in after.channel.members])
                     your_text_chanel_id = 1003966898792312854
                     # ボイスチャットに参加しているメンバーが2人以上いる場合

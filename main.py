@@ -184,9 +184,9 @@ class MyBot(commands.Bot):
             voice_channel = self.get_channel(voice_channel_id)
             voice_states = voice_channel.voice_states
             # Dead by Daylightをプレイ中かつ特定のボイスチャットで話しているメンバーの数をカウント
-            dbd_players = sum(1 for voice_member in voice_states.values() if
-                              voice_member.activity and voice_member.activity.name == "Dead by Daylight" and
-                              voice_member.channel == voice_channel)
+            dbd_players = sum(1 for voice_state in voice_states.values() if
+                  voice_state.user.activity is not None and voice_state.user.activity.name == "Dead by Daylight" and
+                  voice_state.channel == voice_channel)
             print(f"ボイスチャットに参加しているメンバーの数: {dbd_players}")
             # ボイスチャットに参加しているメンバーが2人以上いて、その2人がDead by Daylightをプレイしている場合
             if dbd_players >= 2:

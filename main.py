@@ -177,34 +177,18 @@ class MyBot(commands.Bot):
     async def on_voice_state_update(self, member, before, after):
         print(self.topic)
         print(Topic.DEAD_BY_DAY_LIGHT)
-        if self.topic == Topic.DEAD_BY_DAY_LIGHT:
-            # Dead by Daylightの「ゲーム」のボイスチャットチャンネルのIDを指定
-            voice_channel_id = 1003966899232702537
-            # ボイスチャットの状態を取得
-            voice_channel = self.get_channel(voice_channel_id)
-            voice_states = voice_channel.voice_states
-            # Dead by Daylightをプレイ中かつ特定のボイスチャットで話しているメンバーの数をカウント
-            dbd_players = sum(1 for voice_state in voice_states.values() if
-                  voice_state.member.activity is not None and voice_state.member.activity.name == "Dead by Daylight" and
-                  voice_state.channel == voice_channel)
-            print(f"ボイスチャットに参加しているメンバーの数: {dbd_players}")
-            # ボイスチャットに参加しているメンバーが2人以上いて、その2人がDead by Daylightをプレイしている場合
-            if dbd_players >= 1:
-               # メンバーの名前を取得してメッセージを作成
-                members = [member.name for member in voice_states.keys() if
-                       member.activity and member.activity.name == "Dead by Daylight" and
-                       member.channel == voice_channel]
-                # メッセージ送信の条件チェック
-                current_time = time.time()
+        @client.event
+    async def on_voice_state_update(member, before, after):
+        if after.channel is not None:
+            if after.channel.id == 1003966899232702537:  # VCチャンネルIDを指定します
+                if len(after.channel.members) >= 1:  # チャンネルのメンバーが2人以上いるか確認します
+                    member_names = ', '.join([member.name for member in after.channel.members])
+                    YOUR_TEXT_CHANNEL_ID = 1003966898792312854
+                    await client.get_channel(1003966898792312854).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')  # メッセージを送信するテキストチャンネルIDを指定します
+                # ボイスチャットに参加しているメンバーが2人以上いて、その2人がDead by Daylightをプレイしている場合
                 last_message_time = self.last_message_times.get("bot", 0)
-                if (current_time - last_message_time) > 7200:
-                    # メッセージを送信するチャンネルのIDを指定
-                    message_channel_id = 1003966898792312854
-                    # メッセージを送信するチャンネルを取得
-                    message_channel = self.get_channel(message_channel_id)
-                    await message_channel.send(message)
-                    # 最終発言時刻を更新
-                    self.last_message_times["bot"] = current_time
+                # 最終発言時刻を更新
+                self.last_message_times["bot"] = current_time
 
 
 def main():

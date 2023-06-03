@@ -173,10 +173,6 @@ class MyBot(commands.Bot):
                 print("massage have sent to discord!")
             print("message_history: ", self.message_histories)
 
-    @bot.event
-    async def on_voice_state_update(self, member, before, after):
-        print(self.topic)
-        print(Topic.DEAD_BY_DAY_LIGHT)
     @client.event
     async def on_voice_state_update(member, before, after):
         if after.channel is not None:

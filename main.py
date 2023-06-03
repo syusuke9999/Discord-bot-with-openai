@@ -20,7 +20,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
-topic_enum = os.getenv('TOPIC_ENUM')
+YOUR_TOPIC_ENUM = os.getenv('TOPIC_ENUM')
 
 if not debug_mode:
     # Redis接続を初期化

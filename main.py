@@ -12,9 +12,6 @@ from system_message import SystemMessage, Topic
 
 debug_mode = False
 
-# Discord接続を初期化
-bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 REDIS_HOST = os.environ.get('REDIS_HOST')
@@ -44,6 +41,7 @@ def count_tokens(text):
     tokens = encoding.encode(text)
     tokens_count = len(tokens)
     return tokens_count
+
 
 class MyBot(commands.Bot):
     def __init__(self, command_prefix, intents, topic_enum):
@@ -101,7 +99,7 @@ class MyBot(commands.Bot):
             else:
                 self.message_histories[user_key] = []
             print("user_key: " + user_key + " message.content: ", message.content)
-            system_message_instance = SystemMessage(topic=self.topic)
+            system_message_instance = SystemMessage(topic=self.topic_enum)
             system_message_content = system_message_instance.get_system_message_content()
             system_message = {"role": "system", "content": system_message_content}
             new_message = {"role": "user", "content": message.content}
@@ -174,20 +172,21 @@ class MyBot(commands.Bot):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         if after.channel is not None:
-            YOUR_CHANNEL_ID = 1003966899232702537
-            if after.channel.id == YOUR_CHANNEL_ID:  # チャンネルIDを指定します
+            your_channel_id = 1003966899232702537
+            if after.channel.id == your_channel_id:  # チャンネルIDを指定します
                 if len(after.channel.members) >= 2:  # チャンネルのメンバーが2人以上いるか確認します
                     member_names = ', '.join([member.name for member in after.channel.members])
-                    YOUR_TEXT_CHANNEL_ID = 1003966898792312854
+                    your_text_chanel_id = 1003966898792312854
                     # ボイスチャットに参加しているメンバーが2人以上いる場合
                     # テキストチャットチャンネルにメッセージを送信する
-                    await self.get_channel(YOUR_TEXT_CHANNEL_ID).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
+                    await self.get_channel(your_text_chanel_id).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
 
 
 def main():
+    # Discord接続を初期化
     intents = discord.Intents.all()
     intents.voice_states = True
-    topic_enum = YOUR_TOPIC_ENUM  # ここにあなたのtopic_enumを指定します
+    topic_enum = Topic(os.getenv('TOPIC_ENUM'))  # 環境変数からtopic_enumを取得します
     bot = MyBot(command_prefix='!', intents=intents, topic_enum=topic_enum)
     bot.run(DISCORD_TOKEN)  # ここにあなたのDiscordボットのトークンを指定します
 

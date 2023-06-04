@@ -117,35 +117,8 @@ class MyBot(commands.Bot):
             elapsed_time = time.time() - start_time
             print(f"The API call took {elapsed_time} seconds.")
             bot_response = response['choices'][0]['message']['content']
-            print("ボットの応答: ", bot_response)
-            # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
-            total_tokens = 0
-            # ユーザーのメッセージ履歴にある各メッセージをループ処理
-            for message_history in self.message_histories[user_key]:
-                # メッセージをJSON文字列に変換
-                message_as_json = json.dumps(message_history)
-                # JSON文字列のトークン数をカウント
-                num_tokens_in_message = count_tokens(message_as_json)
-                # 現在のメッセージに含まれるトークンの総数を合計に加算
-                total_tokens += num_tokens_in_message
-            # トークンの総数をインスタンス変数に格納
-            self.total_tokens = total_tokens
-            # 新しいメッセージとシステムメッセージのトークン数を追加
-            self.total_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(system_message)) + \
-                count_tokens(json.dumps(bot_response))
-            # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
-            while self.total_tokens > MAX_TOKENS:
-                # 最初のメッセージを削除する
-                removed_message = self.message_histories[user_key].pop(0)
-                # 削除したメッセージのトークン数を引く
-                self.total_tokens -= count_tokens(json.dumps(removed_message))
-            # トークン数が制限以下になったら新しいメッセージを追加
-            self.message_histories[user_key].append(new_message)
-            self.message_histories[user_key].append({"role": "assistant", "content": bot_response})
-            # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
-            self.total_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_histories[user_key])
-            # 新しいメッセージとシステムメッセージのトークン数を追加
-            self.total_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(system_message))
+            print("bot response: ", bot_response)
+            self.update_message_histories_and_tokens(message, bot_response, user_key)
             if not debug_mode:
                 # メッセージ履歴をRedisに保存し、TTLを設定
                 message_history_json = json.dumps(self.message_histories[user_key])
@@ -167,6 +140,23 @@ class MyBot(commands.Bot):
                 await message.reply(bot_response)
                 print("massage have sent to discord!")
             print("message_history: ", self.message_histories)
+
+    def update_message_histories_and_tokens(self, new_message, bot_response, user_key):
+        # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
+        total_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_histories[user_key])
+        # 新しいメッセージとボットの応答のトークン数を追加
+        total_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(bot_response))
+        # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
+        while total_tokens > MAX_TOKENS:
+            # 最初のメッセージを削除する
+            removed_message = self.message_histories[user_key].pop(0)
+            # 削除したメッセージのトークン数を引く
+            total_tokens -= count_tokens(json.dumps(removed_message))
+        # トークン数が制限以下になったら新しいメッセージとボットの応答を追加
+        self.message_histories[user_key].append(new_message)
+        self.message_histories[user_key].append({"role": "assistant", "content": bot_response})
+        # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
+        self.total_tokens = total_tokens
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):

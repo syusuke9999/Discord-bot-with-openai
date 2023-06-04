@@ -17,7 +17,9 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
-YOUR_TOPIC_ENUM = os.getenv('TOPIC_ENUM')
+TOPIC_ENUM = os.getenv('TOPIC_ENUM')
+THIS_TOPIC_ENUM = Topic.__members__.get(TOPIC_ENUM)
+
 
 if not debug_mode:
     # Redis接続を初期化
@@ -44,13 +46,11 @@ def count_tokens(text):
 
 
 class MyBot(commands.Bot):
-    def __init__(self, command_prefix, intents, topic_enum):
+    def __init__(self, command_prefix, intents, enum_of_topic):
         super().__init__(command_prefix, intents=intents)
-        self.topic_enum = topic_enum
+        self.topic_enum = enum_of_topic
         self.message_histories = {}
         self.total_tokens = 0  # トークン数の合計を保持するための変数を追加
-        # 最終発言時刻を管理するディクショナリを初期化
-        self.last_message_times = {}
 
     async def on_ready(self):
         print(f"We have logged in as {self.user}")
@@ -90,7 +90,6 @@ class MyBot(commands.Bot):
             # ユーザーキーを指定してRedisサーバーからメッセージの履歴を取得
             message_history_json = r.get(f'message_history_{user_key}')
             end_time = time.time()
-            # Redisサーバーからのデータ取得にかかった時間を計算
             elapsed_time = end_time - start_time
             # 経過時間を表示
             print(f"Elapsed time to get data from Redis server: {elapsed_time} seconds")
@@ -102,6 +101,7 @@ class MyBot(commands.Bot):
             system_message_instance = SystemMessage(topic=self.topic_enum)
             system_message_content = system_message_instance.get_system_message_content()
             system_message = {"role": "system", "content": system_message_content}
+            print("システムメッージ: ", system_message_content)
             new_message = {"role": "user", "content": message.content}
             print("Getting response from OpenAI API...")
             # OpenAIのAPIへのリクエストを送信してから返事が返って来るまでの時間を測定する
@@ -156,8 +156,7 @@ class MyBot(commands.Bot):
                 end_time = time.time()
                 # 経過時間を計算して表示
                 elapsed_time = end_time - start_time
-                print(f"Redisへ会話履歴を保存するのにかかった時間: {elapsed_time} 秒。")  # 追加: 経過時間を表示
-                print("メッセージはRedisサーバーへ送信されました。")
+                print(f"Redisへ会話履歴を保存するのにかかった時間: {elapsed_time} 秒。")  # 経過時間を表示
             print("await sending message to discord with async typing function!")
             # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
             typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
@@ -171,24 +170,31 @@ class MyBot(commands.Bot):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        if after.channel is not None:
-            your_channel_id = 1003966899232702537
-            if after.channel.id == your_channel_id:  # チャンネルIDを指定します
-                if len(after.channel.members) >= 2:  # チャンネルのメンバーが2人以上いるか確認します
-                    member_names = ', '.join([member.name for member in after.channel.members])
-                    your_text_chanel_id = 1003966898792312854
-                    # ボイスチャットに参加しているメンバーが2人以上いる場合
-                    # テキストチャットチャンネルにメッセージを送信する
-                    await self.get_channel(your_text_chanel_id).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
+        # ボイスチャンネルIDを指定します
+        your_voice_chat_channel_id = 1003966899232702537
+        if after.channel.id == your_voice_chat_channel_id:
+            # チャンネルのメンバーが増えて2人以上いるか確認します
+            if (before.channel is None and len(after.channel.members) >= 2) or \
+                    (before.channel is not None and len(before.channel.members) < len(after.channel.members) and len(
+                        after.channel.members) >= 2):
+                # メンバーの名前を取得してカンマ区切りの文字列にします
+                member_names = ""
+                for participant in after.channel.members:
+                    if member_names != "":
+                        member_names += ", "
+                    member_names += participant.name
+                # テキストチャンネルIDを指定します
+                your_text_chanel_id = 1003966898792312854
+                # ボイスチャットに参加しているメンバーが2人以上いる場合、ユーザー名を指定してメッセージを送信する
+                await self.get_channel(your_text_chanel_id).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
 
 
 def main():
     # Discord接続を初期化
     intents = discord.Intents.all()
+    # ボイスステータスのインテントを取得する意図を明視するため
     intents.voice_states = True
-    # 環境変数からtopic_enumを取得します
-    topic_enum = Topic.__members__.get(os.getenv('TOPIC_ENUM'))
-    bot = MyBot(command_prefix='!', intents=intents, topic_enum=topic_enum)
+    bot = MyBot(command_prefix='!', intents=intents, enum_of_topic=THIS_TOPIC_ENUM)
     # ここにあなたのDiscordボットのトークンを指定します
     bot.run(DISCORD_TOKEN)
 

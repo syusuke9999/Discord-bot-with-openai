@@ -186,9 +186,11 @@ def main():
     # Discord接続を初期化
     intents = discord.Intents.all()
     intents.voice_states = True
-    topic_enum = Topic.__members__.get(os.getenv('TOPIC_ENUM'))  # 環境変数からtopic_enumを取得します
+    # 環境変数からtopic_enumを取得します
+    topic_enum = Topic.__members__.get(os.getenv('TOPIC_ENUM'))
     bot = MyBot(command_prefix='!', intents=intents, topic_enum=topic_enum)
-    bot.run(DISCORD_TOKEN)  # ここにあなたのDiscordボットのトークンを指定します
+    # ここにあなたのDiscordボットのトークンを指定します
+    bot.run(DISCORD_TOKEN)
 
 
 if __name__ == "__main__":

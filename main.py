@@ -20,7 +20,6 @@ REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 TOPIC_ENUM = os.getenv('TOPIC_ENUM')
 THIS_TOPIC_ENUM = Topic.__members__.get(TOPIC_ENUM)
 
-
 if not debug_mode:
     # Redis接続を初期化
     r = redis.Redis(
@@ -56,9 +55,9 @@ class MyBot(commands.Bot):
         print(f"We have logged in as {self.user}")
 
     def remove_duplicate_messages(self, user_key, new_message):
-        new_message_history = []
+        new_message_history = [self.message_histories[user_key][0], self.message_histories[user_key][1]]
         skip_next = False
-        for i, old_message in enumerate(self.message_histories[user_key]):
+        for i, old_message in enumerate(self.message_histories[user_key][2:], start=2):
             if skip_next:
                 skip_next = False
                 continue

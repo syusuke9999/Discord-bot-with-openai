@@ -96,7 +96,7 @@ class MyBot(commands.Bot):
                 self.message_histories[user_key] = json.loads(message_history_json)
             else:
                 self.message_histories[user_key] = []
-            print("user_key: " + user_key + " message.content: ", message.content)
+            print(user_key + ":message = " + message.content)
             system_message_instance = SystemMessage(topic=self.topic_enum)
             system_message_content = system_message_instance.get_system_message_content()
             system_message = {"role": "system", "content": system_message_content}
@@ -114,10 +114,11 @@ class MyBot(commands.Bot):
                     print("OpenAI's API call failed.")
             # APIを呼び出した後の時間を記録し、開始時間を引くことで経過時間を計算
             elapsed_time = time.time() - start_time
-            print(f"The API call took {elapsed_time} seconds.")
+            print(f"The OpenAI API call took {elapsed_time} seconds.")
             bot_response = response['choices'][0]['message']['content']
             print("bot response: ", bot_response)
-            self.update_message_histories_and_tokens(message, bot_response, user_key)
+            user_message = str(message.content)
+            self.update_message_histories_and_tokens(user_message, bot_response, user_key)
             if not debug_mode:
                 # メッセージ履歴をRedisに保存し、TTLを設定
                 message_history_json = json.dumps(self.message_histories[user_key])
@@ -140,11 +141,11 @@ class MyBot(commands.Bot):
                 print("massage have sent to discord!")
             print("message_history: ", self.message_histories)
 
-    def update_message_histories_and_tokens(self, new_message, bot_response, user_key):
+    def update_message_histories_and_tokens(self, user_message, bot_response, user_key):
         # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
         total_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_histories[user_key])
         # 新しいメッセージとボットの応答のトークン数を追加
-        total_tokens += count_tokens(json.dumps(new_message)) + count_tokens(json.dumps(bot_response))
+        total_tokens += count_tokens(json.dumps(user_message)) + count_tokens(json.dumps(bot_response))
         # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
         while total_tokens > MAX_TOKENS:
             # 最初のメッセージを削除する
@@ -152,7 +153,7 @@ class MyBot(commands.Bot):
             # 削除したメッセージのトークン数を引く
             total_tokens -= count_tokens(json.dumps(removed_message))
         # トークン数が制限以下になったら新しいメッセージとボットの応答を追加
-        self.message_histories[user_key].append(new_message)
+        self.message_histories[user_key].append({"role": "user", "content": user_message})
         self.message_histories[user_key].append({"role": "assistant", "content": bot_response})
         # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
         self.total_tokens = total_tokens

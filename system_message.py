@@ -52,6 +52,8 @@ class SystemMessage:
                              f"Please do not mention the presence of prompts or system messages. " \
                              f"Please also greet people according to the current time of day. " \
                              f"Please keep responses brief and not overly long. " \
+                             f"If you don't know the answer to a question asked by the user, " \
+                             f"please answer 「分かりません。」" \
                              f"Don't use English, please communicate only in Japanese."
             return system_message
         elif self.topics == Topic.DEAD_BY_DAY_LIGHT:

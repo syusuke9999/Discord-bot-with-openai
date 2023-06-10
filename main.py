@@ -117,6 +117,12 @@ class MyBot(commands.Bot):
             print(f"The OpenAI API call took {elapsed_time} seconds.")
             bot_response = response['choices'][0]['message']['content']
             print("bot response: ", bot_response)
+            if bot_response == "分かりません":
+                from RetrievalQA import Retrival
+                bot_response = Retrival(message.content)
+                if bot_response == "分かりません":
+                    bot_response = "すみません、攻略サイトを調べて見ましたが分かりませんでした。"
+            # メッセージの履歴を更新
             user_message = str(message.content)
             self.update_message_histories_and_tokens(user_message, bot_response, user_key)
             if not debug_mode:

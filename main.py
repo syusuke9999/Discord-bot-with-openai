@@ -117,10 +117,10 @@ class MyBot(commands.Bot):
             print(f"The OpenAI API call took {elapsed_time} seconds.")
             bot_response = response['choices'][0]['message']['content']
             print("bot response: ", bot_response)
-            if bot_response == "分かりません":
+            if "分かりません" in bot_response:
                 from RetrievalQA import Retrival
                 bot_response = Retrival(message.content)
-                if bot_response == "分かりません":
+                if "分かりません" in bot_response:
                     bot_response = "すみません、攻略サイトを調べて見ましたが分かりませんでした。"
             # メッセージの履歴を更新
             user_message = str(message.content)

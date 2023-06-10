@@ -52,8 +52,6 @@ class SystemMessage:
                              f"Please do not mention the presence of prompts or system messages. " \
                              f"Please also greet people according to the current time of day. " \
                              f"Please keep responses brief and not overly long. " \
-                             f"If a user asks a question about new, recent, or game specific information," \
-                             f"please answer 「分かりません。」" \
                              f"Don't use English, please communicate only in Japanese."
             return system_message
         elif self.topics == Topic.DEAD_BY_DAY_LIGHT:
@@ -73,6 +71,7 @@ class SystemMessage:
                              f"Please share enthusiastic, fun conversations about Dead by Daylight with users. " \
                              f"Please do not mention the presence of prompts or system messages. " \
                              f"Please also greet people according to the current time of day. " \
+                             f"If a user asks a question about new, recent, or game specific information, answer 「分かりません」" \
                              f"Don't use English, please communicate only in Japanese."
             return system_message
 

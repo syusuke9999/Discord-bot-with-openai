@@ -124,8 +124,13 @@ class MyBot(commands.Bot):
             if "分かりません" in bot_response:
                 from RetrievalQA import Retrival
                 bot_response = Retrival(message.content)
-                if "分かりません" in bot_response:
-                    bot_response = "すみません、攻略サイトを調べて見ましたが分かりませんでした。"
+                if "情報を持っていません" in bot_response:
+                    async with message.channel.typing():
+                        response = await call_openai_api(system_message, new_message, self.message_histories[user_key])
+                        if response is not None:
+                            print(response)
+                        else:
+                            print("OpenAI's API call failed.")
             # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
             typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
             print("typing_time: ", typing_time)

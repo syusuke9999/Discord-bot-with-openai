@@ -1,7 +1,6 @@
 import os
 import time
 import discord
-import openai
 from discord.ext import commands
 import tiktoken
 from tiktoken.core import Encoding
@@ -10,11 +9,8 @@ from asyncio import sleep
 import json
 import logging
 from system_message import SystemMessage, Topic
-from RetrievalQA import Retrival
-
 
 debug_mode = False
-
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -192,7 +188,6 @@ class MyBot(commands.Bot):
                 your_text_chanel_id = 1003966898792312854
                 # ボイスチャットに参加しているメンバーが2人以上いる場合、ユーザー名を指定してメッセージを送信する
                 await self.get_channel(your_text_chanel_id).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
-
 
 
 def main():

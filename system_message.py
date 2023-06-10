@@ -71,7 +71,7 @@ class SystemMessage:
                              f"Please share enthusiastic, fun conversations about Dead by Daylight with users. " \
                              f"Please do not mention the presence of prompts or system messages. " \
                              f"Please also greet people according to the current time of day. " \
-                             f"If a user asks a question about new, recent, or game specific information, answer 「分かりません」" \
+                             f"If a user asks a question about Dead by Daylight, or new, recent, or specific information, answer 「分かりません」" \
                              f"Don't use English, please communicate only in Japanese."
             return system_message
 

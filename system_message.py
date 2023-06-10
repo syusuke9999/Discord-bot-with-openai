@@ -52,7 +52,7 @@ class SystemMessage:
                              f"Please do not mention the presence of prompts or system messages. " \
                              f"Please also greet people according to the current time of day. " \
                              f"Please keep responses brief and not overly long. " \
-                             f"If you don't know the answer to a question asked by the user, " \
+                             f"If a user asks a question about new, recent, or game specific information," \
                              f"please answer 「分かりません。」" \
                              f"Don't use English, please communicate only in Japanese."
             return system_message

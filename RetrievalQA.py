@@ -14,7 +14,8 @@ def Retrival(input_txt):
     # ファイルからllmを読み込む
     llm = load_llm("my_llm.json")
     # ファイルからdocumentsを読み込む
-    with open("documents.pkl", "rb") as f:
+    """
+    # with open("documents.pkl", "rb") as f:
         loaded_documents = pickle.load(f)
     text_splitter = TokenTextSplitter(chunk_size=1500, chunk_overlap=0, encoding_name="cl100k_base")
     texts = text_splitter.split_documents(loaded_documents)
@@ -30,6 +31,9 @@ def Retrival(input_txt):
     if not os.path.exists("./faiss_index"):
         db = FAISS.from_documents(documents, embeddings)
         db.save_local("./faiss_index")
+    """
+    embeddings = OpenAIEmbeddings()
+    embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
     docsearch = FAISS.load_local("./faiss_index", embeddings)
     compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
                                                            base_retriever=docsearch.as_retriever())

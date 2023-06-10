@@ -1,6 +1,7 @@
 import os
 import time
 import discord
+import openai
 from discord.ext import commands
 import tiktoken
 from tiktoken.core import Encoding
@@ -9,15 +10,18 @@ from asyncio import sleep
 import json
 import logging
 from system_message import SystemMessage, Topic
+from RetrievalQA import Retrival
+
 
 debug_mode = False
 
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-REDIS_HOST = os.environ.get('REDIS_HOST')
-REDIS_PORT = os.environ.get('REDIS_PORT')
-REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
-TOPIC_ENUM = os.getenv('TOPIC_ENUM')
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+TOPIC_ENUM = "DEAD_BY_DAY_LIGHT"
 THIS_TOPIC_ENUM = Topic.__members__.get(TOPIC_ENUM)
 
 if not debug_mode:
@@ -122,9 +126,16 @@ class MyBot(commands.Bot):
                 bot_response = Retrival(message.content)
                 if "分かりません" in bot_response:
                     bot_response = "すみません、攻略サイトを調べて見ましたが分かりませんでした。"
+            # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
+            typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
+            print("typing_time: ", typing_time)
+            print("await sending message to discord with async typing function!")
+            async with message.channel.typing():
+                await sleep(typing_time)  # 計算された時間まで待つ
+                await message.reply(bot_response)
+                print("massage have sent to discord!")
             # メッセージの履歴を更新
             user_message = str(message.content)
-            self.update_message_histories_and_tokens(user_message, bot_response, user_key)
             if not debug_mode:
                 # メッセージ履歴をRedisに保存し、TTLを設定
                 message_history_json = json.dumps(self.message_histories[user_key])
@@ -137,14 +148,7 @@ class MyBot(commands.Bot):
                 elapsed_time = end_time - start_time
                 print(f"Redisへ会話履歴を保存するのにかかった時間: {elapsed_time} 秒。")  # 経過時間を表示
             print("await sending message to discord with async typing function!")
-            # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
-            typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
-            print("typing_time: ", typing_time)
-            print("await sending message to discord with async typing function!")
-            async with message.channel.typing():
-                await sleep(typing_time)  # 計算された時間まで待つ
-                await message.reply(bot_response)
-                print("massage have sent to discord!")
+            self.update_message_histories_and_tokens(user_message, bot_response, user_key)
             print("message_history: ", self.message_histories)
 
     def update_message_histories_and_tokens(self, user_message, bot_response, user_key):
@@ -183,6 +187,7 @@ class MyBot(commands.Bot):
                 your_text_chanel_id = 1003966898792312854
                 # ボイスチャットに参加しているメンバーが2人以上いる場合、ユーザー名を指定してメッセージを送信する
                 await self.get_channel(your_text_chanel_id).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
+
 
 
 def main():

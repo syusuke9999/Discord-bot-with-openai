@@ -6,3 +6,4 @@ tenacity
 openai
 langchain
 pytz
+faiss-cpu

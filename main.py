@@ -138,14 +138,15 @@ class MyBot(commands.Bot):
                 bot_response_for_answer = await retrival_qa.GetAnswerFromFaiss(message.content)
                 elapsed_time = time.time() - start_time
                 print(f"The retrieval QA took {elapsed_time} seconds.")
-                await send_message(message, bot_response_for_answer)
                 print("bot_response_for_answer: ", bot_response_for_answer)
+                await send_message(message, bot_response_for_answer)
                 if "情報を持っていません" in bot_response_for_answer:
                     await self.do_not_know_answer(message, new_message_dict, user_key)
             else:
-                bot_response_for_answer = response
-                print("bot_response_for_answer: ", bot_response_for_answer)
-                await send_message(message, bot_response_for_answer)
+                if response is not None:
+                    bot_response_for_answer = response['choices'][0]['message']['content']
+                    print("bot_response_for_answer: ", bot_response_for_answer)
+                    await send_message(message, bot_response_for_answer)
             # メッセージの履歴を更新
             user_message = str(message.content)
             if not debug_mode:

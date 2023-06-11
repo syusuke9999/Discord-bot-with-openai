@@ -136,12 +136,12 @@ class MyBot(commands.Bot):
                 retrival_qa = RetrievalQAFromFaiss()
                 # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
                 bot_response_for_answer = await retrival_qa.GetAnswerFromFaiss(message.content)
+                elapsed_time = time.time() - start_time
+                print(f"The retrieval QA took {elapsed_time} seconds.")
+                await send_message(message, bot_response_for_answer)
                 print("bot_response_for_answer: ", bot_response_for_answer)
                 if "情報を持っていません" in bot_response_for_answer:
                     await self.do_not_know_answer(message, new_message_dict, user_key)
-                elapsed_time = time.time() - start_time
-                await send_message(message, bot_response_for_answer)
-                print(f"The retrieval QA took {elapsed_time} seconds.")
             else:
                 bot_response_for_answer = response
                 print("bot_response_for_answer: ", bot_response_for_answer)

@@ -133,7 +133,8 @@ class MyBot(commands.Bot):
                         elapsed_time = time.time() - start_time
                         print(f"The OpenAI API call took {elapsed_time} seconds.")
                         if response is not None:
-                            print(response)
+                            bot_response = response['choices'][0]['message']['content']
+                            print("bot_response: ", bot_response)
                         else:
                             print("OpenAI's API call failed.")
                             async with message.channel.typing():

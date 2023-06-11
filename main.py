@@ -145,6 +145,9 @@ class MyBot(commands.Bot):
                 # 以下はクローリングしたデータの中からユーザーの質問への答えが見つからなかった時の処理
                 if "情報を持っていません" in retrival_qa_response:
                     start_time = time.time()
+                    system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT_DO_NOT_SURE)
+                    system_message_content = system_message_instance.get_system_message_content()
+                    system_message_dict = {"role": "system", "content": system_message_content}
                     async with message.channel.typing():
                         response = await call_openai_api(system_message_dict, new_message_dict,
                                                          self.message_histories[user_key])
@@ -160,8 +163,6 @@ class MyBot(commands.Bot):
                                                     "呼び出しに失敗しました。少しお時間を置いてから再度試して頂きますようお願い致します。")
                                 print("massage have sent to discord!")
                                 return
-                else:
-                    bot_response = retrival_qa_response
             else:
                 # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
                 typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する

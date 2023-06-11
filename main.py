@@ -120,8 +120,12 @@ class MyBot(commands.Bot):
             # APIを呼び出した後の時間を記録し、開始時間を引くことで経過時間を計算
             elapsed_time = time.time() - start_time
             print(f"The OpenAI API call took {elapsed_time} seconds.")
-            bot_response_for_answer = response['choices'][0]['message']['content']
-            print("bot_response_for_answer: ", bot_response_for_answer)
+            bot_response_for_answer:str = ""
+            if response is not None:
+                bot_response_for_answer = response['choices'][0]['message']['content']
+                print("bot_response_for_answer: ", bot_response_for_answer)
+            else:
+                print("OpenAI's API call failed.")
             bot_response:str = ""
             if "分かりません" in bot_response_for_answer:
                 retrival_qa = RetrievalQAFromFaiss()
@@ -165,6 +169,9 @@ class MyBot(commands.Bot):
             user_message = str(message.content)
             if not debug_mode:
                 # メッセージ履歴をRedisに保存し、TTLを設定
+                new_message = {"role": "user", "content": message.content}
+                self.message_histories[user_key].append(new_message)
+                self.message_histories[user_key].append({"role": "assistant", "content": bot_response})
                 message_history_json = json.dumps(self.message_histories[user_key])
                 # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
                 start_time = time.time()

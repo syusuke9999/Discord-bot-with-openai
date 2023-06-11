@@ -125,6 +125,7 @@ class MyBot(commands.Bot):
                 retrival_qa_response = retrival_qa.GetAnswerFromFaiss(message.content)
                 elapsed_time = time.time() - start_time
                 print(f"The retrieval QA took {elapsed_time} seconds.")
+                print("retrival_qa_response: ", retrival_qa_response)
                 if "情報を持っていません" in retrival_qa_response:
                     start_time = time.time()
                     async with message.channel.typing():

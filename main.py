@@ -122,7 +122,6 @@ class MyBot(commands.Bot):
             # APIを呼び出した後の時間を記録し、開始時間を引くことで経過時間を計算
             elapsed_time = time.time() - start_time
             print(f"The OpenAI API call took {elapsed_time} seconds.")
-            bot_response_for_answer: str = ""
             if response is not None:
                 bot_response_for_answer = response['choices'][0]['message']['content']
                 print("bot_response_for_answer: ", bot_response_for_answer)
@@ -133,63 +132,43 @@ class MyBot(commands.Bot):
                                         "呼び出しに失敗しました。少しお時間を置いてから再度試して頂きますようお願い致します。")
                     print("massage have sent to discord!")
                     return
-            bot_response: str = ""
             if "分かりません" in bot_response_for_answer:
                 retrival_qa = RetrievalQAFromFaiss()
                 start_time = time.time()
                 # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
-                retrival_qa_response = await retrival_qa.GetAnswerFromFaiss(message.content)
+                bot_response_for_answer = await retrival_qa.GetAnswerFromFaiss(message.content)
                 elapsed_time = time.time() - start_time
                 print(f"The retrieval QA took {elapsed_time} seconds.")
-                print("retrival_qa_response: ", retrival_qa_response)
-                # 以下はクローリングしたデータの中からユーザーの質問への答えが見つからなかった時の処理
-                if "情報を持っていません" in retrival_qa_response:
-                    start_time = time.time()
-                    system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT_DO_NOT_SURE)
-                    system_message_content = system_message_instance.get_system_message_content()
-                    system_message_dict = {"role": "system", "content": system_message_content}
+                print("retrival_qa_response: ", bot_response_for_answer)
+                if bot_response_for_answer == "":
+                    return
+                else:
+                    # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
+                    typing_time = min(max(len(bot_response_for_answer) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
+                    print("typing_time: ", typing_time)
+                    print("await sending message to discord with async typing function!")
                     async with message.channel.typing():
-                        response = await call_openai_api(system_message_dict, new_message_dict,
-                                                         self.message_histories[user_key])
-                        elapsed_time = time.time() - start_time
-                        print(f"The OpenAI API call took {elapsed_time} seconds.")
-                        if response is not None:
-                            bot_response = response['choices'][0]['message']['content']
-                            print("bot_response: ", bot_response)
-                        else:
-                            print("OpenAI's API call failed.")
-                            async with message.channel.typing():
-                                await message.reply("大変申し訳ありません。OpenAIのAPIに負荷が掛かっているようで、"
-                                                    "呼び出しに失敗しました。少しお時間を置いてから再度試して頂きますようお願い致します。")
-                                print("massage have sent to discord!")
-                                return
-            else:
-                # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
-                typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
-                print("typing_time: ", typing_time)
-                print("await sending message to discord with async typing function!")
-                async with message.channel.typing():
-                    await sleep(typing_time)  # 計算された時間まで待つ
-                    await message.reply(bot_response)
-                    print("await reply message to discord with async typing function!")
-                # メッセージの履歴を更新
-                user_message = str(message.content)
-                if not debug_mode:
-                    # メッセージ履歴をRedisに保存し、TTLを設定
-                    new_message = {"role": "user", "content": message.content}
-                    self.message_histories[user_key].append(new_message)
-                    self.message_histories[user_key].append({"role": "assistant", "content": bot_response})
-                    message_history_json = json.dumps(self.message_histories[user_key])
-                    # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
-                    start_time = time.time()
-                    r.set(f'message_history_{user_key}', message_history_json)
-                    r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
-                    end_time = time.time()
-                    # 経過時間を計算して表示
-                    elapsed_time = end_time - start_time
-                    print(f"Elapsed time to save data to Redis server: {elapsed_time} seconds")  # 経過時間を表示
-                self.update_message_histories_and_tokens(user_message, bot_response, user_key)
-                print("message_history: ", self.message_histories)
+                        await sleep(typing_time)  # 計算された時間まで待つ
+                        await message.reply(bot_response_for_answer)
+                        print("await reply message to discord with async typing function!")
+                    # メッセージの履歴を更新
+                    user_message = str(message.content)
+                    if not debug_mode:
+                        # メッセージ履歴をRedisに保存し、TTLを設定
+                        new_message = {"role": "user", "content": message.content}
+                        self.message_histories[user_key].append(new_message)
+                        self.message_histories[user_key].append({"role": "assistant", "content": bot_response_for_answer})
+                        message_history_json = json.dumps(self.message_histories[user_key])
+                        # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
+                        start_time = time.time()
+                        r.set(f'message_history_{user_key}', message_history_json)
+                        r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+                        end_time = time.time()
+                        # 経過時間を計算して表示
+                        elapsed_time = end_time - start_time
+                        print(f"Elapsed time to save data to Redis server: {elapsed_time} seconds")  # 経過時間を表示
+                    self.update_message_histories_and_tokens(user_message, bot_response_for_answer, user_key)
+                    print("message_history: ", self.message_histories)
 
     def update_message_histories_and_tokens(self, user_message, bot_response, user_key):
         # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
@@ -207,6 +186,27 @@ class MyBot(commands.Bot):
         self.message_histories[user_key].append({"role": "assistant", "content": bot_response})
         # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
         self.total_tokens = total_tokens
+
+    async def do_not_know_answer(self, message, new_message_dict, user_key):
+        start_time = time.time()
+        system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT_DO_NOT_SURE)
+        system_message_content = system_message_instance.get_system_message_content()
+        system_message_dict = {"role": "system", "content": system_message_content}
+        from openai_api import call_openai_api
+        async with message.channel.typing():
+            response = await call_openai_api(system_message_dict, new_message_dict,
+                                             self.message_histories[user_key])
+            elapsed_time = time.time() - start_time
+            print(f"The OpenAI API call took {elapsed_time} seconds.")
+        if response is not None:
+            bot_response = response['choices'][0]['message']['content']
+            print("bot_response: ", bot_response)
+        else:
+            print("OpenAI's API call failed.")
+            async with message.channel.typing():
+                await message.reply("大変申し訳ありません。OpenAIのAPIに負荷が掛かっているようで、"
+                                    "呼び出しに失敗しました。少しお時間を置いてから再度試して頂きますようお願い致します。")
+                print("massage have sent to discord!")
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):

@@ -51,6 +51,7 @@ class MyBot(commands.Bot):
         self.topic_enum = enum_of_topic
         self.message_histories = {}
         self.total_tokens = 0  # トークン数の合計を保持するための変数を追加
+        self.special_channel_id = 1117363032172003328  # 特定のチャンネルのIDを設定します。
 
     async def on_ready(self):
         print(f"We have logged in as {self.user}")
@@ -75,9 +76,12 @@ class MyBot(commands.Bot):
         await super().on_message(message)
         if message.author == self.user:
             return
-        # メンションされた場合
-        print("mentioned!  Message content: ", message.content)
-        if self.user in message.mentions:
+        # メンションされた場合か、特定のチャンネルでメッセージが送信された場合のみ処理を続ける
+        if self.user in message.mentions or message.channel.id == self.special_channel_id:
+            if self.user in message.mentions:
+                print("mentioned!  Message content: ", message.content)
+            elif message.channel.id == self.special_channel_id:
+                print("special channel!  Message content: ", message.content)
             # メッセージの内容を表示
             print("Message content: ", message.content)
             # メンションしたユーザーのIDと名前を取得

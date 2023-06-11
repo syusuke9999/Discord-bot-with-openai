@@ -74,7 +74,7 @@ class SystemMessage:
                              f"If users ask questions about Dead by Daylight involving the rules of the game, " \
                              f"the latest news, or other information that changes through time, " \
                              f"that you can't answer the question with certainty," \
-                             f"please be honest and just answer \"I don\'t know\"" \
+                             f"please be honest and just answer 「分かりません」." \
                              f"Be sure to communicate only in Japanese."
             return system_message
 

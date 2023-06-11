@@ -142,30 +142,36 @@ class MyBot(commands.Bot):
                                 print("massage have sent to discord!")
                 else:
                     bot_response = retrival_qa_response
-                # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
-                typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
-                print("typing_time: ", typing_time)
-                print("await sending message to discord with async typing function!")
-                async with message.channel.typing():
-                    await sleep(typing_time)  # 計算された時間まで待つ
-                    await message.reply(bot_response)
-                    print("massage have sent to discord!")
-                # メッセージの履歴を更新
-                user_message = str(message.content)
-                if not debug_mode:
-                    # メッセージ履歴をRedisに保存し、TTLを設定
-                    message_history_json = json.dumps(self.message_histories[user_key])
-                    # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
-                    start_time = time.time()
-                    r.set(f'message_history_{user_key}', message_history_json)
-                    r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
-                    end_time = time.time()
-                    # 経過時間を計算して表示
-                    elapsed_time = end_time - start_time
-                    print(f"Redisへ会話履歴を保存するのにかかった時間: {elapsed_time} 秒。")  # 経過時間を表示
-                print("await sending message to discord with async typing function!")
-                self.update_message_histories_and_tokens(user_message, bot_response, user_key)
-                print("message_history: ", self.message_histories)
+            else:
+                if bot_response_for_answer is not None:
+                    bot_response = bot_response_for_answer
+                else:
+                    bot_response = "大変申し訳ありません。OpenAIのAPIに負荷が掛かっているようで、" \
+                                   "呼び出しに失敗しました。少しお時間を置いてから再度試して頂きますようお願い致します。"
+            # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
+            typing_time = min(max(len(bot_response) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
+            print("typing_time: ", typing_time)
+            print("await sending message to discord with async typing function!")
+            async with message.channel.typing():
+                await sleep(typing_time)  # 計算された時間まで待つ
+                await message.reply(bot_response)
+                print("massage have sent to discord!")
+            # メッセージの履歴を更新
+            user_message = str(message.content)
+            if not debug_mode:
+                # メッセージ履歴をRedisに保存し、TTLを設定
+                message_history_json = json.dumps(self.message_histories[user_key])
+                # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
+                start_time = time.time()
+                r.set(f'message_history_{user_key}', message_history_json)
+                r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+                end_time = time.time()
+                # 経過時間を計算して表示
+                elapsed_time = end_time - start_time
+                print(f"Redisへ会話履歴を保存するのにかかった時間: {elapsed_time} 秒。")  # 経過時間を表示
+            print("await sending message to discord with async typing function!")
+            self.update_message_histories_and_tokens(user_message, bot_response, user_key)
+            print("message_history: ", self.message_histories)
 
     def update_message_histories_and_tokens(self, user_message, bot_response, user_key):
         # メッセージ履歴に含まれる全てのメッセージのトークン数を計算

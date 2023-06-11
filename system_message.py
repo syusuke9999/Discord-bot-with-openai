@@ -73,7 +73,8 @@ class SystemMessage:
                              f"Please also greet people according to the current time of day. " \
                              f"If the user asks you a question that you cannot answer with confidence, " \
                              f"or questions about Specific parks, offerings, add-ons, or other possible changes " \
-                             f"in the rules due to game updates, simply say, 「分かりません」." \
+                             f"in the rules due to game updates, include question about some condition in the game, " \
+                             f"simply say, 「分かりません」." \
                              f"Be sure to communicate only in Japanese."
             return system_message
 

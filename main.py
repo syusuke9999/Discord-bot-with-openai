@@ -122,6 +122,7 @@ class MyBot(commands.Bot):
             # APIを呼び出した後の時間を記録し、開始時間を引くことで経過時間を計算
             elapsed_time = time.time() - start_time
             print(f"The OpenAI API call took {elapsed_time} seconds.")
+            bot_response_for_answer: str = ""
             if response is not None:
                 bot_response_for_answer = response['choices'][0]['message']['content']
                 print("bot_response_for_answer: ", bot_response_for_answer)
@@ -137,10 +138,10 @@ class MyBot(commands.Bot):
                 start_time = time.time()
                 # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
                 bot_response_for_answer = await retrival_qa.GetAnswerFromFaiss(message.content)
+                print("retrival_qa_response: ", bot_response_for_answer)
                 elapsed_time = time.time() - start_time
                 print(f"The retrieval QA took {elapsed_time} seconds.")
-                print("retrival_qa_response: ", bot_response_for_answer)
-                if bot_response_for_answer == "":
+                if bot_response_for_answer is None or bot_response_for_answer == "":
                     return
                 else:
                     # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する

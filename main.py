@@ -122,7 +122,7 @@ class MyBot(commands.Bot):
             if "分かりません" in bot_response_for_answer:
                 retrival_qa = RetrievalQAFromFaiss()
                 start_time = time.time()
-                retrival_qa_response = retrival_qa.GetAnswerFromFaiss(message.content)
+                retrival_qa_response = await retrival_qa.GetAnswerFromFaiss(message.content)
                 elapsed_time = time.time() - start_time
                 print(f"The retrieval QA took {elapsed_time} seconds.")
                 print("retrival_qa_response: ", retrival_qa_response)

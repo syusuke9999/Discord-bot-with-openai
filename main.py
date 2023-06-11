@@ -158,7 +158,8 @@ class MyBot(commands.Bot):
                         # メッセージ履歴をRedisに保存し、TTLを設定
                         new_message = {"role": "user", "content": message.content}
                         self.message_histories[user_key].append(new_message)
-                        self.message_histories[user_key].append({"role": "assistant", "content": bot_response_for_answer})
+                        self.message_histories[user_key].append({"role": "assistant",
+                                                                 "content": bot_response_for_answer})
                         message_history_json = json.dumps(self.message_histories[user_key])
                         # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
                         start_time = time.time()

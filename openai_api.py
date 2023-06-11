@@ -30,10 +30,6 @@ async def call_openai_api(system_message, new_message, message_history):
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(url, headers=headers, data=json.dumps(data))
-            response_text = response.text  # Responseオブジェクトの内容を文字列に変換
-            response_dict = json.loads(response_text)  # 応答をJSONとして解析
-            bot_response = response_dict['choices'][0]['message']['content']
-            print(f"bot_response: {bot_response}")
             response.raise_for_status()  # Raise an exception if the status code is not in the 200 range.
             return response.json()
     except httpx.HTTPStatusError as exc:

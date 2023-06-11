@@ -130,7 +130,7 @@ class MyBot(commands.Bot):
             # APIを呼び出した後の時間を記録し、開始時間を引くことで経過時間を計算
             elapsed_time = time.time() - start_time
             print(f"The OpenAI API call took {elapsed_time} seconds.")
-            bot_response_for_answer: str = ""
+            bot_response_for_answer = response['choices'][0]['message']['content']
             if "分かりません" in bot_response_for_answer:
                 start_time = time.time()
                 retrival_qa = RetrievalQAFromFaiss()

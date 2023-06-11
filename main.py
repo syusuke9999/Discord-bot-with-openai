@@ -123,14 +123,15 @@ class MyBot(commands.Bot):
             async with message.channel.typing():
                 response = await call_openai_api(system_message_dict, new_message_dict,
                                                  self.message_histories[user_key])
-                if response is not None:
-                    print(response)
-                else:
-                    print("OpenAI's API call failed.")
             # APIを呼び出した後の時間を記録し、開始時間を引くことで経過時間を計算
             elapsed_time = time.time() - start_time
             print(f"The OpenAI API call took {elapsed_time} seconds.")
-            bot_response_for_answer = response['choices'][0]['message']['content']
+            bot_response_for_answer: str = ""
+            if response is not None:
+                bot_response_for_answer = response['choices'][0]['message']['content']
+            else:
+                print("OpenAI's API call failed.")
+                return
             if "分かりません" in bot_response_for_answer:
                 start_time = time.time()
                 retrival_qa = RetrievalQAFromFaiss()

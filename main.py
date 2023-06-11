@@ -143,34 +143,34 @@ class MyBot(commands.Bot):
                 print(f"The retrieval QA took {elapsed_time} seconds.")
                 if bot_response_for_answer is None or bot_response_for_answer == "":
                     return
-                else:
-                    # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
-                    typing_time = min(max(len(bot_response_for_answer) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
-                    print("typing_time: ", typing_time)
-                    print("await sending message to discord with async typing function!")
-                    async with message.channel.typing():
-                        await sleep(typing_time)  # 計算された時間まで待つ
-                        await message.reply(bot_response_for_answer)
-                        print("await reply message to discord with async typing function!")
-                    # メッセージの履歴を更新
-                    user_message = str(message.content)
-                    if not debug_mode:
-                        # メッセージ履歴をRedisに保存し、TTLを設定
-                        new_message = {"role": "user", "content": message.content}
-                        self.message_histories[user_key].append(new_message)
-                        self.message_histories[user_key].append({"role": "assistant",
-                                                                 "content": bot_response_for_answer})
-                        message_history_json = json.dumps(self.message_histories[user_key])
-                        # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
-                        start_time = time.time()
-                        r.set(f'message_history_{user_key}', message_history_json)
-                        r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
-                        end_time = time.time()
-                        # 経過時間を計算して表示
-                        elapsed_time = end_time - start_time
-                        print(f"Elapsed time to save data to Redis server: {elapsed_time} seconds")  # 経過時間を表示
-                    self.update_message_histories_and_tokens(user_message, bot_response_for_answer, user_key)
-                    print("message_history: ", self.message_histories)
+            else:
+                # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
+                typing_time = min(max(len(bot_response_for_answer) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
+                print("typing_time: ", typing_time)
+                print("await sending message to discord with async typing function!")
+                async with message.channel.typing():
+                    await sleep(typing_time)  # 計算された時間まで待つ
+                    await message.reply(bot_response_for_answer)
+                    print("await reply message to discord with async typing function!")
+                # メッセージの履歴を更新
+                user_message = str(message.content)
+                if not debug_mode:
+                    # メッセージ履歴をRedisに保存し、TTLを設定
+                    new_message = {"role": "user", "content": message.content}
+                    self.message_histories[user_key].append(new_message)
+                    self.message_histories[user_key].append({"role": "assistant",
+                                                             "content": bot_response_for_answer})
+                    message_history_json = json.dumps(self.message_histories[user_key])
+                    # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
+                    start_time = time.time()
+                    r.set(f'message_history_{user_key}', message_history_json)
+                    r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+                    end_time = time.time()
+                    # 経過時間を計算して表示
+                    elapsed_time = end_time - start_time
+                    print(f"Elapsed time to save data to Redis server: {elapsed_time} seconds")  # 経過時間を表示
+                self.update_message_histories_and_tokens(user_message, bot_response_for_answer, user_key)
+                print("message_history: ", self.message_histories)
 
     def update_message_histories_and_tokens(self, user_message, bot_response, user_key):
         # メッセージ履歴に含まれる全てのメッセージのトークン数を計算

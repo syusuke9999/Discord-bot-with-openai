@@ -24,6 +24,8 @@ class RetrievalQAFromFaiss:
                                                                    base_retriever=docsearch.as_retriever())
             qa = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=compression_retriever)
             response = qa.run(query=input_txt)
+            relevant_document = compression_retriever.get_relevant_documents(input_txt)
+            print(relevant_document)
         else:
             response = "申し訳ありません。データベースに不具合が生じているようです。開発者が修正するまでお待ちください。"
         return response

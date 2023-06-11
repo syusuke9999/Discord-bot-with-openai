@@ -135,8 +135,6 @@ class MyBot(commands.Bot):
             # ボットからの応答の文字数に応じて、タイピング中のアニメーションの表示時間を調整する
             print("bot_response_for_answer: ", bot_response_for_answer)
             typing_time = min(max(len(bot_response_for_answer) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
-            print("typing_time: ", typing_time)
-            print("await sending message to discord with async typing function!")
             async with message.channel.typing():
                 await sleep(typing_time)  # 計算された時間まで待つ
                 await message.reply(bot_response_for_answer)

@@ -207,7 +207,7 @@ class MyBot(commands.Bot):
     async def on_voice_state_update(self, member, before, after):
         # ボイスチャンネルIDを指定します
         your_voice_chat_channel_id = 1003966899232702537
-        if after.channel.id == your_voice_chat_channel_id:
+        if after.channel is not None and after.channel.id == your_voice_chat_channel_id:
             # チャンネルのメンバーが増えて2人以上いるか確認します
             if (before.channel is None and len(after.channel.members) >= 2) or \
                     (before.channel is not None and len(before.channel.members) < len(after.channel.members) and len(

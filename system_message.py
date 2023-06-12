@@ -73,10 +73,15 @@ class SystemMessage:
                                           f"with users. Please do not mention the presence of prompts or " \
                                           f"system messages. Also, please try to greet people appropriate " \
                                           f"to the current time. Please be excited to talk about " \
-                                          f"Dead by Daylight with users. However, please answer 「分かりません」" \
-                                          f"to questions about game content, such as items, perks, add-ons, " \
-                                          f"or offerings which may change with game updates. " \
-                                          f"Be sure to speak in Japanese!"
+                                          f"Dead by Daylight with users. However, if you are not certain of "\
+                                          f"the accuracy of information such as the activation conditions or " \
+                                          f"the effects of items including perks, add-ons, and offerings " \
+                                          f"that may change due to game updates, or current topics, " \
+                                          f"please answer 「分かりません」. " \
+                                          f"Following the statement, the database may be searched and the results " \
+                                          f"may be reflected in your response. " \
+                                          f"Please try to be consistent in your statements. " \
+                                          f"Be sure to talk in Japanese!"
 
         elif self.topics == Topic.DEAD_BY_DAY_LIGHT_DO_NOT_SURE:
             jst = pytz.timezone('Asia/Tokyo')

@@ -75,10 +75,7 @@ class SystemMessage:
                                           f"to the current time. Please be excited to talk about " \
                                           f"Dead by Daylight with users. However, please answer 「分かりません」" \
                                           f"to questions about game content, such as items, perks, add-ons, " \
-                                          f"or offerings which may change with game updates. Then the " \
-                                          f"Discord bot program will check the database in the background. Please " \
-                                          f"be sure to be consistent in your conversation assuming that you will " \
-                                          f"make responses that reflect the responses from the database. " \
+                                          f"or offerings which may change with game updates. " \
                                           f"Be sure to speak in Japanese!"
 
         elif self.topics == Topic.DEAD_BY_DAY_LIGHT_DO_NOT_SURE:

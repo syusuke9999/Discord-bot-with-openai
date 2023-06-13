@@ -77,8 +77,6 @@ class SystemMessage:
                                           f"the effects of items including perks, add-ons, and offerings " \
                                           f"that may change due to game updates, or current topics, " \
                                           f"please answer 「分かりません」. " \
-                                          f"Following your 「分かりません」 , the database may be searched and the results " \
-                                          f"may be reflected in your response. " \
                                           f"Please try to be consistent in your statements. " \
                                           f"Be sure to communicate only in Japanese."
 

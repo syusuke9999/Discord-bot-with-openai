@@ -120,6 +120,7 @@ class MyBot(commands.Bot):
             start_time = time.time()
             retrival_qa = RetrievalQAFromFaiss()
             # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
+            # 関連する答えが見つからなかった場合はそのように答える
             bot_response_for_answer = await retrival_qa.GetAnswerFromFaiss(message.content)
             elapsed_time = time.time() - start_time
             print(f"The retrieval QA took {elapsed_time} seconds.")
@@ -127,28 +128,6 @@ class MyBot(commands.Bot):
             if bot_response_for_answer is not None:
                 print("bot_response_for_answer: ", bot_response_for_answer)
                 await send_message(message, bot_response_for_answer)
-            # OpenAIのAPIへのリクエストを送信してから返事が返って来るまでの時間を測定する
-            """start_time = time.time()
-            from openai_api import call_openai_api
-            async with message.channel.typing():
-                response = await call_openai_api(system_message_dict, new_message_dict,
-                                                 self.message_histories[user_key])
-            # APIを呼び出した後の時間を記録し、開始時間を引くことで経過時間を計算
-            elapsed_time = time.time() - start_time
-            print(f"The OpenAI API call took {elapsed_time} seconds.")
-            bot_response_for_answer: str = ""
-            if response is not None:
-                bot_response_for_answer = response['choices'][0]['message']['content']
-            else:
-                print("OpenAI's API call failed.")
-                return
-            if "分かりません" in bot_response_for_answer:
-                
-                await send_message(message, bot_response_for_answer)
-                if "情報を持っていません" in bot_response_for_answer:
-                    await self.do_not_know_answer(message, new_message_dict, user_key)
-            else:
-                """
             # メッセージの履歴を更新
             user_message = str(message.content)
             if not debug_mode:
@@ -185,24 +164,6 @@ class MyBot(commands.Bot):
         self.message_histories[user_key].append({"role": "assistant", "content": bot_response})
         # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
         self.total_tokens = total_tokens
-
-    async def do_not_know_answer(self, message, new_message_dict, user_key):
-        start_time = time.time()
-        system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT_DO_NOT_SURE)
-        system_message_content = system_message_instance.get_system_message_content()
-        system_message_dict = {"role": "system", "content": system_message_content}
-        from openai_api import call_openai_api
-        async with message.channel.typing():
-            response = await call_openai_api(system_message_dict, new_message_dict,
-                                             self.message_histories[user_key])
-            elapsed_time = time.time() - start_time
-            print(f"The OpenAI API call took {elapsed_time} seconds.")
-        if response is not None:
-            bot_response = response['choices'][0]['message']['content']
-            print("bot_response: ", bot_response)
-        else:
-            print("OpenAI's API call failed.")
-            await send_message(message, "大変申し訳ありません。OpenAIのAPIが輻輳しているようです。時間をおいて試して見て下さい。")
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):

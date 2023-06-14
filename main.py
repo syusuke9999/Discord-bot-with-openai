@@ -116,9 +116,19 @@ class MyBot(commands.Bot):
             system_message_dict = {"role": "system", "content": system_message_content}
             print("システムメッージ: ", system_message_content)
             new_message_dict = {"role": "user", "content": message.content}
-            print("Getting response from OpenAI API...")
-            # OpenAIのAPIへのリクエストを送信してから返事が返って来るまでの時間を測定する
+            print("Retrival QAを実行します。")
             start_time = time.time()
+            retrival_qa = RetrievalQAFromFaiss()
+            # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
+            bot_response_for_answer = await retrival_qa.GetAnswerFromFaiss(message.content)
+            elapsed_time = time.time() - start_time
+            print(f"The retrieval QA took {elapsed_time} seconds.")
+            print("bot_response_for_answer: ", bot_response_for_answer)
+            if bot_response_for_answer is not None:
+                print("bot_response_for_answer: ", bot_response_for_answer)
+                await send_message(message, bot_response_for_answer)
+            # OpenAIのAPIへのリクエストを送信してから返事が返って来るまでの時間を測定する
+            """start_time = time.time()
             from openai_api import call_openai_api
             async with message.channel.typing():
                 response = await call_openai_api(system_message_dict, new_message_dict,
@@ -133,21 +143,12 @@ class MyBot(commands.Bot):
                 print("OpenAI's API call failed.")
                 return
             if "分かりません" in bot_response_for_answer:
-                start_time = time.time()
-                retrival_qa = RetrievalQAFromFaiss()
-                # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
-                bot_response_for_answer = await retrival_qa.GetAnswerFromFaiss(message.content)
-                elapsed_time = time.time() - start_time
-                print(f"The retrieval QA took {elapsed_time} seconds.")
-                print("bot_response_for_answer: ", bot_response_for_answer)
+                
                 await send_message(message, bot_response_for_answer)
                 if "情報を持っていません" in bot_response_for_answer:
                     await self.do_not_know_answer(message, new_message_dict, user_key)
             else:
-                if response is not None:
-                    bot_response_for_answer = response['choices'][0]['message']['content']
-                    print("bot_response_for_answer: ", bot_response_for_answer)
-                    await send_message(message, bot_response_for_answer)
+                """
             # メッセージの履歴を更新
             user_message = str(message.content)
             if not debug_mode:

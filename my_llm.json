@@ -1,6 +1,6 @@
 {
     "model_name": "gpt-4",
-    "temperature": 0.3,
+    "temperature": 0.2,
     "max_tokens": 1200,
     "top_p": 1,
     "frequency_penalty": 0,

@@ -121,7 +121,8 @@ class MyBot(commands.Bot):
             retrival_qa = RetrievalQAFromFaiss()
             # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
             # 関連する答えが見つからなかった場合はそのように答える
-            bot_response_for_answer = await retrival_qa.GetAnswerFromFaiss(message.content)
+            async with message.channel.typing():
+                bot_response_for_answer = await retrival_qa.GetAnswerFromFaiss(message.content)
             elapsed_time = time.time() - start_time
             print(f"The retrieval QA took {elapsed_time} seconds.")
             print("bot_response_for_answer: ", bot_response_for_answer)

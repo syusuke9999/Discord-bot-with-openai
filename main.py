@@ -36,7 +36,7 @@ encoding: Encoding = tiktoken.encoding_for_model(model_name)
 MAX_TOKENS = 3000
 
 logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 
 def count_tokens(text):
@@ -46,8 +46,11 @@ def count_tokens(text):
 
 
 async def send_message(message, bot_response_for_answer):
-    await message.reply(bot_response_for_answer)
-    print("await reply message to discord with async typing function!")
+    typing_time = min(max(len(bot_response_for_answer) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
+    async with message.channel.typing():
+        await sleep(typing_time)  # 計算された時間まで待つ
+        await message.reply(bot_response_for_answer)
+        print("await reply message to discord with async typing function!")
 
 
 class MyBot(commands.Bot):

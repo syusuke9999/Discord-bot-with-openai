@@ -8,7 +8,7 @@ import redis
 from asyncio import sleep
 import json
 import logging
-from system_message import SystemMessage, Topic
+from system_message import Topic
 from RetrievalQA import RetrievalQAFromFaiss
 
 debug_mode = False
@@ -111,11 +111,11 @@ class MyBot(commands.Bot):
             else:
                 self.message_histories[user_key] = []
             print(user_key + ":message = " + message.content)
-            system_message_instance = SystemMessage(topic=self.topic_enum)
-            system_message_content = system_message_instance.get_system_message_content()
-            system_message_dict = {"role": "system", "content": system_message_content}
-            print("システムメッージ: ", system_message_content)
-            new_message_dict = {"role": "user", "content": message.content}
+            # system_message_instance = SystemMessage(topic=self.topic_enum)
+            # system_message_content = system_message_instance.get_system_message_content()
+            # system_message_dict = {"role": "system", "content": system_message_content}
+            # print("システムメッージ: ", system_message_content)
+            # new_message_dict = {"role": "user", "content": message.content}
             print("Retrival QAを実行します。")
             start_time = time.time()
             retrival_qa = RetrievalQAFromFaiss()

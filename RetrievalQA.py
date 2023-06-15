@@ -18,7 +18,7 @@ class RetrievalQAFromFaiss:
         llm = load_llm("my_llm.json")
         # ファイルからllmを読み込む
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.8)
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,

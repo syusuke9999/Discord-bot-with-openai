@@ -7,19 +7,27 @@ from langchain.retrievers.document_compressors import EmbeddingsFilter
 import os
 
 
-async def GetAnswerFromFaiss(input_txt):
-    llm = load_llm("my_llm.json")
-    # ファイルからllmを読み込む
-    embeddings = OpenAIEmbeddings()
-    embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
-    if os.path.exists("./faiss_index"):
-        docsearch = FAISS.load_local("./faiss_index", embeddings)
-        compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
-                                                               base_retriever=docsearch.as_retriever())
-        qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=compression_retriever)
-        response = await qa.arun(query=input_txt)
-        relevant_document = compression_retriever.get_relevant_documents(input_txt)
-        print(relevant_document)
-    else:
-        response = "申し訳ありません。データベースに不具合が生じているようです。開発者が修正するまでお待ちください。"
-    return response
+class RetrievalQAFromFaiss:
+    def __init__(self):
+        self.message_histories = {}
+        self.total_tokens = 0
+        self.input_txt = ""
+
+    async def GetAnswerFromFaiss(self, input_txt):
+        self.input_txt = input_txt
+        llm = load_llm("my_llm.json")
+        # ファイルからllmを読み込む
+        embeddings = OpenAIEmbeddings()
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
+        if os.path.exists("./faiss_index"):
+            docsearch = FAISS.load_local("./faiss_index", embeddings)
+            compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
+                                                                   base_retriever=docsearch.as_retriever())
+            qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=compression_retriever)
+            qa.return_source_documents = True
+            response = await qa.arun(query=self.input_txt, max_tokens=1200, max_answers=1, max_contexts=3)
+            relevant_document = compression_retriever.get_relevant_documents(input_txt)
+            print(relevant_document)
+        else:
+            response = "申し訳ありません。データベースに不具合が生じているようです。開発者が修正するまでお待ちください。"
+        return response

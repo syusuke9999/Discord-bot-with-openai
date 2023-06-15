@@ -23,7 +23,7 @@ class RetrievalQAFromFaiss:
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
                                                                    base_retriever=docsearch.as_retriever())
             qa = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=compression_retriever)
-            response = qa.run(query=input_txt)
+            response = qa.arun(query=input_txt)
             relevant_document = compression_retriever.get_relevant_documents(input_txt)
             print(relevant_document)
         else:

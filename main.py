@@ -125,7 +125,6 @@ class MyBot(commands.Bot):
                 bot_response_for_answer = await retrival_qa.GetAnswerFromFaiss(message.content)
             elapsed_time = time.time() - start_time
             print(f"The retrieval QA took {elapsed_time} seconds.")
-            print("bot_response_for_answer: ", bot_response_for_answer)
             if bot_response_for_answer is not None:
                 print("bot_response_for_answer: ", bot_response_for_answer)
                 await send_message(message, bot_response_for_answer)

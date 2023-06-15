@@ -130,6 +130,7 @@ class MyBot(commands.Bot):
                 await send_message(message, bot_response_for_answer)
             # メッセージの履歴を更新
             user_message = str(message.content)
+            self.update_message_histories_and_tokens(user_message, bot_response_for_answer, user_key)
             if not debug_mode:
                 # メッセージ履歴をRedisに保存し、TTLを設定
                 new_message = {"role": "user", "content": message.content}

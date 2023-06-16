@@ -29,7 +29,7 @@ if not debug_mode:
         password=REDIS_PASSWORD)
     print("Redis connection established!")
 
-model_name = "gpt-4"
+model_name = "gpt-3.5-turbo-16k"
 
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
 

@@ -5,6 +5,7 @@ from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 import os
+import asyncio
 
 
 class RetrievalQAFromFaiss:
@@ -16,7 +17,6 @@ class RetrievalQAFromFaiss:
     async def GetAnswerFromFaiss(self, input_txt):
         self.input_txt = input_txt
         llm = load_llm("my_llm.json")
-        # ファイルからllmを読み込む
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
         if os.path.exists("./faiss_index"):
@@ -24,7 +24,8 @@ class RetrievalQAFromFaiss:
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
                                                                    base_retriever=docsearch.as_retriever())
             qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=compression_retriever)
-            response = qa.run(query=self.input_txt)
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(None, lambda: qa.run(query=self.input_txt))
             relevant_document = compression_retriever.get_relevant_documents(input_txt)
             print(relevant_document)
         else:

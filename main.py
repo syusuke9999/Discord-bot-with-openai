@@ -63,6 +63,8 @@ class MyBot(commands.Bot):
         self.message_histories = {}
         self.total_tokens = 0  # トークン数の合計を保持するための変数を追加
         self.special_channel_ids = [1117363032172003328, 1117412783592591460]  # 特定のチャンネルのIDをリストで設定します。
+        self.max_tokens = MAX_TOKENS
+        self.model_name = model_name
 
     async def on_ready(self):
         print(f"We have logged in as {self.user}")
@@ -119,6 +121,8 @@ class MyBot(commands.Bot):
             system_message_dict = {"role": "system", "content": system_message_content}
             print("システムメッージ: ", system_message_content)
             new_message_dict = {"role": "user", "content": message.content}
+            self.model_name = "gpt-3.5-turbo-16k"
+            self.max_tokens = 6000
             async with message.channel.typing():
                 response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
                                                             self.message_histories[user_key])
@@ -143,8 +147,8 @@ class MyBot(commands.Bot):
                         print("assistant response for the answer: ", bot_response)
                         await send_message(message, bot_response)
                     else:
-                        model_name = "gpt-4"
-                        MAX_TOKENS = 3000
+                        self.max_tokens = 3000
+                        self.model_name = "gpt-4"
                         response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
                                                                     self.message_histories[user_key])
                         if response is not None and response["choices"] is not None and \

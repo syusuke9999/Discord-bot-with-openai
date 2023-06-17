@@ -30,11 +30,11 @@ if not debug_mode:
         password=REDIS_PASSWORD)
     print("Redis connection established!")
 
-model_name = "gpt-4"
+model_name = "gpt-3.5-turbo-16k"
 
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
 
-MAX_TOKENS = 3000
+MAX_TOKENS = 6000
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.WARNING)
@@ -55,6 +55,8 @@ async def send_message(message, bot_response_for_answer):
 
 
 class MyBot(commands.Bot):
+    global model_name, MAX_TOKENS
+
     def __init__(self, command_prefix, intents, enum_of_topic):
         super().__init__(command_prefix, intents=intents)
         self.topic_enum = enum_of_topic
@@ -120,9 +122,12 @@ class MyBot(commands.Bot):
             async with message.channel.typing():
                 response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
                                                             self.message_histories[user_key])
-                if response is not None:
+                if response is not None and response["choices"] is not None and \
+                        response["choices"][0]["message"] is not None and \
+                        response["choices"][0]["message"]["content"] is not None:
                     bot_response = response["choices"][0]["message"]["content"]
                 else:
+                    print("initial bot_response is None or empty.")
                     return
                 print("Initial bot_response=", bot_response)
                 # ゲームに関する質問をされた場合は「分かりません」と答えるため、Retrival QAを実行する。
@@ -134,9 +139,19 @@ class MyBot(commands.Bot):
                     bot_response, question = await retrival_qa.GetAnswerFromFaiss(message.content)
                     elapsed_time = time.time() - start_time
                     print(f"The retrieval qa precess took {elapsed_time} seconds.")
-                    if bot_response is not None:
+                    if bot_response is not None or "no information" in bot_response:
                         print("assistant response for the answer: ", bot_response)
                         await send_message(message, bot_response)
+                    else:
+                        model_name = "gpt-4"
+                        MAX_TOKENS = 3000
+                        response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
+                                                                    self.message_histories[user_key])
+                        if response is not None and response["choices"] is not None and \
+                                response["choices"][0]["message"] is not None and \
+                                response["choices"][0]["message"]["content"] is not None:
+                            bot_response = response["choices"][0]["message"]["content"]
+                            await send_message(message, bot_response)
                 else:
                     print("assistant response for the answer: ", bot_response)
                     await send_message(message, bot_response)

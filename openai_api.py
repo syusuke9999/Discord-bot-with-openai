@@ -23,8 +23,8 @@ async def call_openai_api(system_message, new_message, message_history):
         "model": model_name,
         "messages": [system_message] + message_history + [new_message],
         "max_tokens": 700,
-        "frequency_penalty": 0,
-        "presence_penalty": 0.6,
+        "frequency_penalty": 0.6,
+        "presence_penalty": 0,
     }
     timeout = Timeout(120)  # Set timeout to 120 seconds
     try:

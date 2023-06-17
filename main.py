@@ -124,7 +124,7 @@ class MyBot(commands.Bot):
             self.model_name = "gpt-4"
             self.max_tokens = 3000
             async with message.channel.typing():
-                response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
+                response = await openai_api.call_openai_api(self.model_name, system_message_dict, new_message_dict,
                                                             self.message_histories[user_key])
                 if response is not None and response["choices"] is not None and \
                         response["choices"][0]["message"] is not None and \
@@ -134,11 +134,11 @@ class MyBot(commands.Bot):
                     print("initial bot_response is None or empty.")
                     return
                 print("Initial bot_response=", bot_response)
-                # ゲームに関する質問をされた場合は「分かりません」と答えるため、Retrival QAを実行する。
+                # ゲームに関する質問をされた場合は「分かりません」と答えるため、Retrival QAを実行する
                 search_keywords = ["search"]
                 conversation_keywords = ["conversation"]
                 if any(search_keywords in bot_response for search_keywords in search_keywords):
-                    print("Retrival QAを実行します。")
+                    print("Retrival QAを実行します")
                     start_time = time.time()
                     retrival_qa = RetrievalQAFromFaiss()
                     # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
@@ -151,8 +151,8 @@ class MyBot(commands.Bot):
                     else:
                         self.max_tokens = 3000
                         self.model_name = "gpt-4"
-                        response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
-                                                                    self.message_histories[user_key])
+                        response = await openai_api.call_openai_api(self.model_name, system_message_dict,
+                                                                    new_message_dict, self.message_histories[user_key])
                         if response is not None and response["choices"] is not None and \
                                 response["choices"][0]["message"] is not None and \
                                 response["choices"][0]["message"]["content"] is not None:
@@ -165,7 +165,7 @@ class MyBot(commands.Bot):
                     system_message_content = system_message_instance.get_system_message_content()
                     system_message_dict = {"role": "system", "content": system_message_content}
                     print("システムメッージ: ", system_message_content)
-                    response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
+                    response = await openai_api.call_openai_api(self.model_name, system_message_dict, new_message_dict,
                                                                 self.message_histories[user_key])
                     if response is not None and response["choices"] is not None and \
                             response["choices"][0]["message"] is not None and \

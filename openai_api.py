@@ -12,7 +12,7 @@ logger.setLevel(logging.WARNING)
 
 # APIへのリクエストが失敗したさいに、リトライするデコレーター
 @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=3, max=60))
-async def call_openai_api(system_message, new_message, message_history):
+async def call_openai_api(name_of_model, system_message, new_message, message_history):
     url = "https://api.openai.com/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
@@ -20,7 +20,7 @@ async def call_openai_api(system_message, new_message, message_history):
     }
     data = {
         "temperature": 0.5,
-        "model": model_name,
+        "model": name_of_model,
         "messages": [system_message] + message_history + [new_message],
         "max_tokens": 700,
         "frequency_penalty": 0.6,

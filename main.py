@@ -163,6 +163,7 @@ class MyBot(commands.Bot):
                     system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
                     system_message_content = system_message_instance.get_system_message_content()
                     system_message_dict = {"role": "system", "content": system_message_content}
+                    print("システムメッージ: ", system_message_content)
                     bot_response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
                                                                     self.message_histories[user_key])
                     print("assistant response for the answer: ", bot_response)

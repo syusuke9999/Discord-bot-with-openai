@@ -4,6 +4,6 @@ tiktoken
 httpx
 tenacity
 openai
-langchain
+git+https://github.com/syusuke9999/langchain.git
 pytz
 faiss-cpu

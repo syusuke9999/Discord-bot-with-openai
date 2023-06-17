@@ -8,7 +8,7 @@ import redis
 from asyncio import sleep
 import json
 import logging
-from openai_api import call_openai_api
+import openai_api
 from system_message import Topic, SystemMessage
 from RetrievalQA import RetrievalQAFromFaiss
 
@@ -118,8 +118,8 @@ class MyBot(commands.Bot):
             print("システムメッージ: ", system_message_content)
             new_message_dict = {"role": "user", "content": message.content}
             async with message.channel.typing():
-                response = await call_openai_api(system_message_content, message.content,
-                                                 self.message_histories[user_key])
+                response = await openai_api.call_openai_api(system_message_content, message.content,
+                                                            self.message_histories[user_key])
                 if response is not None:
                     bot_response = response["choices"][0]["text"]
                 else:

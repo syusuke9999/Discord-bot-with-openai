@@ -16,7 +16,9 @@ class RetrievalQAFromFaiss:
 
     async def GetAnswerFromFaiss(self, input_txt):
         llm = load_llm("my_llm.json")
-        if ["パーク", "パークについて", "パークは？", "パーク？"] in input_txt and not ["おすすめ","お勧め" , "組み合わせ", "組み合わせについて", "組み合わせを教えて"] in input_txt:
+        keywords = ["パーク", "パークについて", "パークは？", "パーク？"]
+        excluded_keywords = ["おすすめ", "お勧め", "組み合わせ", "組み合わせについて", "組み合わせを教えて"]
+        if any(keyword in input_txt for keyword in keywords) and not any(excluded_keyword in input_txt for excluded_keyword in excluded_keywords):
             input_txt = input_txt.replace("パーク", "パークの性能と効果解説")
             print(input_txt)
         self.input_txt = input_txt

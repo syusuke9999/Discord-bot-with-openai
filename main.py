@@ -118,12 +118,13 @@ class MyBot(commands.Bot):
             print("システムメッージ: ", system_message_content)
             new_message_dict = {"role": "user", "content": message.content}
             async with message.channel.typing():
-                response = await openai_api.call_openai_api(system_message_content, message.content,
+                response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
                                                             self.message_histories[user_key])
                 if response is not None:
-                    bot_response = response["choices"][0]["text"]
+                    bot_response = response["choices"][0]["message"]["content"]
                 else:
                     return
+                print("Initial bot_response=", bot_response)
                 # ゲームに関する質問をされた場合は「分かりません」と答えるため、Retrival QAを実行する。
                 if "分かりません" in bot_response:
                     print("Retrival QAを実行します。")
@@ -141,7 +142,7 @@ class MyBot(commands.Bot):
                     await send_message(message, bot_response)
             # メッセージの履歴を更新
             user_message = str(message.content)
-            self.update_message_histories_and_tokens(question, bot_response, user_key)
+            self.update_message_histories_and_tokens(user_message, bot_response, user_key)
             if not debug_mode:
                 # ユーザーの発言とアシスタントの発言を辞書形式に変換して、メッセージの履歴に追加
                 self.message_histories[user_key].append(system_message_dict)

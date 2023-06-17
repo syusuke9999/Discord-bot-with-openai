@@ -135,7 +135,8 @@ class MyBot(commands.Bot):
                     return
                 print("Initial bot_response=", bot_response)
                 # ゲームに関する質問をされた場合は「分かりません」と答えるため、Retrival QAを実行する。
-                if "分かりません" in bot_response:
+                excluded_keywords = ["分かりません", "把握していません", "把握しておりません", "情報がありません", "情報を持っていません", "no information"]
+                if not any(excluded_keyword in bot_response for excluded_keyword in excluded_keywords):
                     print("Retrival QAを実行します。")
                     start_time = time.time()
                     retrival_qa = RetrievalQAFromFaiss()

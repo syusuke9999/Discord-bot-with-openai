@@ -137,8 +137,9 @@ class MyBot(commands.Bot):
                     return
                 print("Initial bot_response=", bot_response)
                 # ゲームに関する質問をされた場合は「分かりません」と答えるため、Retrival QAを実行する。
-                excluded_keywords = ["search"]
-                if any(excluded_keyword in bot_response for excluded_keyword in excluded_keywords):
+                search_keywords = ["search"]
+                conversation_keywords = ["conversation"]
+                if any(search_keywords in bot_response for search_keywords in search_keywords):
                     print("Retrival QAを実行します。")
                     start_time = time.time()
                     retrival_qa = RetrievalQAFromFaiss()
@@ -159,17 +160,24 @@ class MyBot(commands.Bot):
                                 response["choices"][0]["message"]["content"] is not None:
                             bot_response = response["choices"][0]["message"]["content"]
                             await send_message(message, bot_response)
-                else:
+                elif any(conversation_keywords in bot_response for conversation_keywords in conversation_keywords):
                     self.max_tokens = 6000
                     self.model_name = "gpt-3.5-turbo-16k"
                     system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
                     system_message_content = system_message_instance.get_system_message_content()
                     system_message_dict = {"role": "system", "content": system_message_content}
                     print("システムメッージ: ", system_message_content)
-                    bot_response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
-                                                                    self.message_histories[user_key])
-                    print("assistant response for the answer: ", bot_response)
-                    await send_message(message, bot_response)
+                    response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
+                                                                self.message_histories[user_key])
+                    if response is not None and response["choices"] is not None and \
+                            response["choices"][0]["message"] is not None and \
+                            response["choices"][0]["message"]["content"] is not None:
+                        bot_response = response["choices"][0]["message"]["content"]
+                        print("assistant response for user's conversation: ", bot_response)
+                        await send_message(message, bot_response)
+                    else:
+                        print("response is None or empty.")
+                        return
             # メッセージの履歴を更新
             user_message = str(message.content)
             self.update_message_histories_and_tokens(user_message, bot_response, user_key)

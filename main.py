@@ -123,8 +123,6 @@ class MyBot(commands.Bot):
             new_message_dict = {"role": "user", "content": message.content}
             self.model_name = "gpt-4"
             self.max_tokens = 3000
-            model_name = self.model_name
-            MAX_TOKENS = self.max_tokens
             async with message.channel.typing():
                 response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
                                                             self.message_histories[user_key])

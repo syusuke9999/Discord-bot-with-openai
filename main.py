@@ -122,18 +122,18 @@ class MyBot(commands.Bot):
             # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
             # 関連する答えが見つからなかった場合はそのように答える
             async with message.channel.typing():
-                bot_response_for_answer = await retrival_qa.GetAnswerFromFaiss(message.content)
+                bot_response_for_answer, question = await retrival_qa.GetAnswerFromFaiss(message.content)
             elapsed_time = time.time() - start_time
             print(f"The retrieval qa precess took {elapsed_time} seconds.")
             if bot_response_for_answer is not None:
                 print("assistant response for the answer: ", bot_response_for_answer)
                 await send_message(message, bot_response_for_answer)
             # メッセージの履歴を更新
-            user_message = str(message.content)
-            self.update_message_histories_and_tokens(user_message, bot_response_for_answer, user_key)
+            user_message = str(question)
+            self.update_message_histories_and_tokens(question, bot_response_for_answer, user_key)
             if not debug_mode:
                 # ユーザーの発言とアシスタントの発言を辞書形式に変換して、メッセージの履歴に追加
-                self.message_histories[user_key].append({"role": "user", "content": message.content})
+                self.message_histories[user_key].append({"role": "user", "content": user_message})
                 self.message_histories[user_key].append({"role": "assistant",
                                                          "content": bot_response_for_answer})
                 # 辞書形式のメッセージの履歴をJSON形式に変換

@@ -8,7 +8,8 @@ import redis
 from asyncio import sleep
 import json
 import logging
-from system_message import Topic
+from openai_api import call_openai_api
+from system_message import Topic, SystemMessage
 from RetrievalQA import RetrievalQAFromFaiss
 
 debug_mode = False
@@ -29,7 +30,7 @@ if not debug_mode:
         password=REDIS_PASSWORD)
     print("Redis connection established!")
 
-model_name = "gpt-3.5-turbo-16k"
+model_name = "gpt-4"
 
 encoding: Encoding = tiktoken.encoding_for_model(model_name)
 
@@ -111,31 +112,41 @@ class MyBot(commands.Bot):
             else:
                 self.message_histories[user_key] = []
             print(user_key + ":message = " + message.content)
-            # system_message_instance = SystemMessage(topic=self.topic_enum)
-            # system_message_content = system_message_instance.get_system_message_content()
-            # system_message_dict = {"role": "system", "content": system_message_content}
-            # print("システムメッージ: ", system_message_content)
-            # new_message_dict = {"role": "user", "content": message.content}
-            print("Retrival QAを実行します。")
-            start_time = time.time()
-            retrival_qa = RetrievalQAFromFaiss()
-            # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
-            # 関連する答えが見つからなかった場合はそのように答える
+            system_message_instance = SystemMessage(topic=self.topic_enum)
+            system_message_content = system_message_instance.get_system_message_content()
+            system_message_dict = {"role": "system", "content": system_message_content}
+            print("システムメッージ: ", system_message_content)
+            new_message_dict = {"role": "user", "content": message.content}
             async with message.channel.typing():
-                bot_response_for_answer, question = await retrival_qa.GetAnswerFromFaiss(message.content)
-            elapsed_time = time.time() - start_time
-            print(f"The retrieval qa precess took {elapsed_time} seconds.")
-            if bot_response_for_answer is not None:
-                print("assistant response for the answer: ", bot_response_for_answer)
-                await send_message(message, bot_response_for_answer)
+                response = await call_openai_api(system_message_content, message.content, self.message_histories[user_key])
+                if response is not None:
+                    bot_response = response["choices"][0]["text"]
+                else:
+                    return
+                # ゲームに関する質問をされた場合は「分かりません」と答えるため、Retrival QAを実行する。
+                if "分かりません" in bot_response:
+                    print("Retrival QAを実行します。")
+                    start_time = time.time()
+                    retrival_qa = RetrievalQAFromFaiss()
+                    # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
+                    bot_response, question = await retrival_qa.GetAnswerFromFaiss(message.content)
+                    elapsed_time = time.time() - start_time
+                    print(f"The retrieval qa precess took {elapsed_time} seconds.")
+                    if bot_response is not None:
+                        print("assistant response for the answer: ", bot_response)
+                        await send_message(message, bot_response)
+                else:
+                    print("assistant response for the answer: ", bot_response)
+                    await send_message(message, bot_response)
             # メッセージの履歴を更新
-            user_message = str(question)
-            self.update_message_histories_and_tokens(question, bot_response_for_answer, user_key)
+            user_message = str(message.content)
+            self.update_message_histories_and_tokens(question, bot_response, user_key)
             if not debug_mode:
                 # ユーザーの発言とアシスタントの発言を辞書形式に変換して、メッセージの履歴に追加
-                self.message_histories[user_key].append({"role": "user", "content": user_message})
+                self.message_histories[user_key].append(system_message_dict)
+                self.message_histories[user_key].append(new_message_dict)
                 self.message_histories[user_key].append({"role": "assistant",
-                                                         "content": bot_response_for_answer})
+                                                         "content": bot_response})
                 # 辞書形式のメッセージの履歴をJSON形式に変換
                 message_history_json = json.dumps(self.message_histories[user_key])
                 # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測

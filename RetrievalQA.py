@@ -15,10 +15,11 @@ class RetrievalQAFromFaiss:
         self.input_txt = ""
 
     async def GetAnswerFromFaiss(self, input_txt):
-        self.input_txt = input_txt
         llm = load_llm("my_llm.json")
         if "パーク" in input_txt:
             input_txt = input_txt.replace("パーク", "パークの性能と効果解説")
+            print(input_txt)
+        self.input_txt = input_txt
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
         if os.path.exists("./faiss_index"):

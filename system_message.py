@@ -7,6 +7,7 @@ class Topic(Enum):
     GENERAL_DISCORD_BOT = 1
     DEAD_BY_DAY_LIGHT = 2
     DEAD_BY_DAY_LIGHT_DO_NOT_SURE = 3
+    IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC = 4
 
 
 class Channel(Enum):
@@ -102,6 +103,12 @@ class SystemMessage:
                                           f"possibility that updates have changed the rules of the game or " \
                                           f"other aspects of the game since the AI assistant's knowledge cutoff." \
                                           f"Be sure to communicate only in Japanese."
+            return
+        elif self.topics is Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC:
+            self.system_message_content = 'You are an assistant to determine if the text submitted by the user is about' \
+                                          ' a specific information about Dead by Daylight. ' \
+                                          'If you determine that it is, just say "search";' \
+                                          ' if not, just say "conversation".'
             return
 
     def get_system_message_content(self):

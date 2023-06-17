@@ -1,3 +1,4 @@
+import enum
 import os
 import time
 import discord
@@ -116,13 +117,13 @@ class MyBot(commands.Bot):
             else:
                 self.message_histories[user_key] = []
             print(user_key + ":message = " + message.content)
-            system_message_instance = SystemMessage(topic=self.topic_enum)
+            system_message_instance = SystemMessage(topic=Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC)
             system_message_content = system_message_instance.get_system_message_content()
             system_message_dict = {"role": "system", "content": system_message_content}
             print("システムメッージ: ", system_message_content)
             new_message_dict = {"role": "user", "content": message.content}
-            self.model_name = "gpt-3.5-turbo-16k"
-            self.max_tokens = 6000
+            self.model_name = "gpt-4"
+            self.max_tokens = 3000
             async with message.channel.typing():
                 response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
                                                             self.message_histories[user_key])
@@ -135,7 +136,7 @@ class MyBot(commands.Bot):
                     return
                 print("Initial bot_response=", bot_response)
                 # ゲームに関する質問をされた場合は「分かりません」と答えるため、Retrival QAを実行する。
-                excluded_keywords = ["分かりません", "把握していません", "把握しておりません", "情報がありません", "情報を持っていません", "no information"]
+                excluded_keywords = ["search"]
                 if any(excluded_keyword in bot_response for excluded_keyword in excluded_keywords):
                     print("Retrival QAを実行します。")
                     start_time = time.time()
@@ -158,6 +159,10 @@ class MyBot(commands.Bot):
                             bot_response = response["choices"][0]["message"]["content"]
                             await send_message(message, bot_response)
                 else:
+                    self.max_tokens = 6000
+                    self.model_name = "gpt-3.5-turbo-16k"
+                    bot_response = await openai_api.call_openai_api(system_message_dict, new_message_dict,
+                                                                    self.message_histories[user_key])
                     print("assistant response for the answer: ", bot_response)
                     await send_message(message, bot_response)
             # メッセージの履歴を更新

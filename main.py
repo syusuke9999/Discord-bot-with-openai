@@ -159,7 +159,7 @@ class MyBot(commands.Bot):
                 elapsed_time = end_time - start_time
                 print(f"Elapsed time to save data to Redis server: {elapsed_time} seconds")  # 経過時間を表示
                 # メッセージの履歴を更新（重複した発言を削除したり、古い発言を削除したりする）
-                self.update_message_histories_and_tokens(user_message, bot_response_for_answer, user_key)
+                self.update_message_histories_and_tokens(user_message, bot_response, user_key)
 
     def update_message_histories_and_tokens(self, user_message, bot_response, user_key):
         # メッセージ履歴に含まれる全てのメッセージのトークン数を計算

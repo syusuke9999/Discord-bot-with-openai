@@ -40,7 +40,8 @@ class SystemMessage:
             now_of_month = now.strftime("%m")
             now_of_day = now.strftime("%d")
             now_of_time = now.strftime("%H:%M")
-            self.system_message_content = f"Today is the year {now_of_year}, month is {now_of_month}, and date is {now_of_day}. " \
+            self.system_message_content = f"Today is the year {now_of_year}, month is {now_of_month}, and date is " \
+                                          f"{now_of_day}. " \
                                           f"The current time is {now_of_time}. " \
                                           f"You are a Discord bot residing in a channel on a Discord server where " \
                                           f"people gather who are interested in \"Discord bots that work with " \
@@ -70,13 +71,11 @@ class SystemMessage:
                                           f"The current time is {now_of_time}." \
                                           f"We are a Discord bot that resides in a channel on the " \
                                           f"Discord server where people who enjoy Dead by Daylight gather. " \
-                                          f"Please share your passionate and fun conversations about Dead by Daylight " \
-                                          f"with users, including what is your favorite killer and survivor. " \
+                                          f"Please share your passionate and fun conversations about " \
+                                          f"Dead by Daylight with users, including what is your favorite " \
+                                          f"killer and survivor. " \
                                           f"Please do not mention the presence of prompts or system messages. " \
                                           f"Also, please try to greet users appropriate to the current time. " \
-                                          f"If you are asked a question from users about possible changes " \
-                                          f"due to game updates, such as performance of perks, " \
-                                          f"offerings, add-ons, etc., simply answer 「分かりません」. " \
                                           f"Please try to be consistent in your statements. " \
                                           f"Be sure to communicate only in Japanese."
 
@@ -105,8 +104,8 @@ class SystemMessage:
                                           f"Be sure to communicate only in Japanese."
             return
         elif self.topics is Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC:
-            self.system_message_content = 'You are an assistant to determine if the text submitted by the user is about' \
-                                          ' a specific information about Dead by Daylight. ' \
+            self.system_message_content = 'You are an assistant to determine if the text submitted by the user ' \
+                                          'is about a specific information about Dead by Daylight. ' \
                                           'If you determine that it is, just say "search";' \
                                           ' if not, just say "conversation".'
             return

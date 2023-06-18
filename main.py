@@ -162,7 +162,7 @@ class MyBot(commands.Bot):
                             bot_response = response["choices"][0]["message"]["content"]
                             await send_message(message, bot_response)
                 # 「会話」に分類された場合は、GPT-3.5を使用して会話を続ける
-                elif any(conversation_keywords in bot_response for conversation_keywords in conversation_keywords):
+                elif any(conversation_keywords in bot_classification for conversation_keywords in conversation_keywords):
                     self.max_tokens = 6000
                     self.model_name = "gpt-3.5-turbo-16k"
                     system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)

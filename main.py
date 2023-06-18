@@ -137,7 +137,7 @@ class MyBot(commands.Bot):
                     print("initial bot_response is None or empty.")
                     return
                 print("Initial bot_response.search or conversation=", bot_classification)
-                # 「会話」に分類されなかった場合はRetrival QAを実行する
+                # 「会話」に分類されなかった場合は、「検索」と推定してRetrival QAを実行する
                 conversation_keywords = ["conversation"]
                 if not any(conversation_keywords in bot_classification for conversation_keywords in conversation_keywords):
                     print("Retrival QAを実行します")

@@ -123,7 +123,7 @@ class MyBot(commands.Bot):
             system_message_dict = {"role": "system", "content": system_message_content}
             print("「検索」か「会話」かの判定を行うシステムメッセージ: ", system_message_content)
             # 判定にはgpt-3.5-turbo-16kを使用する
-            self.model_name = "gpt-3.5-turbo-16k"
+            self.model_name = "gpt-4"
             self.max_tokens = 3000
             # タイピングアニメーションと共に話題が「検索」か「会話」かを判定させる
             async with message.channel.typing():

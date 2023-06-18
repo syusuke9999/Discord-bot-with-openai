@@ -136,7 +136,7 @@ class MyBot(commands.Bot):
                 else:
                     print("initial bot_response is None or empty.")
                     return
-                print("Initial bot_response=", bot_response)
+                print("Initial bot_response.search or conversation=", bot_response)
                 # 「検索」に分類された場合は、Retrival QAを実行する
                 search_keywords = ["search"]
                 conversation_keywords = ["conversation"]

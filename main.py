@@ -140,7 +140,7 @@ class MyBot(commands.Bot):
                 # 「検索」に分類された場合は、Retrival QAを実行する
                 search_keywords = ["search"]
                 conversation_keywords = ["conversation"]
-                if any(search_keywords in bot_classification for search_keywords in search_keywords):
+                if not any(conversation_keywords in bot_classification for conversation_keywords in conversation_keywords):
                     print("Retrival QAを実行します")
                     start_time = time.time()
                     retrival_qa = RetrievalQAFromFaiss()

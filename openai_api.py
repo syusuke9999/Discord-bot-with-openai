@@ -19,10 +19,10 @@ async def call_openai_api(name_of_model, system_message, new_message, message_hi
         "Authorization": f"Bearer {OPENAI_API_KEY}"
     }
     data = {
-        "temperature": 0.2,
+        "temperature": 0,
         "model": name_of_model,
         "messages": [system_message] + message_history + [new_message],
-        "max_tokens": 700,
+        "max_tokens": 1000,
         "frequency_penalty": 0.6,
         "presence_penalty": 0,
     }

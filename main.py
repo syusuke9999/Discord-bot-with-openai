@@ -132,15 +132,15 @@ class MyBot(commands.Bot):
                 if response is not None and response["choices"] is not None and \
                         response["choices"][0]["message"] is not None and \
                         response["choices"][0]["message"]["content"] is not None:
-                    bot_response = response["choices"][0]["message"]["content"]
+                    bot_classification = response["choices"][0]["message"]["content"]
                 else:
                     print("initial bot_response is None or empty.")
                     return
-                print("Initial bot_response.search or conversation=", bot_response)
+                print("Initial bot_response.search or conversation=", bot_classification)
                 # 「検索」に分類された場合は、Retrival QAを実行する
                 search_keywords = ["search"]
                 conversation_keywords = ["conversation"]
-                if any(search_keywords in bot_response for search_keywords in search_keywords):
+                if any(search_keywords in bot_classification for search_keywords in search_keywords):
                     print("Retrival QAを実行します")
                     start_time = time.time()
                     retrival_qa = RetrievalQAFromFaiss()

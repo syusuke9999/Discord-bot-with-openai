@@ -137,8 +137,7 @@ class MyBot(commands.Bot):
                     print("initial bot_response is None or empty.")
                     return
                 print("Initial bot_response.search or conversation=", bot_classification)
-                # 「検索」に分類された場合は、Retrival QAを実行する
-                search_keywords = ["search"]
+                # 「会話」に分類されなかった場合はRetrival QAを実行する
                 conversation_keywords = ["conversation"]
                 if not any(conversation_keywords in bot_classification for conversation_keywords in conversation_keywords):
                     print("Retrival QAを実行します")
@@ -161,8 +160,8 @@ class MyBot(commands.Bot):
                                 response["choices"][0]["message"]["content"] is not None:
                             bot_response = response["choices"][0]["message"]["content"]
                             await send_message(message, bot_response)
-                # 「会話」に分類された場合は、GPT-3.5を使用して会話を続ける
-                elif any(conversation_keywords in bot_classification for conversation_keywords in conversation_keywords):
+                # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
+                else:
                     self.max_tokens = 6000
                     self.model_name = "gpt-3.5-turbo-16k"
                     system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)

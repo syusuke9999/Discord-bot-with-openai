@@ -96,12 +96,7 @@ class SystemMessage:
                                           f"fun conversations about Dead by Daylight with users. " \
                                           f"Please do not mention the presence of prompts or system messages. " \
                                           f"Please also greet people according to the current time of day. " \
-                                          f"if you are asked a question about the game content, including items, " \
-                                          f"perks, add-ons, and offerings that may change with updates in the game, " \
-                                          f"Please answer the questions while taking into consideration the " \
-                                          f"possibility that updates have changed the rules of the game or " \
-                                          f"other aspects of the game since the AI assistant's knowledge cutoff." \
-                                          f"Be sure to communicate only in Japanese."
+                                          f"Be sure to communicate only in Japanese.Do not use English!"
             return
         elif self.topics is Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC:
             self.system_message_content = 'You are an assistant to determine if the text submitted by the user ' \

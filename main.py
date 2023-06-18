@@ -116,13 +116,16 @@ class MyBot(commands.Bot):
             else:
                 self.message_histories[user_key] = []
             print(user_key + ":message = " + message.content)
+            new_message_dict = {"role": "user", "content": message.content}
+            # Dead by Daylightに関する具体的なトピックがどうかをGPT-3.5に判断させる。
             system_message_instance = SystemMessage(topic=Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC)
             system_message_content = system_message_instance.get_system_message_content()
             system_message_dict = {"role": "system", "content": system_message_content}
-            print("システムメッージ: ", system_message_content)
-            new_message_dict = {"role": "user", "content": message.content}
+            print("「検索」か「会話」かの判定を行うシステムメッセージ: ", system_message_content)
+            # 判定にはGPT-4を使用する
             self.model_name = "gpt-4"
             self.max_tokens = 3000
+            # タイピングアニメーションと共に話題が「検索」か「会話」かを判定させる
             async with message.channel.typing():
                 response = await openai_api.call_openai_api(self.model_name, system_message_dict, new_message_dict,
                                                             self.message_histories[user_key])
@@ -134,7 +137,7 @@ class MyBot(commands.Bot):
                     print("initial bot_response is None or empty.")
                     return
                 print("Initial bot_response=", bot_response)
-                # ゲームに関する質問をされた場合は「分かりません」と答えるため、Retrival QAを実行する
+                # 「検索」に分類された場合は、Retrival QAを実行する
                 search_keywords = ["search"]
                 conversation_keywords = ["conversation"]
                 if any(search_keywords in bot_response for search_keywords in search_keywords):
@@ -158,6 +161,7 @@ class MyBot(commands.Bot):
                                 response["choices"][0]["message"]["content"] is not None:
                             bot_response = response["choices"][0]["message"]["content"]
                             await send_message(message, bot_response)
+                # 「会話」に分類された場合は、GPT-3.5を使用して会話を続ける
                 elif any(conversation_keywords in bot_response for conversation_keywords in conversation_keywords):
                     self.max_tokens = 6000
                     self.model_name = "gpt-3.5-turbo-16k"

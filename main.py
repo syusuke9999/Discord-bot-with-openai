@@ -65,6 +65,10 @@ class MyBot(commands.Bot):
         self.special_channel_ids = [1117363032172003328, 1117412783592591460]  # 特定のチャンネルのIDをリストで設定します。
         self.max_tokens = MAX_TOKENS
         self.model_name = model_name
+        self.model_temperature = 0.2
+        self.model_top_p = 0
+        self.model_presence_penalty = 0
+        self.model_frequency_penalty = 0
 
     async def on_ready(self):
         print(f"We have logged in as {self.user}")
@@ -122,62 +126,94 @@ class MyBot(commands.Bot):
             system_message_content = system_message_instance.get_system_message_content()
             system_message_dict = {"role": "system", "content": system_message_content}
             print("「検索」か「会話」かの判定を行うシステムメッセージ: ", system_message_content)
-            # 判定にはgpt-3.5-turbo-16kを使用する
-            self.model_name = "gpt-4"
-            self.max_tokens = 3000
-            # タイピングアニメーションと共に話題が「検索」か「会話」かを判定させる
+            # 判定にはgpt-3.5-turbo-0613を使用する
+            self.model_name = "gpt-3.5-turbo-0613"
+            self.max_tokens = 1
+            self.model_temperature = 0
+            self.model_top_p = 0
+            self.model_presence_penalty = 0
+            self.model_frequency_penalty = 0
+            hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
+                                self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
+                                    self.model_presence_penalty, "frequency_penalty": self.model_frequency_penalty}
+            # タイピングアニメーションと共に話題が「search」か「conversation」かを判定させる
             async with message.channel.typing():
-                response = await openai_api.call_openai_api(self.model_name, system_message_dict, new_message_dict,
-                                                            self.message_histories[user_key])
-                if response is not None and response["choices"] is not None and \
-                        response["choices"][0]["message"] is not None and \
-                        response["choices"][0]["message"]["content"] is not None:
-                    bot_classification = response["choices"][0]["message"]["content"]
+                response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict)
+                # OpenAI APIからのレスポンスが期待に添った形かどうかを確認して内容を抽出する
+                try:
+                    content = response["choices"][0]["message"]["content"]
+                except (TypeError, KeyError, IndexError):
+                    content = None
+                if content is not None:
+                    bot_classification = content
                 else:
                     print("initial bot_response is None or empty.")
                     return
-                print("Initial bot_response.search or conversation=", bot_classification)
-                # 「会話」に分類されなかった場合は、「検索」と推定してRetrival QAを実行する
-                conversation_keywords = ["conversation"]
-                if not any(conversation_keywords in bot_classification for conversation_keywords in conversation_keywords):
+                print("\033[93mAIによるユーザーの発言への反応の判定:\033[0m \033[91m", bot_classification, "\033[0m")
+                # 「conversation」に分類されなかった場合は「search」と推定してRetrival QAを実行する（検索優先の原則）
+                if "conversation" not in bot_classification:
                     print("Retrival QAを実行します")
                     start_time = time.time()
                     retrival_qa = RetrievalQAFromFaiss()
                     # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
-                    bot_response, question = await retrival_qa.GetAnswerFromFaiss(message.content)
+                    bot_response, source_url, input_query = await retrival_qa.GetAnswerFromFaiss(message.content)
                     elapsed_time = time.time() - start_time
                     print(f"The retrieval qa precess took {elapsed_time} seconds.")
-                    if bot_response is not None or "no information" in bot_response:
+                    do_not_know_answer = ["分かりません", "情報がありません", "回答が見つかりません", "回答が見つかりませんでした",
+                                          "don't know", "no information", "no answer", "answer not found",
+                                          "do not know"]
+                    if all(string not in bot_response for string in do_not_know_answer):
                         print("assistant response for the answer: ", bot_response)
                         await send_message(message, bot_response)
+                        await send_message(message, source_url)
                     else:
-                        self.max_tokens = 3000
                         self.model_name = "gpt-4"
-                        response = await openai_api.call_openai_api(self.model_name, system_message_dict,
+                        self.max_tokens = 3000
+                        self.model_temperature = 0.1
+                        self.model_top_p = 1
+                        self.model_frequency_penalty = 0.6
+                        self.model_presence_penalty = 0
+                        hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
+                                            self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
+                                                self.model_presence_penalty, "frequency_penalty":
+                                                    self.model_frequency_penalty}
+                        response = await openai_api.call_openai_api(hyper_parameters, system_message_dict,
                                                                     new_message_dict, self.message_histories[user_key])
-                        if response is not None and response["choices"] is not None and \
-                                response["choices"][0]["message"] is not None and \
-                                response["choices"][0]["message"]["content"] is not None:
-                            bot_response = response["choices"][0]["message"]["content"]
+                        try:
+                            content = response["choices"][0]["message"]["content"]
+                        except (TypeError, KeyError, IndexError):
+                            content = None
+                        if content is not None:
+                            bot_response = content
                             await send_message(message, bot_response)
+                        else:
+                            print("bot_response is None or empty.")
+                            return
                 # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
                 else:
-                    self.max_tokens = 6000
+                    self.max_tokens = 10000
                     self.model_name = "gpt-3.5-turbo-16k"
+                    self.model_frequency_penalty = 0.6
+                    self.model_presence_penalty = 0
+                    self.model_temperature = 0.4
+                    self.model_top_p = 1
                     system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
                     system_message_content = system_message_instance.get_system_message_content()
                     system_message_dict = {"role": "system", "content": system_message_content}
+                    print("\033[93m「検索」に分類されなかったため、gpt-3.5-turbo-16kを使用して会話を続けます\033[0m")
                     print("システムメッージ: ", system_message_content)
                     response = await openai_api.call_openai_api(self.model_name, system_message_dict, new_message_dict,
                                                                 self.message_histories[user_key])
-                    if response is not None and response["choices"] is not None and \
-                            response["choices"][0]["message"] is not None and \
-                            response["choices"][0]["message"]["content"] is not None:
-                        bot_response = response["choices"][0]["message"]["content"]
+                    try:
+                        content = response["choices"][0]["message"]["content"]
+                    except (TypeError, KeyError, IndexError):
+                        content = None
+                    if content is not None:
+                        bot_response = content
                         print("assistant response for user's conversation: ", bot_response)
                         await send_message(message, bot_response)
                     else:
-                        print("response is None or empty.")
+                        print("bot_response is None or empty.")
                         return
             # メッセージの履歴を更新
             user_message = str(message.content)

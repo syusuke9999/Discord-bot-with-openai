@@ -1,7 +1,7 @@
 import json
 import httpx
 from httpx import Timeout
-from main import model_name
+from typing import List, Dict
 from main import OPENAI_API_KEY
 import logging
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -12,19 +12,28 @@ logger.setLevel(logging.WARNING)
 
 # APIへのリクエストが失敗したさいに、リトライするデコレーター
 @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=3, max=60))
-async def call_openai_api(name_of_model, system_message, new_message, message_history):
+async def call_openai_api(hyper_parameters, system_message, new_message, message_history: List[Dict] = None):
+    temperature = hyper_parameters["temperature"]
+    model_name = hyper_parameters["model_name"]
+    max_tokens = hyper_parameters["max_tokens"]
+    top_p = hyper_parameters["top_p"]
+    frequency_penalty = hyper_parameters["frequency_penalty"]
+    presence_penalty = hyper_parameters["presence_penalty"]
+    if message_history is None:
+        message_history = []
     url = "https://api.openai.com/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {OPENAI_API_KEY}"
     }
     data = {
-        "temperature": 0,
-        "model": name_of_model,
+        "temperature": temperature,
+        "model": model_name,
         "messages": [system_message] + message_history + [new_message],
-        "max_tokens": 1000,
-        "frequency_penalty": 0.6,
-        "presence_penalty": 0,
+        "max_tokens": max_tokens,
+        "top_p": top_p,
+        "frequency_penalty": frequency_penalty,
+        "presence_penalty": presence_penalty,
     }
     timeout = Timeout(120)  # Set timeout to 120 seconds
     try:

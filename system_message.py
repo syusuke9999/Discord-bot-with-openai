@@ -99,12 +99,11 @@ class SystemMessage:
                                           f"Be sure to communicate only in Japanese. Do not use English!"
             return
         elif self.topics is Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC:
-            self.system_message_content = f'You are an assistant who must determine if ' \
-                                          f'the user\'s submitted content is about specific information or ' \
-                                          f'question which related to Dead by Daylight. ' \
-                                          f'If it is, respond with "search"; if not, respond with ' \
-                                          f'"conversation". Your answer should only be "search" or ' \
-                                          f'"conversation", and no other responses are allowed.'
+            self.system_message_content = f'You are an assistant who must determine if the user\'s statement is ' \
+                                          f'related to specific information or specific questions about ' \
+                                          f'Dead by Daylight. If it is, respond with "search"; if not, ' \
+                                          f'respond with "conversation". Your answer should only be "search" ' \
+                                          f'or "conversation", and no other responses are allowed.'
             return
 
     def get_system_message_content(self):

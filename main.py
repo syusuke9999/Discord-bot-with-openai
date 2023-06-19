@@ -134,7 +134,7 @@ class MyBot(commands.Bot):
             self.model_presence_penalty = 0
             self.model_frequency_penalty = 0
             hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
+                                self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
                                     self.model_presence_penalty, "frequency_penalty": self.model_frequency_penalty}
             # タイピングアニメーションと共に話題が「search」か「conversation」かを判定させる
             async with message.channel.typing():
@@ -174,7 +174,7 @@ class MyBot(commands.Bot):
                         self.model_frequency_penalty = 0.6
                         self.model_presence_penalty = 0
                         hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                            self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
+                                            self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
                                                 self.model_presence_penalty, "frequency_penalty":
                                                 self.model_frequency_penalty}
                         response = await openai_api.call_openai_api(hyper_parameters, system_message_dict,

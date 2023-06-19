@@ -159,38 +159,10 @@ class MyBot(commands.Bot):
                     bot_response, source_url, input_query = await retrival_qa.GetAnswerFromFaiss(message.content)
                     elapsed_time = time.time() - start_time
                     print(f"The retrieval qa precess took {elapsed_time} seconds.")
-                    do_not_know_answer = ["分かりません", "情報がありません", "回答が見つかりません", "回答が見つかりませんでした",
-                                          "don't know", "no information", "no answer", "answer not found",
-                                          "do not know"]
-                    if all(string not in bot_response for string in do_not_know_answer):
-                        print("assistant response for the answer: ", bot_response)
-                        await send_message(message, bot_response)
-                        await send_message(message, source_url)
-                    else:
-                        self.model_name = "gpt-4"
-                        self.max_tokens = 3000
-                        self.model_temperature = 0.1
-                        self.model_top_p = 1
-                        self.model_frequency_penalty = 0.6
-                        self.model_presence_penalty = 0
-                        hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                                            self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
-                                                self.model_presence_penalty, "frequency_penalty":
-                                                self.model_frequency_penalty}
-                        response = await openai_api.call_openai_api(hyper_parameters, system_message_dict,
-                                                                    new_message_dict, self.message_histories[user_key])
-                        try:
-                            content = response["choices"][0]["message"]["content"]
-                        except (TypeError, KeyError, IndexError):
-                            content = None
-                        if content is not None:
-                            bot_response = content
-                            await send_message(message, bot_response)
-                        else:
-                            print("bot_response is None or empty.")
-                            return
+                    await send_message(message, bot_response)
+                    await send_message(message, source_url)
                 # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
-                else:
+                elif "conversation" in bot_classification:
                     self.max_tokens = 10000
                     self.model_name = "gpt-3.5-turbo-16k"
                     self.model_frequency_penalty = 0.6
@@ -200,12 +172,41 @@ class MyBot(commands.Bot):
                     system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
                     system_message_content = system_message_instance.get_system_message_content()
                     system_message_dict = {"role": "system", "content": system_message_content}
-                    print("\033[93m「検索」に分類されなかったため、gpt-3.5-turbo-16kを使用して会話を続けます\033[0m")
+                    print("\033[93m「会話」に分類されため、gpt-3.5-turbo-16kを使用して会話を続けます\033[0m")
                     print("システムメッージ: ", system_message_content)
                     hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
                                         self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
                                             self.model_presence_penalty, "frequency_penalty":
                                             self.model_frequency_penalty}
+                    response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict,
+                                                                self.message_histories[user_key])
+                    try:
+                        content = response["choices"][0]["message"]["content"]
+                    except (TypeError, KeyError, IndexError):
+                        content = None
+                    if content is not None:
+                        bot_response = content
+                        print("assistant response for user's conversation: ", bot_response)
+                        await send_message(message, bot_response)
+                    else:
+                        print("bot_response is None or empty.")
+                        return
+                # 「検索」にも「会話」にも分類されなかった場合、GPT-4を使用してユーザーの発言に応答する
+                else:
+                    self.max_tokens = 3000
+                    self.model_name = "gpt-4"
+                    self.model_frequency_penalty = 0.6
+                    self.model_presence_penalty = 0
+                    self.model_temperature = 0.2
+                    self.model_top_p = 1
+                    system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
+                    system_message_content = system_message_instance.get_system_message_content()
+                    print("システムメッージ: ", system_message_content)
+                    system_message_dict = {"role": "system", "content": system_message_content}
+                    hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
+                                        self.model_temperature, "top_p": self.model_top_p,
+                                        "presence_penalty": self.model_presence_penalty,
+                                        "frequency_penalty": self.model_frequency_penalty}
                     response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict,
                                                                 self.message_histories[user_key])
                     try:

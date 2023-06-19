@@ -13,12 +13,12 @@ logger.setLevel(logging.WARNING)
 # APIへのリクエストが失敗したさいに、リトライするデコレーター
 @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=3, max=60))
 async def call_openai_api(hyper_parameters, system_message, new_message, message_history: List[Dict] = None):
-    temperature: float = hyper_parameters["temperature"]
-    model_name: str = hyper_parameters["model_name"]
-    max_tokens: int = hyper_parameters["max_tokens"]
-    top_p: float = hyper_parameters["top_p"]
-    frequency_penalty: float = hyper_parameters["frequency_penalty"]
-    presence_penalty: float = hyper_parameters["presence_penalty"]
+    temperature = float(hyper_parameters["temperature"])
+    model_name = str(hyper_parameters["model_name"])
+    max_tokens = int(hyper_parameters["max_tokens"])
+    top_p = float(hyper_parameters["top_p"])
+    frequency_penalty = float(hyper_parameters["frequency_penalty"])
+    presence_penalty = float(hyper_parameters["presence_penalty"])
     if message_history is None:
         message_history = []
     url = "https://api.openai.com/v1/chat/completions"

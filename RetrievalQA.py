@@ -17,12 +17,6 @@ class RetrievalQAFromFaiss:
 
     async def GetAnswerFromFaiss(self, input_txt):
         llm = load_llm("my_llm.json")
-        keywords = ["パーク", "パークについて", "パークは？", "パーク？"]
-        excluded_keywords = ["おすすめ", "お勧め", "組み合わせ", "組み合わせについて", "組み合わせを教えて"]
-        if any(keyword in input_txt for keyword in keywords) and not any(excluded_keyword in input_txt for
-                                                                         excluded_keyword in excluded_keywords):
-            input_txt = input_txt.replace("パーク", "パークの性能と効果解説")
-            print(input_txt)
         self.input_txt = input_txt
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
@@ -47,6 +41,7 @@ class RetrievalQAFromFaiss:
                 source_url = relevant_documents[max_index].metadata['source']
             except (TypeError, KeyError, IndexError):
                 source_url = None
+                return response, source_url, self.input_txt
             else:
                 return response, source_url, self.input_txt
         else:

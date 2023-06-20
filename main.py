@@ -51,7 +51,6 @@ async def send_message(message, bot_response_for_answer):
     async with message.channel.typing():
         await sleep(typing_time)  # 計算された時間まで待つ
         await message.reply(bot_response_for_answer)
-        print("await reply message to discord with async typing function!")
 
 
 class MyBot(commands.Bot):
@@ -102,6 +101,7 @@ class MyBot(commands.Bot):
                 print("special channel!  Message content: ", message.content)
             # メッセージの内容を表示
             print("Message content: ", message.content)
+            bot_response: str = ""
             # メンションしたユーザーのIDと名前を取得
             user_id = str(message.author.id)
             user_name = message.author.display_name
@@ -137,47 +137,52 @@ class MyBot(commands.Bot):
                                 self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
                                     self.model_presence_penalty, "frequency_penalty": self.model_frequency_penalty}
             # タイピングアニメーションと共に話題が「search」か「conversation」かを判定させる
-            async with message.channel.typing():
-                response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict)
-                # OpenAI APIからのレスポンスが期待に添った形かどうかを確認して内容を抽出する
-                try:
-                    content = response["choices"][0]["message"]["content"]
-                except (TypeError, KeyError, IndexError):
-                    content = None
-                if content is not None:
-                    bot_classification = content
-                else:
-                    print("initial bot_response is None or empty.")
-                    return
-                print("\033[93mAIによるユーザーの発言への反応の判定:\033[0m \033[91m", bot_classification, "\033[0m")
-                # 「conversation」に分類されなかった場合は「search」と推定してRetrival QAを実行する（検索優先の原則）
-                if "conversation" not in bot_classification:
-                    print("Retrival QAを実行します")
-                    start_time = time.time()
+            response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict)
+            # OpenAI APIからのレスポンスが期待に添った形かどうかを確認して内容を抽出する
+            try:
+                content = response["choices"][0]["message"]["content"]
+            except (TypeError, KeyError, IndexError):
+                content = None
+            if content is not None:
+                bot_classification = content
+            else:
+                print("initial bot_response is None or empty.")
+                return
+            print("\033[93mAIによるユーザーの発言への反応の判定:\033[0m \033[91m", bot_classification, "\033[0m")
+            # 「conversation」に分類されなかった場合は「search」と推定してRetrival QAを実行する（検索優先の原則）
+            if "conversation" not in bot_classification:
+                print("Retrival QAを実行します")
+                start_time = time.time()
+                async with message.channel.typing():
                     retrival_qa = RetrievalQAFromFaiss()
                     # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
                     bot_response, source_url, input_query = await retrival_qa.GetAnswerFromFaiss(message.content)
                     elapsed_time = time.time() - start_time
                     print(f"The retrieval qa precess took {elapsed_time} seconds.")
+                    print("await reply message and source url to discord server with async typing function!")
                     await send_message(message, bot_response)
                     await send_message(message, source_url)
-                # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
-                elif "conversation" in bot_classification:
-                    self.max_tokens = 10000
-                    self.model_name = "gpt-3.5-turbo-16k"
-                    self.model_frequency_penalty = 0.6
-                    self.model_presence_penalty = 0
-                    self.model_temperature = 0.4
-                    self.model_top_p = 1
-                    system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
-                    system_message_content = system_message_instance.get_system_message_content()
-                    system_message_dict = {"role": "system", "content": system_message_content}
-                    print("\033[93m「会話」に分類されため、gpt-3.5-turbo-16kを使用して会話を続けます\033[0m")
-                    print("システムメッージ: ", system_message_content)
-                    hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                                        self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
-                                            self.model_presence_penalty, "frequency_penalty":
-                                            self.model_frequency_penalty}
+            # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
+            elif "conversation" in bot_classification:
+                self.max_tokens = 10000
+                self.model_name = "gpt-3.5-turbo-16k"
+                self.model_frequency_penalty = 0.6
+                self.model_presence_penalty = 0
+                self.model_temperature = 0.4
+                self.model_top_p = 1
+                system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
+                system_message_content = system_message_instance.get_system_message_content()
+                system_message_dict = {"role": "system", "content": system_message_content}
+                print("\033[93m「会話」に分類されため、gpt-3.5-turbo-16kを使用して会話を続けます\033[0m")
+                print("システムメッージ: ", system_message_content)
+                hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
+                                    self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
+                                        self.model_presence_penalty, "frequency_penalty":
+                                        self.model_frequency_penalty}
+                print("Send query user conversation to OpenAI API with async typing function: ",
+                      message.content)
+                async with message.channel.typing():
+                    start_time = time.time()
                     response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict,
                                                                 self.message_histories[user_key])
                     try:
@@ -191,24 +196,28 @@ class MyBot(commands.Bot):
                     else:
                         print("bot_response is None or empty.")
                         return
-                # 「検索」にも「会話」にも分類されなかった場合、GPT-4を使用してユーザーの発言に応答する
-                else:
-                    self.max_tokens = 3000
-                    self.model_name = "gpt-4"
-                    self.model_frequency_penalty = 0.6
-                    self.model_presence_penalty = 0
-                    self.model_temperature = 0.2
-                    self.model_top_p = 1
-                    system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
-                    system_message_content = system_message_instance.get_system_message_content()
-                    print("システムメッージ: ", system_message_content)
-                    system_message_dict = {"role": "system", "content": system_message_content}
-                    hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                                        self.model_temperature, "top_p": self.model_top_p,
-                                        "presence_penalty": self.model_presence_penalty,
-                                        "frequency_penalty": self.model_frequency_penalty}
+                    elapsed_time = time.time() - start_time
+                    print(f"The OpenAI API conversation process took {elapsed_time} seconds.")
+            # 「検索」にも「会話」にも分類されなかった場合、GPT-4を使用してユーザーの発言に応答する
+            else:
+                self.max_tokens = 3000
+                self.model_name = "gpt-4"
+                self.model_frequency_penalty = 0.6
+                self.model_presence_penalty = 0
+                self.model_temperature = 0.2
+                self.model_top_p = 1
+                system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
+                system_message_content = system_message_instance.get_system_message_content()
+                print("システムメッージ: ", system_message_content)
+                system_message_dict = {"role": "system", "content": system_message_content}
+                hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
+                                    self.model_temperature, "top_p": self.model_top_p,
+                                    "presence_penalty": self.model_presence_penalty,
+                                    "frequency_penalty": self.model_frequency_penalty}
+                async with message.channel.typing():
                     response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict,
                                                                 self.message_histories[user_key])
+                    start_time = time.time()
                     try:
                         content = response["choices"][0]["message"]["content"]
                     except (TypeError, KeyError, IndexError):
@@ -216,32 +225,30 @@ class MyBot(commands.Bot):
                     if content is not None:
                         bot_response = content
                         print("assistant response for user's conversation: ", bot_response)
+                        elapsed_time = time.time() - start_time
+                        print(f"The OpenAI API conversation process took {elapsed_time} seconds.")
                         await send_message(message, bot_response)
-                    else:
-                        print("bot_response is None or empty.")
-                        return
             # メッセージの履歴を更新
             user_message = str(message.content)
             self.update_message_histories_and_tokens(user_message, bot_response, user_key)
-            if not debug_mode:
-                # ユーザーの発言とアシスタントの発言を辞書形式に変換して、メッセージの履歴に追加
-                self.message_histories[user_key].append(system_message_dict)
-                self.message_histories[user_key].append(new_message_dict)
-                self.message_histories[user_key].append({"role": "assistant",
-                                                         "content": bot_response})
-                # 辞書形式のメッセージの履歴をJSON形式に変換
-                message_history_json = json.dumps(self.message_histories[user_key])
-                # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
-                start_time = time.time()
-                # Redisサーバーへメッセージの履歴を保存し、TTLを設定
-                r.set(f'message_history_{user_key}', message_history_json)
-                r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
-                end_time = time.time()
-                # 経過時間を計算して表示
-                elapsed_time = end_time - start_time
-                print(f"Elapsed time to save data to Redis server: {elapsed_time} seconds")  # 経過時間を表示
-                # メッセージの履歴を更新（重複した発言を削除したり、古い発言を削除したりする）
-                self.update_message_histories_and_tokens(user_message, bot_response, user_key)
+            # ユーザーの発言とアシスタントの発言を辞書形式に変換して、メッセージの履歴に追加
+            self.message_histories[user_key].append(system_message_dict)
+            self.message_histories[user_key].append(new_message_dict)
+            self.message_histories[user_key].append({"role": "assistant",
+                                                     "content": bot_response})
+            # 辞書形式のメッセージの履歴をJSON形式に変換
+            message_history_json = json.dumps(self.message_histories[user_key])
+            # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
+            start_time = time.time()
+            # Redisサーバーへメッセージの履歴を保存し、TTLを設定
+            r.set(f'message_history_{user_key}', message_history_json)
+            r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+            end_time = time.time()
+            # 経過時間を計算して表示
+            elapsed_time = end_time - start_time
+            print(f"Elapsed time to save data to Redis server: {elapsed_time} seconds")  # 経過時間を表示
+            # メッセージの履歴を更新（重複した発言を削除したり、古い発言を削除したりする）
+            self.update_message_histories_and_tokens(user_message, bot_response, user_key)
 
     def update_message_histories_and_tokens(self, user_message, bot_response, user_key):
         # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
@@ -277,7 +284,7 @@ class MyBot(commands.Bot):
                         member_names += ", "
                     member_names += participant.name
                 # テキストチャンネルIDを指定します
-                your_text_chanel_id = 1003966898792312854
+                your_text_chanel_id = 1117412783592591460
                 # ボイスチャットに参加しているメンバーが2人以上いる場合、ユーザー名を指定してメッセージを送信する
                 await self.get_channel(your_text_chanel_id).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
 

@@ -191,10 +191,9 @@ class MyBot(commands.Bot):
                     hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
                                         self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
                                             self.model_presence_penalty, "frequency_penalty":
-                                        self.model_frequency_penalty}
-                    response, source_url, input_txt = await openai_api.call_openai_api(hyper_parameters,
-                                                                                       system_message_dict,
-                                                                                       new_message_dict)
+                                            self.model_frequency_penalty}
+                    response = await openai_api.call_openai_api(hyper_parameters, system_message_dict,
+                                                                new_message_dict)
                     try:
                         content = response["choices"][0]["message"]["content"]
                     except (TypeError, KeyError, IndexError):

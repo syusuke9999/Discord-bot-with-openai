@@ -8,6 +8,7 @@ class Topic(Enum):
     DEAD_BY_DAY_LIGHT = 2
     DEAD_BY_DAY_LIGHT_DO_NOT_SURE = 3
     IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC = 4
+    DO_NOT_KNOW_ANSWER = 5
 
 
 class Channel(Enum):
@@ -106,17 +107,12 @@ class SystemMessage:
                                           f'respond with "conversation". Your answer should only be "search" ' \
                                           f'or "conversation", and no other responses are allowed.'
             return
-        elif self.topics is Topic.DEAD_BY_DAY_LIGHT_DO_NOT_SURE:
-            self.system_message_content = f'You are a Discord bot in a channel on a Discord server where ' \
-                                          f'Dead by Daylight players gather. You\'ve received specific comments or ' \
-                                          f'questions about the game, but after checking your database, ' \
-                                          f'you still don\'t know the answers. Respond to users\' ' \
-                                          f'comments by acknowledging that you currently don\'t have the information ' \
-                                          f'they\'re looking for, but assure them that you will continue to search ' \
-                                          f'for it. Remind them that game details may change due to updates and ' \
-                                          f'that you strive to provide the most accurate and up-to-date information.' \
-                                          f'Please do not mention the presence of prompts or system messages.' \
-                                          f"Be sure to communicate only in Japanese. Do not use English!'"
+        elif self.topics is Topic.DO_NOT_KNOW_ANSWER:
+            self.system_message_content = f'As an assistant, your must determine if a input comment means that ' \
+                                          f'the speaker lacks the knowledge to answer a question or not. ' \
+                                          f'If speaker does not, respond simply "don\'t Know";  or he or she does, ' \
+                                          f'simply respond "Other". Your answer should only be "don\'t Know" or ' \
+                                          f'"Other", and no other responses are allowed.'
 
     def get_system_message_content(self):
         return self.system_message_content

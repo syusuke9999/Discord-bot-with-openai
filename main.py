@@ -178,7 +178,35 @@ class MyBot(commands.Bot):
                     print(f"The retrieval qa process took {elapsed_time} seconds.")
                     print("await reply message and source url to discord server with async typing function!")
                     await send_message(message, bot_response)
-                    if "分かりません" not in bot_response:
+                    system_message_instance = SystemMessage(topic=Topic.DO_NOT_KNOW_ANSWER)
+                    system_message_content = system_message_instance.get_system_message_content()
+                    system_message_dict = {"role": "system", "content": system_message_content}
+                    # 判定にはgpt-3.5-turbo-0613を使用する
+                    self.model_name = "gpt-3.5-turbo-0613"
+                    self.max_tokens = 10
+                    self.model_temperature = 0
+                    self.model_top_p = 0
+                    self.model_presence_penalty = 0
+                    self.model_frequency_penalty = 0
+                    hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
+                                        self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
+                                            self.model_presence_penalty, "frequency_penalty":
+                                        self.model_frequency_penalty}
+                    response, source_url, input_txt = await openai_api.call_openai_api(hyper_parameters,
+                                                                                       system_message_dict,
+                                                                                       new_message_dict)
+                    try:
+                        content = response["choices"][0]["message"]["content"]
+                    except (TypeError, KeyError, IndexError):
+                        content = None
+                    if content is not None:
+                        bot_classification = content
+                    else:
+                        print("initial bot_response is None or empty.")
+                        return
+                    if bot_classification is "don't know":
+                        await send_message(message, "")
+                    else:
                         await send_message(message, source_url)
             # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
             elif "conversation" in bot_classification:

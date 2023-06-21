@@ -53,16 +53,33 @@ async def send_message(message, bot_response_for_answer):
         await message.reply(bot_response_for_answer)
 
 
+def truncate_message_histories_and_tokens(token_limit, message_history):
+    # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
+    total_tokens = sum(count_tokens(json.dumps(m)) for m in message_history)
+    # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
+    while total_tokens > token_limit:
+        # 最初のメッセージを削除する
+        removed_message = message_history.pop(0)
+        # 削除したメッセージのトークン数を引く
+        total_tokens -= count_tokens(json.dumps(removed_message))
+    # 切り詰めたメッセージ履歴に含まれるトークン数を表示
+    print("truncated_history_tokens: ", total_tokens)
+    return message_history
+
+
 class MyBot(commands.Bot):
-    global model_name, MAX_TOKENS
+    global model_name
 
     def __init__(self, command_prefix, intents, enum_of_topic):
         super().__init__(command_prefix, intents=intents)
         self.topic_enum = enum_of_topic
+        # 全ての会話履歴
         self.message_histories = {}
+        # 個別のモデルに配慮して、トークン数を制限した会話履歴
+        self.truncated_message_histories = {}
         self.total_tokens = 0  # トークン数の合計を保持するための変数を追加
         self.special_channel_ids = [1117363032172003328, 1117412783592591460]  # 特定のチャンネルのIDをリストで設定します。
-        self.max_tokens = MAX_TOKENS
+        self.max_tokens = 3000
         self.model_name = model_name
         self.model_temperature = 0.2
         self.model_top_p = 0
@@ -158,7 +175,7 @@ class MyBot(commands.Bot):
                     # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
                     bot_response, source_url, input_query = await retrival_qa.GetAnswerFromFaiss(message.content)
                     elapsed_time = time.time() - start_time
-                    print(f"The retrieval qa precess took {elapsed_time} seconds.")
+                    print(f"The retrieval qa process took {elapsed_time} seconds.")
                     print("await reply message and source url to discord server with async typing function!")
                     await send_message(message, bot_response)
                     await send_message(message, source_url)
@@ -173,6 +190,8 @@ class MyBot(commands.Bot):
                 system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
                 system_message_content = system_message_instance.get_system_message_content()
                 system_message_dict = {"role": "system", "content": system_message_content}
+                # メッセージの履歴を10000トークン以下にして送信する
+                message_history = truncate_message_histories_and_tokens(10000, self.message_histories[user_key])
                 print("\033[93m「会話」に分類されため、gpt-3.5-turbo-16kを使用して会話を続けます\033[0m")
                 print("システムメッージ: ", system_message_content)
                 hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
@@ -184,7 +203,7 @@ class MyBot(commands.Bot):
                 async with message.channel.typing():
                     start_time = time.time()
                     response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict,
-                                                                self.message_histories[user_key])
+                                                                message_history)
                     try:
                         content = response["choices"][0]["message"]["content"]
                     except (TypeError, KeyError, IndexError):
@@ -206,6 +225,8 @@ class MyBot(commands.Bot):
                 self.model_presence_penalty = 0
                 self.model_temperature = 0.2
                 self.model_top_p = 1
+                # メッセージの履歴を3000トークン以下にして送信する
+                message_history = truncate_message_histories_and_tokens(3000, self.message_histories[user_key])
                 system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
                 system_message_content = system_message_instance.get_system_message_content()
                 print("システムメッージ: ", system_message_content)
@@ -216,7 +237,7 @@ class MyBot(commands.Bot):
                                     "frequency_penalty": self.model_frequency_penalty}
                 async with message.channel.typing():
                     response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict,
-                                                                self.message_histories[user_key])
+                                                                message_history)
                     start_time = time.time()
                     try:
                         content = response["choices"][0]["message"]["content"]
@@ -228,12 +249,9 @@ class MyBot(commands.Bot):
                         elapsed_time = time.time() - start_time
                         print(f"The OpenAI API conversation process took {elapsed_time} seconds.")
                         await send_message(message, bot_response)
-            # メッセージの履歴を更新
-            user_message = str(message.content)
-            self.update_message_histories_and_tokens(user_message, bot_response, user_key)
             # ユーザーの発言とアシスタントの発言を辞書形式に変換して、メッセージの履歴に追加
             self.message_histories[user_key].append(system_message_dict)
-            self.message_histories[user_key].append(new_message_dict)
+            self.message_histories[user_key].append({"role": "user", "content": message.content})
             self.message_histories[user_key].append({"role": "assistant",
                                                      "content": bot_response})
             # 辞書形式のメッセージの履歴をJSON形式に変換
@@ -247,26 +265,7 @@ class MyBot(commands.Bot):
             # 経過時間を計算して表示
             elapsed_time = end_time - start_time
             print(f"Elapsed time to save data to Redis server: {elapsed_time} seconds")  # 経過時間を表示
-            # メッセージの履歴を更新（重複した発言を削除したり、古い発言を削除したりする）
-            self.update_message_histories_and_tokens(user_message, bot_response, user_key)
-
-    def update_message_histories_and_tokens(self, user_message, bot_response, user_key):
-        # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
-        total_tokens = sum(count_tokens(json.dumps(m)) for m in self.message_histories[user_key])
-        # 新しいメッセージとボットの応答のトークン数を追加
-        total_tokens += count_tokens(json.dumps(user_message)) + count_tokens(json.dumps(bot_response))
-        # 新しいメッセージを追加するとトークン制限を超える場合、古いメッセージを削除する。
-        while total_tokens > MAX_TOKENS:
-            # 最初のメッセージを削除する
-            removed_message = self.message_histories[user_key].pop(0)
-            # 削除したメッセージのトークン数を引く
-            total_tokens -= count_tokens(json.dumps(removed_message))
-        # トークン数が制限以下になったら新しいメッセージとボットの応答を追加
-        self.message_histories[user_key].append({"role": "user", "content": user_message})
-        self.message_histories[user_key].append({"role": "assistant", "content": bot_response})
-        # メッセージ履歴に含まれる全てのメッセージのトークン数を計算
-        self.total_tokens = total_tokens
-        print("total_history_tokens: ", self.total_tokens)
+            # APIへの送信に使用するメッセージの履歴を更新
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -286,6 +285,14 @@ class MyBot(commands.Bot):
                 # テキストチャンネルIDを指定します
                 your_text_chanel_id = 1117412783592591460
                 # ボイスチャットに参加しているメンバーが2人以上いる場合、ユーザー名を指定してメッセージを送信する
+                # メンションしたユーザーのIDと名前を取得
+                user_id = str(member.author.id)
+                user_name = member.author.display_name
+                # ユーザーのIDと名前を組み合わせて、ユーザーを一意に識別するユーザーキーを作成
+                user_key = f'{user_id}_{user_name}'
+                send_text = f'{member_names}さん、Dead by Daylightを楽しんで下さい。'
+                self.message_histories[user_key].append({"role": "assistant",
+                                                         "content": send_text})
                 await self.get_channel(your_text_chanel_id).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
 
 

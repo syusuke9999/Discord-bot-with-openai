@@ -178,7 +178,8 @@ class MyBot(commands.Bot):
                     print(f"The retrieval qa process took {elapsed_time} seconds.")
                     print("await reply message and source url to discord server with async typing function!")
                     await send_message(message, bot_response)
-                    await send_message(message, source_url)
+                    if "分かりません" not in bot_response:
+                        await send_message(message, source_url)
             # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
             elif "conversation" in bot_classification:
                 self.max_tokens = 10000
@@ -293,6 +294,17 @@ class MyBot(commands.Bot):
                 send_text = f'{member_names}さん、Dead by Daylightを楽しんで下さい。'
                 self.message_histories[user_key].append({"role": "assistant",
                                                          "content": send_text})
+                # 辞書形式のメッセージの履歴をJSON形式に変換
+                message_history_json = json.dumps(self.message_histories[user_key])
+                # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
+                start_time = time.time()
+                # Redisサーバーへメッセージの履歴を保存し、TTLを設定
+                r.set(f'message_history_{user_key}', message_history_json)
+                r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+                end_time = time.time()
+                # 経過時間を計算して表示
+                elapsed_time = end_time - start_time
+                print(f"Elapsed time to save data to Redis server: {elapsed_time} seconds")  # 経過時間を表示
                 await self.get_channel(your_text_chanel_id).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
 
 

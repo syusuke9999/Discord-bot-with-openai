@@ -165,6 +165,7 @@ class MyBot(commands.Bot):
             else:
                 print("initial bot_response is None or empty.")
                 return
+
             print("\033[93mAIによるユーザーの発言への反応の判定:\033[0m \033[91m", bot_classification, "\033[0m")
             # 「conversation」に分類されなかった場合は「search」と推定してRetrival QAを実行する（検索優先の原則）
             if "conversation" not in bot_classification:
@@ -176,11 +177,10 @@ class MyBot(commands.Bot):
                     bot_response, source_url, input_query = await retrival_qa.GetAnswerFromFaiss(message.content)
                     elapsed_time = time.time() - start_time
                     print(f"The retrieval qa process took {elapsed_time} seconds.")
-                    print("await reply message and source url to discord server with async typing function!")
-                    await send_message(message, bot_response)
-                    system_message_instance = SystemMessage(topic=Topic.DO_NOT_KNOW_ANSWER)
+                    system_message_instance = SystemMessage(topic=Topic.DETERMINE_KNOW_DO_NOT_KNOW_ANSWER)
                     system_message_content = system_message_instance.get_system_message_content()
                     system_message_dict = {"role": "system", "content": system_message_content}
+                    new_message_dict = {"role": "user", "content": bot_response}
                     # 判定にはgpt-3.5-turbo-0613を使用する
                     self.model_name = "gpt-3.5-turbo-0613"
                     self.max_tokens = 10
@@ -203,9 +203,14 @@ class MyBot(commands.Bot):
                     else:
                         print("initial bot_response is None or empty.")
                         return
-                    if bot_classification is "don't know":
-                        await send_message(message, "")
+                    print("ユーザーの発言: ", message.content)
+                    print("Retrival QAによる回答: ", bot_response)
+                    print("\033[93mAIが質問に答えられたかの判定「don't know」,「other」:\033[0m \033[91m", bot_classification, "\033[0m")
+                    if "don't Know" in bot_classification:
+                        print("検索結果から回答を見つけられなかったため、URLは添付しません。")
+                        await send_message(message, bot_response)
                     else:
+                        await send_message(message, bot_response)
                         await send_message(message, source_url)
             # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
             elif "conversation" in bot_classification:

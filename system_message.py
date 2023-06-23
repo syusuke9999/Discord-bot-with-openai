@@ -8,7 +8,7 @@ class Topic(Enum):
     DEAD_BY_DAY_LIGHT = 2
     DEAD_BY_DAY_LIGHT_DO_NOT_SURE = 3
     IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC = 4
-    DO_NOT_KNOW_ANSWER = 5
+    DETERMINE_KNOW_DO_NOT_KNOW_ANSWER = 5
 
 
 class Channel(Enum):
@@ -107,7 +107,7 @@ class SystemMessage:
                                           f'respond with "conversation". Your answer should only be "search" ' \
                                           f'or "conversation", and no other responses are allowed.'
             return
-        elif self.topics is Topic.DO_NOT_KNOW_ANSWER:
+        elif self.topics is Topic.DETERMINE_KNOW_DO_NOT_KNOW_ANSWER:
             self.system_message_content = f'As an assistant, your must determine if a input comment means that ' \
                                           f'the speaker lacks the knowledge to answer a question or not. ' \
                                           f'If speaker does not, respond simply "don\'t Know";  or he or she does, ' \

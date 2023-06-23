@@ -11,6 +11,8 @@ import logging
 import openai_api
 from system_message import Topic, SystemMessage
 from RetrievalQA import RetrievalQAFromFaiss
+from datetime import datetime
+import pytz
 
 debug_mode = False
 
@@ -170,8 +172,8 @@ class MyBot(commands.Bot):
             # 「conversation」に分類されなかった場合は「search」と推定してRetrival QAを実行する（検索優先の原則）
             if "conversation" not in bot_classification:
                 print("Retrival QAを実行します")
-                start_time = time.time()
                 async with message.channel.typing():
+                    start_time = time.time()
                     retrival_qa = RetrievalQAFromFaiss()
                     # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
                     bot_response, source_url, input_query = await retrival_qa.GetAnswerFromFaiss(message.content)
@@ -181,8 +183,8 @@ class MyBot(commands.Bot):
                     system_message_content = system_message_instance.get_system_message_content()
                     system_message_dict = {"role": "system", "content": system_message_content}
                     new_message_dict = {"role": "user", "content": bot_response}
-                    # 判定にはgpt-3.5-turbo-0613を使用する
-                    self.model_name = "gpt-3.5-turbo-0613"
+                    # 判定にはgpt-4-0613を使用する
+                    self.model_name = "gpt-4-0613"
                     self.max_tokens = 10
                     self.model_temperature = 0
                     self.model_top_p = 0

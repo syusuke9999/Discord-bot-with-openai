@@ -15,8 +15,8 @@ class RetrievalQAFromFaiss:
         self.input_txt = ""
 
     async def GetAnswerFromFaiss(self, input_txt):
-        llm = load_llm("my_llm.json")
         self.input_txt = input_txt
+        llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
         source_url = ""
@@ -32,7 +32,8 @@ class RetrievalQAFromFaiss:
 
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(None, lambda: qa.apply(input_list=[self.input_txt]))
+            print(f"Input dict before apply: {input_txt}")
+            response = await loop.run_in_executor(None, lambda: qa.apply([self.input_txt]))
 
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
@@ -41,7 +42,7 @@ class RetrievalQAFromFaiss:
                 answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 source_url = None
             try:
-                source_url = response[0]['source_documents'][0]['metadata']['source']
+                source_url = response[0]['source_documents'][0].metadata['source']
             except (TypeError, KeyError, IndexError):
                 source_url = None
 

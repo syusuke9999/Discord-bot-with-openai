@@ -320,21 +320,16 @@ class MyBot(commands.Bot):
                 # テキストチャンネルIDを指定します
                 your_text_chanel_id = 1117412783592591460
                 # ボイスチャットに参加しているメンバーが2人以上いる場合、ユーザー名を指定してメッセージを送信する
-                # メンションしたユーザーのIDと名前を取得
-                user_id = str(member.author.id)
-                user_name = member.author.display_name
-                # ユーザーのIDと名前を組み合わせて、ユーザーを一意に識別するユーザーキーを作成
-                user_key = f'{user_id}_{user_name}'
                 send_text = f'{member_names}さん、Dead by Daylightを楽しんで下さい。'
-                self.message_histories[user_key].append({"role": "assistant",
-                                                         "content": send_text})
+                self.message_histories[member_names].append({"role": "assistant",
+                                                             "content": send_text})
                 # 辞書形式のメッセージの履歴をJSON形式に変換
-                message_history_json = json.dumps(self.message_histories[user_key])
+                message_history_json = json.dumps(self.message_histories[member_names])
                 # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
                 start_time = time.time()
                 # Redisサーバーへメッセージの履歴を保存し、TTLを設定
-                r.set(f'message_history_{user_key}', message_history_json)
-                r.expire(f'message_history_{user_key}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+                r.set(f'message_history_{member_names}', message_history_json)
+                r.expire(f'message_history_{member_names}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
                 end_time = time.time()
                 # 経過時間を計算して表示
                 elapsed_time = end_time - start_time

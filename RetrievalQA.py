@@ -20,7 +20,7 @@ class RetrievalQAFromFaiss:
         if "パークの効果" in input_txt:
             input_txt = input_txt.replace("パークの効果", "パークの性能と効果")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76, top_k=10)
         source_url = ""
         answer = ""
         if os.path.exists("./faiss_index"):

@@ -11,8 +11,7 @@ import logging
 import openai_api
 from system_message import Topic, SystemMessage
 from RetrievalQA import RetrievalQAFromFaiss
-from datetime import datetime
-import pytz
+
 
 debug_mode = False
 

@@ -208,7 +208,7 @@ class MyBot(commands.Bot):
                     print("Retrival QAによる回答: ", bot_response)
                     print("\033[93mAIが質問に答えられたかの判定「don't know」,「other」:\033[0m \033[91m", bot_classification, "\033[0m")
                     if "don't Know" in bot_classification:
-                        print("検索結果から回答を見つけられなかったため、URLは添付しません。")
+                        print("\033[93m検索結果から回答を見つけられなかったため、URLは添付しません。\033[0m")
                         await send_message(message, bot_response)
                     else:
                         await send_message(message, bot_response)

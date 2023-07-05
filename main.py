@@ -169,7 +169,7 @@ class MyBot(commands.Bot):
 
             print("\033[93mAIによるユーザーの発言への反応の判定:\033[0m \033[91m", bot_classification, "\033[0m")
             # 「conversation」に分類されなかった場合は「search」と推定してRetrival QAを実行する（検索優先の原則）
-            if "conversation" not in bot_classification:
+            if "search" in bot_classification:
                 print("Retrival QAを実行します")
                 async with message.channel.typing():
                     start_time = time.time()
@@ -210,7 +210,7 @@ class MyBot(commands.Bot):
                     if "don't Know" in bot_classification:
                         print("\033[93m検索結果から回答を見つけられなかったため、URLは添付しません。\033[0m")
                         await send_message(message, bot_response)
-                    else:
+                    elif "answered" in bot_classification:
                         await send_message(message, bot_response)
                         await send_message(message, source_url)
             # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける

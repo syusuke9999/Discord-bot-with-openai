@@ -111,7 +111,7 @@ class SystemMessage:
             self.system_message_content = f'As an assistant, your must determine if a input comment means that ' \
                                           f'the speaker lacks the knowledge to answer a question or not. ' \
                                           f'If speaker does not, respond simply "don\'t Know";  or he or she does, ' \
-                                          f'simply respond "Other". Your answer should only be "don\'t Know" or ' \
+                                          f'simply respond "answered". Your answer should only be "don\'t Know" or ' \
                                           f'"Other", and no other responses are allowed.'
 
     def get_system_message_content(self):

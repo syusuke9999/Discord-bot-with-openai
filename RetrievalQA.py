@@ -6,7 +6,6 @@ from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 import os
 import asyncio
-from system_message import SystemMessage, Topic
 
 
 class RetrievalQAFromFaiss:
@@ -23,7 +22,6 @@ class RetrievalQAFromFaiss:
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76, top_k=10)
         source_url = ""
-        answer = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
@@ -38,10 +36,8 @@ class RetrievalQAFromFaiss:
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 answer = response[0]["result"]
-                source_url = response[0]["source_documents"][0].metadata["source"]
             except (TypeError, KeyError, IndexError):
                 answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
-                source_url = None
             try:
                 source_url = response[0]["source_documents"][0].metadata["source"]
             except (TypeError, KeyError, IndexError):

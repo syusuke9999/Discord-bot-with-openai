@@ -302,7 +302,7 @@ class MyBot(commands.Bot):
             # APIへの送信に使用するメッセージの履歴を更新
 
     @commands.Cog.listener()
-    async def on_voice_state_update(self, member, before, after):
+    async def on_voice_state_update(self, before, after):
         # ボイスチャンネルIDを指定します
         your_voice_chat_channel_id = 1003966899232702537
         if after.channel is not None and after.channel.id == your_voice_chat_channel_id:

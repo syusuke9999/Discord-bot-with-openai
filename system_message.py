@@ -69,7 +69,7 @@ class SystemMessage:
             now_of_time = now.strftime("%H:%M")
             self.system_message_content = f"Today is the year {now_of_year}, " \
                                           f"the month is {now_of_month} and the date {now_of_day}. " \
-                                          f"The current time is {now_of_time}." \
+                                          f"The current time is {now_of_time}. " \
                                           f"We are a Discord bot that resides in a channel on the " \
                                           f"Discord server where people who enjoy Dead by Daylight gather. " \
                                           f"Please share your passionate and fun conversations about " \

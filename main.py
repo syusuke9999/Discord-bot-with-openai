@@ -307,9 +307,9 @@ class MyBot(commands.Bot):
         your_voice_chat_channel_id = 1003966899232702537
         if after.channel is not None and after.channel.id == your_voice_chat_channel_id:
             # チャンネルのメンバーが増えて2人以上いるか確認します
-            if (before.channel is None and len(after.channel.members) >= 1) or \
+            if (before.channel is None and len(after.channel.members) >= 0) or \
                     (before.channel is not None and len(before.channel.members) < len(after.channel.members) and len(
-                        after.channel.members) >= 2):
+                        after.channel.members) >= 1):
                 # メンバーの名前を取得してカンマ区切りの文字列にします
                 member_names = ""
                 for participant in after.channel.members:

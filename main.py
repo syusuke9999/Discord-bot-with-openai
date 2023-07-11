@@ -320,8 +320,9 @@ class MyBot(commands.Bot):
                 your_text_chanel_id = 1117412783592591460
                 # ボイスチャットに参加しているメンバーが2人以上いる場合、ユーザー名を指定してメッセージを送信する
                 send_text = f'{member_names}さん、Dead by Daylightを楽しんで下さい。'
-                self.message_histories[member_names].append({"role": "assistant",
-                                                             "content": send_text})
+                if member_names not in self.message_histories:
+                    self.message_histories[member_names] = []
+                self.message_histories[member_names].append({"role": "assistant", "content": send_text})
                 # 辞書形式のメッセージの履歴をJSON形式に変換
                 message_history_json = json.dumps(self.message_histories[member_names])
                 # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測

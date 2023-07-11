@@ -226,7 +226,7 @@ class MyBot(commands.Bot):
                 system_message_dict = {"role": "system", "content": system_message_content}
                 # メッセージの履歴を10000トークン以下にして送信する
                 message_history = truncate_message_histories_and_tokens(10000, self.message_histories[user_key])
-                print("\033[93m「会話」に分類されため、gpt-3.5-turbo-16kを使用して会話を続けます\033[0m")
+                print("\033[93m「会話」に分類されため、gpt-3.5-turbo-16k-0613を使用して会話を続けます\033[0m")
                 print("システムメッージ: ", system_message_content)
                 hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
                                     self.model_temperature, "top_p": self.model_top_p, "presence_penalty":

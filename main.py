@@ -216,7 +216,7 @@ class MyBot(commands.Bot):
             # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
             elif "conversation" in bot_classification:
                 self.max_tokens = 10000
-                self.model_name = "gpt-3.5-turbo-16k"
+                self.model_name = "gpt-3.5-turbo-16k-0613"
                 self.model_frequency_penalty = 0.6
                 self.model_presence_penalty = 0
                 self.model_temperature = 0.4

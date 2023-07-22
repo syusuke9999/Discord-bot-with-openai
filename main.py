@@ -20,7 +20,7 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PORT = os.getenv("REDIS_PORT")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
-TOPIC_ENUM = "DEAD_BY_DAY_LIGHT"
+TOPIC_ENUM = os.getenv("TOPIC_ENUM")
 THIS_TOPIC_ENUM = Topic.__members__.get(TOPIC_ENUM)
 
 if not debug_mode:
@@ -140,10 +140,10 @@ class MyBot(commands.Bot):
             print(user_key + ":message = " + message.content)
             new_message_dict = {"role": "user", "content": message.content}
             # Dead by Daylightに関する具体的なトピックがどうかをGPT-3.5に判断させる。
-            system_message_instance = SystemMessage(topic=Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC)
+            system_message_instance = SystemMessage(topic=Topic.TaxAndAnswerOrNot)
             system_message_content = system_message_instance.get_system_message_content()
             system_message_dict = {"role": "system", "content": system_message_content}
-            print("「検索」か「会話」かの判定を行うシステムメッセージ: ", system_message_content)
+            print("「検索」か「その他」かの判定を行うシステムメッセージ: ", system_message_content)
             # 判定にはgpt-3.5-turbo-0613を使用する
             self.model_name = "gpt-3.5-turbo-0613"
             self.max_tokens = 1
@@ -303,38 +303,39 @@ class MyBot(commands.Bot):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        # ボイスチャンネルIDを指定します
-        your_voice_chat_channel_id = 1003966899232702537
-        if after.channel is not None and after.channel.id == your_voice_chat_channel_id:
-            # チャンネルのメンバーが増えて2人以上いるか確認します
-            if (before.channel is None and len(after.channel.members) >= 2) or \
-                    (before.channel is not None and len(before.channel.members) < len(after.channel.members) and len(
-                        after.channel.members) >= 2):
-                # メンバーの名前を取得してカンマ区切りの文字列にします
-                member_names = ""
-                for participant in after.channel.members:
-                    if member_names != "":
-                        member_names += ", "
-                    member_names += participant.name
-                # テキストチャンネルIDを指定します
-                your_text_chanel_id = 1117412783592591460
-                # ボイスチャットに参加しているメンバーが2人以上いる場合、ユーザー名を指定してメッセージを送信する
-                send_text = f'{member_names}さん、Dead by Daylightを楽しんで下さい。'
-                if member_names not in self.message_histories:
-                    self.message_histories[member_names] = []
-                self.message_histories[member_names].append({"role": "assistant", "content": send_text})
-                # 辞書形式のメッセージの履歴をJSON形式に変換
-                message_history_json = json.dumps(self.message_histories[member_names])
-                # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
-                start_time = time.time()
-                # Redisサーバーへメッセージの履歴を保存し、TTLを設定
-                r.set(f'message_history_{member_names}', message_history_json)
-                r.expire(f'message_history_{member_names}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
-                end_time = time.time()
-                # 経過時間を計算して表示
-                elapsed_time = end_time - start_time
-                print(f"Elapsed time to save data to Redis server: {elapsed_time} seconds")  # 経過時間を表示
-                await self.get_channel(your_text_chanel_id).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
+        if THIS_TOPIC_ENUM==Topic.DEAD_BY_DAY_LIGHT:
+            # ボイスチャンネルIDを指定します
+            your_voice_chat_channel_id = 1003966899232702537
+            if after.channel is not None and after.channel.id == your_voice_chat_channel_id:
+                # チャンネルのメンバーが増えて2人以上いるか確認します
+                if (before.channel is None and len(after.channel.members) >= 2) or \
+                        (before.channel is not None and len(before.channel.members) < len(after.channel.members) and len(
+                            after.channel.members) >= 2):
+                    # メンバーの名前を取得してカンマ区切りの文字列にします
+                    member_names = ""
+                    for participant in after.channel.members:
+                        if member_names != "":
+                            member_names += ", "
+                        member_names += participant.name
+                    # テキストチャンネルIDを指定します
+                    your_text_chanel_id = 1117412783592591460
+                    # ボイスチャットに参加しているメンバーが2人以上いる場合、ユーザー名を指定してメッセージを送信する
+                    send_text = f'{member_names}さん、Dead by Daylightを楽しんで下さい。'
+                    if member_names not in self.message_histories:
+                        self.message_histories[member_names] = []
+                    self.message_histories[member_names].append({"role": "assistant", "content": send_text})
+                    # 辞書形式のメッセージの履歴をJSON形式に変換
+                    message_history_json = json.dumps(self.message_histories[member_names])
+                    # Redisサーバーへメッセージの履歴を保存するのにかかった時間を計測
+                    start_time = time.time()
+                    # Redisサーバーへメッセージの履歴を保存し、TTLを設定
+                    r.set(f'message_history_{member_names}', message_history_json)
+                    r.expire(f'message_history_{member_names}', 3600 * 24 * 10)  # TTLを20日間（1,728,000秒）に設定
+                    end_time = time.time()
+                    # 経過時間を計算して表示
+                    elapsed_time = end_time - start_time
+                    print(f"Elapsed time to save data to Redis server: {elapsed_time} seconds")  # 経過時間を表示
+                    await self.get_channel(your_text_chanel_id).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
 
 
 def main():

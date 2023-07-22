@@ -17,8 +17,6 @@ class RetrievalQAFromFaiss:
     async def GetAnswerFromFaiss(self, input_txt):
         self.input_txt = input_txt
         llm = load_llm("my_llm.json")
-        if "パークの効果" in input_txt:
-            input_txt = input_txt.replace("パークの効果", "パークの性能と効果")
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76, top_k=10)
         source_url = ""

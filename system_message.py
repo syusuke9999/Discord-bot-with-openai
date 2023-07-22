@@ -9,6 +9,7 @@ class Topic(Enum):
     DEAD_BY_DAY_LIGHT_DO_NOT_SURE = 3
     IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC = 4
     DETERMINE_KNOW_DO_NOT_KNOW_ANSWER = 5
+    TaxAndAnswerOrNot = 6
 
 
 class Channel(Enum):
@@ -32,6 +33,12 @@ class SystemMessage:
             self.set_system_message_content()
 
     def set_system_message_content(self):
+        if self.topics == Topic.TaxAndAnswerOrNot:
+            self.system_message_content = f'You are an assistant to answer questions from users based on the content ' \
+                                          f'of the Tax and Answers website. If you determine that the user\'s ' \
+                                          f'question is related to taxation, please reply with "search", ' \
+                                          f'otherwise reply with "other".'
+            return
         if self.topics == Topic.GENERAL_DISCORD_BOT:
             jst = pytz.timezone('Asia/Tokyo')
             # 現在の日付と時刻を取得

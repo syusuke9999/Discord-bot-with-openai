@@ -140,7 +140,7 @@ class MyBot(commands.Bot):
             print(user_key + ":message = " + message.content)
             new_message_dict = {"role": "user", "content": message.content}
             # Dead by Daylightに関する具体的なトピックがどうかをGPT-3.5に判断させる。
-            system_message_instance = SystemMessage(topic=Topic.TaxAndAnswerOrNot)
+            system_message_instance = SystemMessage(topic=Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC)
             system_message_content = system_message_instance.get_system_message_content()
             system_message_dict = {"role": "system", "content": system_message_content}
             print("「検索」か「その他」かの判定を行うシステムメッセージ: ", system_message_content)

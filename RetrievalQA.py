@@ -1,3 +1,4 @@
+from langchain import LLMChain
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms.loading import load_llm
 from langchain.chains import RetrievalQA
@@ -6,8 +7,6 @@ from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 import os
 import asyncio
-
-from langchain.prompts import PromptTemplate
 
 from langchain.prompts import PromptTemplate
 from datetime import datetime
@@ -57,7 +56,9 @@ class RetrievalQAFromFaiss:
             docsearch = FAISS.load_local("./faiss_index", embeddings)
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
                                                                    base_retriever=docsearch.as_retriever())
-            qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=compression_retriever, prompt=PROMPT)
+            # LLMChainを作成します。ここでは、OpenAIの言語モデルを使用しています。
+            llm_chain = LLMChain(llm=llm, prompt=PROMPT)
+            qa = RetrievalQA.from_chain_type(llm=llm_chain, chain_type="stuff", retriever=compression_retriever)
             # return_source_documentsプロパティをTrueにセット
             qa.return_source_documents = True
             # applyメソッドを使用してレスポンスを取得

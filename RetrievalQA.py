@@ -48,7 +48,7 @@ class RetrievalQAFromFaiss:
 
     async def GetAnswerFromFaiss(self, input_txt):
         self.input_txt = input_txt
-        llm = load_llm("my_llm.json")
+        llm = load_llm("openai")  # ここで適切なモデル名を指定します
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76, top_k=10)
         source_url = ""
@@ -56,9 +56,7 @@ class RetrievalQAFromFaiss:
             docsearch = FAISS.load_local("./faiss_index", embeddings)
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
                                                                    base_retriever=docsearch.as_retriever())
-            # LLMChainを作成します。ここでは、OpenAIの言語モデルを使用しています。
-            llm_chain = LLMChain(llm=llm, prompt=PROMPT)
-            qa = RetrievalQA.from_chain_type(llm=llm_chain, chain_type="stuff", retriever=compression_retriever)
+            qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=compression_retriever, prompt=PROMPT)
             # return_source_documentsプロパティをTrueにセット
             qa.return_source_documents = True
             # applyメソッドを使用してレスポンスを取得

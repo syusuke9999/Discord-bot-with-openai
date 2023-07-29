@@ -37,10 +37,12 @@ class RetrievalQAFromFaiss:
             days = now.day
             prompt_template = f"""
             This year is {year}, and this month is {month},  and today is {days}. And now time is {now}.
-            You are a Discord bot residing in a channel on a Discord server where people gather to enjoy Dead by Daylight. 
+            You are a Discord bot residing in a channel on a Discord server where people gather 
+            to enjoy Dead by Daylight. 
             Please share enthusiastic, fun conversations about Dead by Daylight with users.
             Be sure to answer in Japanese. Do not use English.
-            You are asked a game-related question by users, please use the following pieces of context to answer the users question. 
+            You are asked a game-related question by users, please use the following pieces of context to answer 
+            the users question. 
             If you don't know the answer, just say 「分かりません」, don't try to make up an answer.
 
             {{context}}

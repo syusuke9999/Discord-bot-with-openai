@@ -12,7 +12,6 @@ import openai_api
 from system_message import Topic, SystemMessage
 from RetrievalQA import RetrievalQAFromFaiss
 
-
 debug_mode = False
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -153,7 +152,7 @@ class MyBot(commands.Bot):
             self.model_frequency_penalty = 0
             hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
                                 self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
-                                    self.model_presence_penalty, "frequency_penalty": self.model_frequency_penalty}
+                                self.model_presence_penalty, "frequency_penalty": self.model_frequency_penalty}
             # タイピングアニメーションと共に話題が「search」か「conversation」かを判定させる
             response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict)
             # OpenAI APIからのレスポンスが期待に添った形かどうかを確認して内容を抽出する
@@ -178,7 +177,7 @@ class MyBot(commands.Bot):
                     bot_response, source_url, input_query = await retrival_qa.GetAnswerFromFaiss(message.content)
                     elapsed_time = time.time() - start_time
                     print(f"The retrieval qa process took {elapsed_time} seconds.")
-                    system_message_instance = SystemMessage(topic=Topic.DETERMINE_KNOW_DO_NOT_KNOW_ANSWER)
+                    system_message_instance = SystemMessage(topic=Topic.DETERMINE_ANSWERED_OR_NOT_ANSWERED)
                     system_message_content = system_message_instance.get_system_message_content()
                     system_message_dict = {"role": "system", "content": system_message_content}
                     new_message_dict = {"role": "user", "content": bot_response}
@@ -206,7 +205,8 @@ class MyBot(commands.Bot):
                         return
                     print("ユーザーの発言: ", message.content)
                     print("Retrival QAによる回答: ", bot_response)
-                    print("\033[93mAIが質問に答えられたかの判定「don't know」,「other」:\033[0m \033[91m", bot_classification, "\033[0m")
+                    print("\033[93mAIが質問に答えられたかの判定「don't know」,「other」:\033[0m \033[91m",
+                          bot_classification, "\033[0m")
                     if "don't Know" in bot_classification:
                         print("\033[93m検索結果から回答を見つけられなかったため、URLは添付しません。\033[0m")
                         await send_message(message, bot_response)
@@ -303,13 +303,14 @@ class MyBot(commands.Bot):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        if THIS_TOPIC_ENUM==Topic.DEAD_BY_DAY_LIGHT:
+        if THIS_TOPIC_ENUM == Topic.DEAD_BY_DAY_LIGHT:
             # ボイスチャンネルIDを指定します
             your_voice_chat_channel_id = 1003966899232702537
             if after.channel is not None and after.channel.id == your_voice_chat_channel_id:
                 # チャンネルのメンバーが増えて2人以上いるか確認します
                 if (before.channel is None and len(after.channel.members) >= 2) or \
-                        (before.channel is not None and len(before.channel.members) < len(after.channel.members) and len(
+                        (before.channel is not None and len(before.channel.members) < len(
+                            after.channel.members) and len(
                             after.channel.members) >= 2):
                     # メンバーの名前を取得してカンマ区切りの文字列にします
                     member_names = ""
@@ -335,7 +336,8 @@ class MyBot(commands.Bot):
                     # 経過時間を計算して表示
                     elapsed_time = end_time - start_time
                     print(f"Elapsed time to save data to Redis server: {elapsed_time} seconds")  # 経過時間を表示
-                    await self.get_channel(your_text_chanel_id).send(f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
+                    await self.get_channel(your_text_chanel_id).send(
+                        f'{member_names}さん、Dead by Daylightを楽しんで下さい。')
 
 
 def main():

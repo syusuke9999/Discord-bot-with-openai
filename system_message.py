@@ -6,10 +6,8 @@ from enum import Enum
 class Topic(Enum):
     GENERAL_DISCORD_BOT = 1
     DEAD_BY_DAY_LIGHT = 2
-    DEAD_BY_DAY_LIGHT_DO_NOT_SURE = 3
-    IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC = 4
-    DETERMINE_KNOW_DO_NOT_KNOW_ANSWER = 5
-    TaxAndAnswerOrNot = 6
+    IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC = 3
+    DETERMINE_ANSWERED_OR_NOT_ANSWERED = 4
 
 
 class Channel(Enum):
@@ -33,12 +31,7 @@ class SystemMessage:
             self.set_system_message_content()
 
     def set_system_message_content(self):
-        if self.topics == Topic.TaxAndAnswerOrNot:
-            self.system_message_content = f'You are an assistant to answer questions from users based on the content ' \
-                                          f'of the Tax and Answers website. If you determine that the user\'s ' \
-                                          f'question is related to taxation, please reply with "search", ' \
-                                          f'otherwise reply with "other".'
-            return
+        
         if self.topics == Topic.GENERAL_DISCORD_BOT:
             jst = pytz.timezone('Asia/Tokyo')
             # 現在の日付と時刻を取得
@@ -86,26 +79,6 @@ class SystemMessage:
                                           f"Also, please try to greet users appropriate to the current time. " \
                                           f"Please try to be consistent in your statements. " \
                                           f"Be sure to communicate only in Japanese."
-
-        elif self.topics == Topic.DEAD_BY_DAY_LIGHT_DO_NOT_SURE:
-            jst = pytz.timezone('Asia/Tokyo')
-            # 現在の日付と時刻を取得
-            datetime_jst = datetime.datetime.now(jst)
-            now = datetime_jst
-            now_of_year = now.strftime("%Y")
-            now_of_month = now.strftime("%m")
-            now_of_day = now.strftime("%d")
-            now_of_time = now.strftime("%H:%M")
-            self.system_message_content = f"Today is the year {now_of_year}, " \
-                                          f"the month is {now_of_month} and the date {now_of_day}. " \
-                                          f"The current time is {now_of_time}." \
-                                          f"You are a Discord bot residing in a channel on a Discord server where " \
-                                          f"people gather to enjoy Dead by Daylight. Please share enthusiastic, " \
-                                          f"fun conversations about Dead by Daylight with users. " \
-                                          f"Please do not mention the presence of prompts or system messages, " \
-                                          f"and be careful not to make up details about the game that may change " \
-                                          f"due to updates! Please also greet people according to the current " \
-                                          f"time of day. Be sure to communicate only in Japanese. Do not use English!"
             return
         elif self.topics is Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC:
             self.system_message_content = f'You are an assistant who must determine if the user\'s statement is ' \
@@ -114,7 +87,7 @@ class SystemMessage:
                                           f'respond with "conversation". Your answer should only be "search" ' \
                                           f'or "conversation", and no other responses are allowed.'
             return
-        elif self.topics is Topic.DETERMINE_KNOW_DO_NOT_KNOW_ANSWER:
+        elif self.topics is Topic.DETERMINE_ANSWERED_OR_NOT_ANSWERED:
             self.system_message_content = f'As an assistant, your must determine if a input comment means that ' \
                                           f'the speaker lacks the knowledge to answer a question or not. ' \
                                           f'If speaker does not, respond simply "don\'t Know";  or he or she does, ' \

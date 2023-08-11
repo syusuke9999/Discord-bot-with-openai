@@ -12,9 +12,13 @@ import openai_api
 from system_message import Topic, SystemMessage
 from RetrievalQA import RetrievalQAFromFaiss
 import langchain
+import wandb
 from wandb.integration.openai import autolog
 
+
 assert langchain.__version__ >= "0.0.218", "Please ensure you are using LangChain v0.0.188 or higher"
+
+wandb.login(key=["40576981ad20f3e94f780b59592f1e2fab25cf60"])
 
 debug_mode = False
 

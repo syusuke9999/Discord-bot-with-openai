@@ -19,7 +19,7 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PORT = os.getenv("REDIS_PORT")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
-TOPIC_ENUM = Topic.DETERMINE_MQL_QUESTION_OR_NOT
+TOPIC_ENUM = os.getenv("TOPIC")
 THIS_TOPIC_ENUM = Topic.__members__.get(TOPIC_ENUM)
 
 if not debug_mode:

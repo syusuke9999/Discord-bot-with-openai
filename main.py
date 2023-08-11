@@ -12,7 +12,8 @@ import openai_api
 from system_message import Topic, SystemMessage
 from RetrievalQA import RetrievalQAFromFaiss
 import langchain
-import wandb
+from wandb.integration.openai import autolog
+
 assert langchain.__version__ >= "0.0.218", "Please ensure you are using LangChain v0.0.188 or higher"
 
 debug_mode = False
@@ -51,9 +52,10 @@ def count_tokens(text):
 
 async def send_message(message, bot_response_for_answer):
     typing_time = 0
-    length = len(bot_response_for_answer)
-    if bot_response_for_answer is None:
+    length = 0
+    if bot_response_for_answer is not None:
         typing_time = 0
+        length = len(bot_response_for_answer)
     else:
         typing_time = min(max(length / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
         async with message.channel.typing():
@@ -82,7 +84,7 @@ class MyBot(commands.Bot):
         super().__init__(command_prefix, intents=intents)
         self.topic_enum = enum_of_topic
         # start a wandb run to log to
-        wandb.init(project="llm-trace")
+        autolog({"project": "llm-trace"})
         # 全ての会話履歴
         self.message_histories = {}
         # 個別のモデルに配慮して、トークン数を制限した会話履歴
@@ -161,8 +163,8 @@ class MyBot(commands.Bot):
             self.model_presence_penalty = 0
             self.model_frequency_penalty = 0
             hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                                self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
-                                self.model_presence_penalty, "frequency_penalty": self.model_frequency_penalty}
+                self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
+                                    self.model_presence_penalty, "frequency_penalty": self.model_frequency_penalty}
             # タイピングアニメーションと共に話題が「search」か「conversation」かを判定させる
             response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict)
             # OpenAI APIからのレスポンスが期待に添った形かどうかを確認して内容を抽出する
@@ -199,7 +201,7 @@ class MyBot(commands.Bot):
                     self.model_presence_penalty = 0
                     self.model_frequency_penalty = 0
                     hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                                        self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
+                        self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
                                             self.model_presence_penalty, "frequency_penalty":
                                             self.model_frequency_penalty}
                     response = await openai_api.call_openai_api(hyper_parameters, system_message_dict,
@@ -239,7 +241,7 @@ class MyBot(commands.Bot):
                 print("\033[93m「会話」に分類されため、gpt-3.5-turbo-16k-0613を使用して会話を続けます\033[0m")
                 print("システムメッージ: ", system_message_content)
                 hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                                    self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
+                    self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
                                         self.model_presence_penalty, "frequency_penalty":
                                         self.model_frequency_penalty}
                 print("Send query user conversation to OpenAI API with async typing function: ",
@@ -276,7 +278,7 @@ class MyBot(commands.Bot):
                 print("システムメッージ: ", system_message_content)
                 system_message_dict = {"role": "system", "content": system_message_content}
                 hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                                    self.model_temperature, "top_p": self.model_top_p,
+                    self.model_temperature, "top_p": self.model_top_p,
                                     "presence_penalty": self.model_presence_penalty,
                                     "frequency_penalty": self.model_frequency_penalty}
                 async with message.channel.typing():

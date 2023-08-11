@@ -32,17 +32,23 @@ class RetrievalQAFromFaiss:
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
                                                                    base_retriever=docsearch.as_retriever())
 
+            # 現在の日付と時刻を取得します（日本時間）。
+            now = datetime.now(pytz.timezone('Asia/Tokyo'))
+            # 年、月、日を取得します。
+            year = now.year
+            month = now.month
+            day = now.day
             custom_prompt = """
-            f"Today is the year {now_of_year}, the month is {now_of_month} and the date {now_of_day}." \
-            f"The current time is {now_of_time}. " \
+            f"Today is the year {year}, the month is {month} and the date {day}." \
+            f"The current time is {now}. " \
             f"Use the following pieces of context to answer the question at the end. If you don't know the answer," \
             f"just say 「分かりません」, don't try to make up an answer. Answer the question" \
             f"as if you were a native Japanese speaker." \
             f"\n" \
-            f"Context:{context}" \
+            f"Context:{{context}}" \
             f"\n" \
-            f"Question: {question}
-            f"Helpful Answer:"""
+            f"Question: {{question}}" \
+            f"Helpful Answer:""".format(year=year, month=month, day=day, now=now)
             stuff_prompt = PromptTemplate(
                 template=custom_prompt,
                 input_variables=["context", "question"]

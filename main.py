@@ -139,7 +139,7 @@ class MyBot(commands.Bot):
             print(user_key + ":message = " + message.content)
             new_message_dict = {"role": "user", "content": message.content}
             # MQL言語に関する具体的なトピックがどうかをGPT-3.5に判断させる。
-            system_message_instance = SystemMessage(topic=Topic.DETERMINE_MQL_QUESTION_OR_NOT)
+            system_message_instance = SystemMessage(topic=Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC)
             system_message_content = system_message_instance.get_system_message_content()
             system_message_dict = {"role": "system", "content": system_message_content}
             print("「検索」か「その他」かの判定を行うシステムメッセージ: ", system_message_content)
@@ -261,7 +261,7 @@ class MyBot(commands.Bot):
                 self.model_top_p = 1
                 # メッセージの履歴を3000トークン以下にして送信する
                 message_history = truncate_message_histories_and_tokens(3000, self.message_histories[user_key])
-                system_message_instance = SystemMessage(topic=Topic.MQL_LANGUAGE_TOPIC)
+                system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
                 system_message_content = system_message_instance.get_system_message_content()
                 print("システムメッージ: ", system_message_content)
                 system_message_dict = {"role": "system", "content": system_message_content}

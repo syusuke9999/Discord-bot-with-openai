@@ -36,7 +36,6 @@ class RetrievalQAFromFaiss:
                 llm=llm,
                 chain_type="refine",
                 retriever=compression_retriever,
-                return_intermediate_steps=True,
             )
             # return_source_documentsプロパティをTrueにセット
             qa.return_source_documents = True

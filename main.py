@@ -15,10 +15,10 @@ import langchain
 import wandb
 from wandb.integration.openai import autolog
 
-
 assert langchain.__version__ >= "0.0.218", "Please ensure you are using LangChain v0.0.188 or higher"
 
-wandb.login(key=["40576981ad20f3e94f780b59592f1e2fab25cf60"])
+wbkey = os.getenv("wbkey")
+wandb.login(key=wbkey)
 
 debug_mode = False
 
@@ -60,7 +60,6 @@ async def send_message(message, bot_response_for_answer):
     if bot_response_for_answer is not None:
         typing_time = 0
         length = len(bot_response_for_answer)
-    else:
         typing_time = min(max(length / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
         async with message.channel.typing():
             await sleep(typing_time)  # 計算された時間まで待つ

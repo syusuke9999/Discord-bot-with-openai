@@ -11,6 +11,9 @@ import logging
 import openai_api
 from system_message import Topic, SystemMessage
 from RetrievalQA import RetrievalQAFromFaiss
+import langchain
+import wandb
+assert langchain.__version__ >= "0.0.218", "Please ensure you are using LangChain v0.0.188 or higher"
 
 debug_mode = False
 
@@ -47,10 +50,15 @@ def count_tokens(text):
 
 
 async def send_message(message, bot_response_for_answer):
-    typing_time = min(max(len(bot_response_for_answer) / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
-    async with message.channel.typing():
-        await sleep(typing_time)  # 計算された時間まで待つ
-        await message.reply(bot_response_for_answer)
+    typing_time = 0
+    length = len(bot_response_for_answer)
+    if bot_response_for_answer is None:
+        typing_time = 0
+    else:
+        typing_time = min(max(length / 50, 3), 9)  # タイピングスピードを変えるために、分割数を調整する
+        async with message.channel.typing():
+            await sleep(typing_time)  # 計算された時間まで待つ
+            await message.reply(bot_response_for_answer)
 
 
 def truncate_message_histories_and_tokens(token_limit, message_history):
@@ -73,6 +81,8 @@ class MyBot(commands.Bot):
     def __init__(self, command_prefix, intents, enum_of_topic):
         super().__init__(command_prefix, intents=intents)
         self.topic_enum = enum_of_topic
+        # start a wandb run to log to
+        wandb.init(project="llm-trace")
         # 全ての会話履歴
         self.message_histories = {}
         # 個別のモデルに配慮して、トークン数を制限した会話履歴

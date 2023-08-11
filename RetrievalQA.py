@@ -1,4 +1,3 @@
-from langchain.chains.summarize import load_summarize_chain
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms.loading import load_llm
 from langchain.chains import RetrievalQA
@@ -6,9 +5,6 @@ from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.prompts import PromptTemplate
-from langchain.chains.llm import LLMChain
-from langchain.chains.combine_documents.refine import RefineDocumentsChain
-from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 import os
 import asyncio
 from datetime import datetime
@@ -38,26 +34,27 @@ class RetrievalQAFromFaiss:
             year = now.year
             month = now.month
             day = now.day
-            custom_prompt = """
-            f"Today is the year {year}, the month is {month} and the date {day}." \
-            f"The current time is {now}. " \
-            f"Use the following pieces of context to answer the question at the end. If you don't know the answer," \
-            f"just say 「分かりません」, don't try to make up an answer. Answer the question" \
-            f"as if you were a native Japanese speaker." \
-            f"\n" \
-            f"Context:{{context}}" \
-            f"\n" \
-            f"Question: {{question}}" \
-            f"Helpful Answer:""".format(year=year, month=month, day=day, now=now)
+            custom_prompt = (f"Today is the year {year}, the month is {month} and the date {day}."
+                             f"The current time is {now}."
+                             "Use the following pieces of context to answer the question at the end. If you don't "
+                             "know the answer,"
+                             " just say 「分かりません」, don't try to make up an answer. Answer the question"
+                             " as if you were a native Japanese speaker."
+                             " \n"
+                             "Context:{context}"
+                             " \n"
+                             "Question: {question}"
+                             "Helpful Answer:")
             stuff_prompt = PromptTemplate(
                 template=custom_prompt,
                 input_variables=["context", "question"]
             )
+            chain_type_kwargs = {"prompt": stuff_prompt}
             stuff_qa = RetrievalQA.from_chain_type(
                 llm=llm,
                 chain_type="stuff",
                 retriever=compression_retriever,
-                prompt=PromptTemplate(template=stuff_prompt)
+                chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )
             stuff_answer = stuff_qa(input_txt)
             refine_qa = stuff_qa.from_chain_type(

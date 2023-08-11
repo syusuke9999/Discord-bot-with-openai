@@ -8,6 +8,8 @@ class Topic(Enum):
     DEAD_BY_DAY_LIGHT = 2
     IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC = 3
     DETERMINE_ANSWERED_OR_NOT_ANSWERED = 4
+    DETERMINE_MQL_QUESTION_OR_NOT = 5
+    MQL_LANGUAGE_TOPIC = 6
 
 
 class Channel(Enum):
@@ -31,7 +33,20 @@ class SystemMessage:
             self.set_system_message_content()
 
     def set_system_message_content(self):
-        
+
+        if self.topics == Topic.MQL_LANGUAGE_TOPIC:
+            self.system_message_content = (f"You are a helpful assistant to help program in the MQL4 language. "
+                                           f"You will answer users' questions and help them program "
+                                           f"according to their wishes.")
+
+        if self.topics == Topic.DETERMINE_MQL_QUESTION_OR_NOT:
+            self.system_message_content = (f"You are an assistant who must determine if the user\'s statement "
+                                           f"is related to specific information or specific questions about "
+                                           f"MQL Language. If it is, respond with \"search\"; if not, respond "
+                                           f"with \"conversation\". Your answer should "
+                                           f"only be \"search\" or \"conversation\", "
+                                           f"and no other responses are allowed.")
+
         if self.topics == Topic.GENERAL_DISCORD_BOT:
             jst = pytz.timezone('Asia/Tokyo')
             # 現在の日付と時刻を取得

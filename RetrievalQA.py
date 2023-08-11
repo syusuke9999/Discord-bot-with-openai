@@ -25,24 +25,46 @@ class RetrievalQAFromFaiss:
         self.input_txt = input_txt
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=6)
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=4)
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
                                                                    base_retriever=docsearch.as_retriever())
-            # Change chain_type from "stuff" to "refine"
-            qa = RetrievalQA.from_chain_type(
+
+            custom_prompt = """
+            f"Today is the year {now_of_year}, the month is {now_of_month} and the date {now_of_day}." \
+            f"The current time is {now_of_time}. " \
+            f"Use the following pieces of context to answer the question at the end. If you don't know the answer," \
+            f"just say 「分かりません」, don't try to make up an answer. Answer the question" \
+            f"as if you were a native Japanese speaker." \
+            f"\n" \
+            f"Context:{context}" \
+            f"\n" \
+            f"Question: {question}
+            f"Helpful Answer:"""
+            stuff_prompt = PromptTemplate(
+                template=custom_prompt,
+                input_variables=["context", "question"]
+            )
+            stuff_qa = RetrievalQA.from_chain_type(
                 llm=llm,
+                chain_type="stuff",
+                retriever=compression_retriever,
+                prompt=PromptTemplate(template=stuff_prompt)
+            )
+            stuff_answer = stuff_qa(input_txt)
+            refine_qa = stuff_qa.from_chain_type(
                 chain_type="refine",
+                llm=llm,
                 retriever=compression_retriever,
             )
             # return_source_documentsプロパティをTrueにセット
-            qa.return_source_documents = True
+            stuff_qa.return_source_documents = True
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
             print(f"Input dict before apply: {input_txt}")
-            response = await loop.run_in_executor(None, lambda: qa.apply([self.input_txt]))
+            response = await loop.run_in_executor(None, lambda: refine_qa.apply([stuff_answer]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 answer = response[0]["result"]

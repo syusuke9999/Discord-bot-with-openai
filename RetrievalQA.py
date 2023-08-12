@@ -21,7 +21,7 @@ class RetrievalQAFromFaiss:
         self.input_txt = input_txt
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=4)
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=3)
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
@@ -38,8 +38,8 @@ class RetrievalQAFromFaiss:
                              f"The current time is {now}."
                              "Use the following pieces of context to answer the question at the end. If you don't "
                              "know the answer,"
-                             " just say 「分かりません」, don't try to make up an answer. Answer the question"
-                             " as if you were a native Japanese speaker."
+                             " just say 「分かりません」, don't try to make up an answer. "
+                             "Please use Japanese only. Don't use English."
                              " \n"
                              "Context:{context}"
                              " \n"
@@ -54,6 +54,7 @@ class RetrievalQAFromFaiss:
                 llm=llm,
                 chain_type="stuff",
                 retriever=compression_retriever,
+                verbose=True,
                 chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )
             # return_source_documentsプロパティをTrueにセット
@@ -68,26 +69,28 @@ class RetrievalQAFromFaiss:
             except (TypeError, KeyError, IndexError):
                 stuff_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 print(f"stuff_answer: {stuff_answer}")
-                return stuff_answer, source_url, self.input_txt
+                return stuff_answer, source_url, input_txt
             try:
                 source_url = response[0]["source_documents"][0].metadata["source"]
+                print(f"source_url: {source_url}")
             except (TypeError, KeyError, IndexError):
                 source_url = None
             refine_qa = stuff_qa.from_chain_type(
                 chain_type="refine",
                 llm=llm,
                 retriever=compression_retriever,
+                verbose=True,
             )
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
-            print(f"Input dict before apply: {stuff_answer}")
+            print(f"Input stuff_answer: {stuff_answer}")
             response = await loop.run_in_executor(None, lambda: refine_qa.apply([stuff_answer]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
-                answer = response[0]["result"]
+                refined_answer = response[0]["result"]
             except (TypeError, KeyError, IndexError):
-                answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
-            return answer, source_url, self.input_txt
-        else:
-            answer = "申し訳ありません。データベースに不具合が生じているようです。開発者にお問い合わせください。"
-            return answer, source_url, self.input_txt
+                refined_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
+                print(f"refined_answer: {refined_answer}")
+                return refined_answer, source_url, input_txt
+
+            return refined_answer, source_url, input_txt

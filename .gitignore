@@ -1,6 +1,7 @@
 .idea
 .venv
 .run
-/.python-version
-/wandb/
-/wandb-addons/
+run/*
+.python-version
+wandb/
+wandb-addons/

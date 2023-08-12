@@ -2,3 +2,5 @@
 .venv
 .run
 /.python-version
+/wandb/
+/wandb-addons/

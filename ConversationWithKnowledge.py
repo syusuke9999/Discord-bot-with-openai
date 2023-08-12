@@ -48,7 +48,7 @@ class RetrievalConversationWithFaiss:
                              "Context:{context}"
                              " \n"
                              "subject: {question}"
-                             "Helpful Answer:")
+                             "Fun Conversation Response:")
             stuff_prompt = PromptTemplate(
                 template=custom_prompt,
                 input_variables=["context", "question"]

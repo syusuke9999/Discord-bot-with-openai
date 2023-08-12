@@ -97,7 +97,7 @@ class SystemMessage:
             return
         elif self.topics is Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC:
             self.system_message_content = f'You are an assistant who must determine if the user\'s statement is ' \
-                                          f'related to specific information or specific questions about ' \
+                                          f'question about specific information about ' \
                                           f'Dead by Daylight. If it is, respond with "search"; if not, ' \
                                           f'respond with "conversation". Your answer should only be "search" ' \
                                           f'or "conversation", and no other responses are allowed.'

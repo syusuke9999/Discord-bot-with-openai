@@ -11,6 +11,7 @@ import logging
 import openai_api
 from system_message import Topic, SystemMessage
 from RetrievalQA import RetrievalQAFromFaiss
+from ConversationWithKnowledge import RetrievalConversationWithFaiss
 import langchain
 import wandb
 from wandb.integration.openai import autolog
@@ -177,7 +178,6 @@ class MyBot(commands.Bot):
             else:
                 print("initial bot_response is None or empty.")
                 return
-
             print("\033[93mAIによるユーザーの発言への反応の判定:\033[0m \033[91m", bot_classification, "\033[0m")
             # 「conversation」に分類されなかった場合は「search」と推定してRetrival QAを実行する（検索優先の原則）
             if "search" in bot_classification:
@@ -239,23 +239,14 @@ class MyBot(commands.Bot):
                 # メッセージの履歴を10000トークン以下にして送信する
                 message_history = truncate_message_histories_and_tokens(10000, self.message_histories[user_key])
                 print("\033[93m「会話」に分類されため、gpt-3.5-turbo-16k-0613を使用して会話を続けます\033[0m")
+                retrieval_conversation = RetrievalConversationWithFaiss()
+                bot_response, input_query = await retrieval_conversation.GetResponseWithFaiss(message.content)
                 print("システムメッージ: ", system_message_content)
-                hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                                    self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
-                                    self.model_presence_penalty, "frequency_penalty":
-                                    self.model_frequency_penalty}
                 print("Send query user conversation to OpenAI API with async typing function: ",
                       message.content)
                 async with message.channel.typing():
                     start_time = time.time()
-                    response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict,
-                                                                message_history)
-                    try:
-                        content = response["choices"][0]["message"]["content"]
-                    except (TypeError, KeyError, IndexError):
-                        content = None
-                    if content is not None:
-                        bot_response = content
+                    if bot_response is not None:
                         print("assistant response for user's conversation: ", bot_response)
                         await send_message(message, bot_response)
                     else:
@@ -263,38 +254,6 @@ class MyBot(commands.Bot):
                         return
                     elapsed_time = time.time() - start_time
                     print(f"The OpenAI API conversation process took {elapsed_time} seconds.")
-            # 「検索」にも「会話」にも分類されなかった場合、GPT-4を使用してユーザーの発言に応答する
-            else:
-                self.max_tokens = 3000
-                self.model_name = "gpt-4"
-                self.model_frequency_penalty = 0.6
-                self.model_presence_penalty = 0
-                self.model_temperature = 0.2
-                self.model_top_p = 1
-                # メッセージの履歴を3000トークン以下にして送信する
-                message_history = truncate_message_histories_and_tokens(3000, self.message_histories[user_key])
-                system_message_instance = SystemMessage(topic=Topic.DEAD_BY_DAY_LIGHT)
-                system_message_content = system_message_instance.get_system_message_content()
-                print("システムメッージ: ", system_message_content)
-                system_message_dict = {"role": "system", "content": system_message_content}
-                hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                                    self.model_temperature, "top_p": self.model_top_p,
-                                    "presence_penalty": self.model_presence_penalty,
-                                    "frequency_penalty": self.model_frequency_penalty}
-                async with message.channel.typing():
-                    response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict,
-                                                                message_history)
-                    start_time = time.time()
-                    try:
-                        content = response["choices"][0]["message"]["content"]
-                    except (TypeError, KeyError, IndexError):
-                        content = None
-                    if content is not None:
-                        bot_response = content
-                        print("assistant response for user's conversation: ", bot_response)
-                        elapsed_time = time.time() - start_time
-                        print(f"The OpenAI API conversation process took {elapsed_time} seconds.")
-                        await send_message(message, bot_response)
             # ユーザーの発言とアシスタントの発言を辞書形式に変換して、メッセージの履歴に追加
             self.message_histories[user_key].append(system_message_dict)
             self.message_histories[user_key].append({"role": "user", "content": message.content})

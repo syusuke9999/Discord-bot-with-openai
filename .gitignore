@@ -3,5 +3,5 @@
 .run/
 .run*/
 .python-version
-wandb/
-wandb-addons/
+wandb/*
+wandb-addons/*

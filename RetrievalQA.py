@@ -56,27 +56,37 @@ class RetrievalQAFromFaiss:
                 retriever=compression_retriever,
                 chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )
-            stuff_answer = stuff_qa(input_txt)
-            refine_qa = stuff_qa.from_chain_type(
-                chain_type="refine",
-                llm=llm,
-                retriever=compression_retriever,
-            )
             # return_source_documentsプロパティをTrueにセット
             stuff_qa.return_source_documents = True
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
             print(f"Input dict before apply: {input_txt}")
+            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([input_txt]))
+            # responseオブジェクトからanswerとsource_urlを抽出
+            try:
+                stuff_answer = response[0]["result"]
+            except (TypeError, KeyError, IndexError):
+                stuff_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
+                print(f"stuff_answer: {stuff_answer}")
+                return stuff_answer, source_url, self.input_txt
+            try:
+                source_url = response[0]["source_documents"][0].metadata["source"]
+            except (TypeError, KeyError, IndexError):
+                source_url = None
+            refine_qa = stuff_qa.from_chain_type(
+                chain_type="refine",
+                llm=llm,
+                retriever=compression_retriever,
+            )
+            # applyメソッドを使用してレスポンスを取得
+            loop = asyncio.get_event_loop()
+            print(f"Input dict before apply: {stuff_answer}")
             response = await loop.run_in_executor(None, lambda: refine_qa.apply([stuff_answer]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 answer = response[0]["result"]
             except (TypeError, KeyError, IndexError):
                 answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
-            try:
-                source_url = response[0]["source_documents"][0].metadata["source"]
-            except (TypeError, KeyError, IndexError):
-                source_url = None
             return answer, source_url, self.input_txt
         else:
             answer = "申し訳ありません。データベースに不具合が生じているようです。開発者にお問い合わせください。"

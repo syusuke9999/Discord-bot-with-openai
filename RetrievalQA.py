@@ -82,7 +82,7 @@ class RetrievalQAFromFaiss:
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
             print(f"Input stuff_answer: {stuff_answer}")
-            response = await loop.run_in_executor(None, lambda: refine_qa.apply([stuff_answer]))
+            response = await loop.run_in_executor(None, lambda: refine_qa.apply([query]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 refined_answer = response[0]["result"]

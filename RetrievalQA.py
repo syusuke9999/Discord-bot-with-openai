@@ -61,19 +61,19 @@ class RetrievalQAFromFaiss:
                 input_variables=["context", "question"]
             )
             chain_type_kwargs = {"prompt": stuff_prompt}
-            stuff_qa = RetrievalQA.from_chain_type(
+            refine_qa = RetrievalQA.from_chain_type(
                 llm=llm,
-                chain_type="stuff",
+                chain_type="refine",
                 retriever=compression_retriever,
                 verbose=False,
                 chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )
             # return_source_documentsプロパティをTrueにセット
-            stuff_qa.return_source_documents = True
+            refine_qa.return_source_documents = True
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
             print(f"Input dict before apply: {input_txt}")
-            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([input_txt]))
+            response = await loop.run_in_executor(None, lambda: refine_qa.apply([input_txt]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 stuff_answer = response[0]["result"]
@@ -86,6 +86,5 @@ class RetrievalQAFromFaiss:
                 print(f"source_url: {source_url}")
             except (TypeError, KeyError, IndexError):
                 source_url = None
-
-
+                print(f"source_url: {source_url}")
             return stuff_answer, source_url, input_txt

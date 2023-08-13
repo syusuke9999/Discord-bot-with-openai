@@ -4,11 +4,8 @@ from langchain.chains import RetrievalQA
 from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
-from langchain.prompts import PromptTemplate
 import os
 import asyncio
-from datetime import datetime
-import pytz
 
 
 class RetrievalQAFromFaiss:
@@ -43,15 +40,15 @@ class RetrievalQAFromFaiss:
             response = await loop.run_in_executor(None, lambda: refine_qa.apply([input_txt]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
-                stuff_answer = response[0]["result"]
+                refine_answer = response[0]["result"]
             except (TypeError, KeyError, IndexError):
-                stuff_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
-                print(f"stuff_answer: {stuff_answer}")
-                return stuff_answer, source_url, input_txt
+                refine_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
+                print(f"stuff_answer: {refine_answer}")
+                return refine_answer, source_url, input_txt
             try:
                 source_url = response[0]["source_documents"][0].metadata["source"]
                 print(f"source_url: {source_url}")
             except (TypeError, KeyError, IndexError):
                 source_url = None
                 print(f"source_url: {source_url}")
-            return stuff_answer, source_url, input_txt
+            return refine_answer, source_url, input_txt

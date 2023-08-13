@@ -12,13 +12,13 @@ import pytz
 
 
 class RetrievalQAFromFaiss:
-    def __init__(self):
+    def __init__(self, input_txt):
         self.message_histories = {}
         self.total_tokens = 0
-        self.input_txt = ""
-
-    async def GetAnswerFromFaiss(self, input_txt):
         self.input_txt = input_txt
+
+    async def GetAnswerFromFaiss(self):
+        input_txt = self.input_txt
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=3)
@@ -61,15 +61,15 @@ class RetrievalQAFromFaiss:
             stuff_qa.return_source_documents = True
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
-            print(f"Input dict before apply: {input_txt}")
-            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([input_txt]))
+            print(f"Input dict before apply: {self}")
+            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([self]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 stuff_answer = response[0]["result"]
             except (TypeError, KeyError, IndexError):
                 stuff_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 print(f"stuff_answer: {stuff_answer}")
-                return stuff_answer, source_url, input_txt
+                return stuff_answer, source_url, self
             try:
                 source_url = response[0]["source_documents"][0].metadata["source"]
                 print(f"source_url: {source_url}")
@@ -91,6 +91,6 @@ class RetrievalQAFromFaiss:
             except (TypeError, KeyError, IndexError):
                 refined_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 print(f"refined_answer: {refined_answer}")
-                return refined_answer, source_url, input_txt
+                return refined_answer, source_url, self
 
-            return refined_answer, source_url, input_txt
+            return refined_answer, source_url, self

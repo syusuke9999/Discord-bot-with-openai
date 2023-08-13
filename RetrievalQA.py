@@ -89,7 +89,8 @@ class RetrievalQAFromFaiss:
             refine_qa = stuff_qa.from_chain_type(
                 chain_type="refine",
                 llm=llm,
-                retriever=compression_retriever
+                retriever=compression_retriever,
+                verbose=False,
             )
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()

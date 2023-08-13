@@ -12,13 +12,11 @@ import pytz
 
 
 class RetrievalQAFromFaiss:
-    def __init__(self, input_txt):
+    def __init__(self):
         self.message_histories = {}
         self.total_tokens = 0
-        self.input_txt = input_txt
 
-    async def GetAnswerFromFaiss(self):
-        input_txt = self.input_txt
+    async def GetAnswerFromFaiss(self, query):
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=3)
@@ -62,7 +60,7 @@ class RetrievalQAFromFaiss:
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
             print(f"Input dict before apply: {self}")
-            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([self]))
+            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([query]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 stuff_answer = response[0]["result"]

@@ -23,7 +23,7 @@ class RetrievalQAFromFaiss:
         self.input_txt = input_txt
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=3)
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=4)
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
@@ -50,7 +50,6 @@ class RetrievalQAFromFaiss:
                              "Use the following pieces of context to answer the question at the end. If you don't "
                              "know the answer,"
                              " just say 「分かりません」, don't try to make up an answer. "
-                             "Please use Japanese only. Don't use English."
                              "日本人として日本語を使って質問に答えて下さい。"
                              " \n"
                              "Context:{context}"
@@ -66,7 +65,7 @@ class RetrievalQAFromFaiss:
                 llm=llm,
                 chain_type="stuff",
                 retriever=compression_retriever,
-                verbose=True,
+                verbose=False,
                 chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )
             # return_source_documentsプロパティをTrueにセット

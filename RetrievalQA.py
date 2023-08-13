@@ -36,13 +36,22 @@ class RetrievalQAFromFaiss:
             year = now.year
             month = now.month
             day = now.day
-            custom_prompt = (f"Previous Conversation: {{message_histories[user_key]}}\n"
+            # 直近のメッセージを取得
+            recent_messages = self.message_histories[user_key][-10:]  # 5往復分なので、最後の10メッセージ
+            # 対話形式に変換
+            dialogue_format = ""
+            for msg in recent_messages:
+                role = "User" if msg['role'] == 'user' else "Assistant"
+                dialogue_format += f"{role}: {msg['content']}\n"
+            print("dialogue_format: ", dialogue_format)
+            custom_prompt = (f"Previous Conversation: {dialogue_format}\n"
                              f"Today is the year {year}, the month is {month} and the date {day}."
                              f"The current time is {now}."
                              "Use the following pieces of context to answer the question at the end. If you don't "
                              "know the answer,"
                              " just say 「分かりません」, don't try to make up an answer. "
                              "Please use Japanese only. Don't use English."
+                             "日本人として日本語を使って会話をして下さい。"
                              " \n"
                              "Context:{context}"
                              " \n"
@@ -50,7 +59,7 @@ class RetrievalQAFromFaiss:
                              "Helpful Answer:")
             stuff_prompt = PromptTemplate(
                 template=custom_prompt,
-                input_variables=["message_histories", "context", "question"]
+                input_variables=["context", "question"]
             )
             chain_type_kwargs = {"prompt": stuff_prompt}
             stuff_qa = RetrievalQA.from_chain_type(

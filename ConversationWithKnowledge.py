@@ -3,7 +3,6 @@ from langchain.llms.loading import load_llm
 from langchain.chains import RetrievalQA
 from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
-from langchain.memory import ConversationBufferWindowMemory
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.prompts import PromptTemplate
 import os
@@ -13,8 +12,6 @@ import pytz
 
 
 class RetrievalConversationWithFaiss:
-    conversation_history = []  # クラスレベルで会話の履歴を保持するリストを作成
-
     def __init__(self, bot_instance):
         self.total_tokens = 0
         self.input_txt = ""
@@ -37,21 +34,30 @@ class RetrievalConversationWithFaiss:
             year = now.year
             month = now.month
             day = now.day
-            custom_prompt = (f"Previous Conversation: {{message_histories[user_key]}}\n"
+            # 直近のメッセージを取得
+            recent_messages = self.message_histories[user_key][-10:]  # 5往復分なので、最後の10メッセージ
+            # 対話形式に変換
+            dialogue_format = ""
+            for msg in recent_messages:
+                role = "User" if msg['role'] == 'user' else "Assistant"
+                dialogue_format += f"{role}: {msg['content']}\n"
+            print("dialogue_format: ", dialogue_format)
+            custom_prompt = (f"Previous Conversation: {dialogue_format}\n"
                              f"Today is the year {year}, the month is {month} and the date {day}."
                              f"The current time is {now}."
                              "Please use the following context, if it is relevant to the user's question, "
                              "to talk about Dead by Daylight in an enjoyable way, "
                              " with it's relevant context to the user's query."
                              "Please use Japanese only. Don't use English."
+                             "日本人として日本語を使って会話をして下さい。"
                              " \n"
                              "Context:{context}"
                              " \n"
                              "subject: {question}"
-                             "Fun Conversation Response:")
+                             "Fun Conversational Response:")
             stuff_prompt = PromptTemplate(
                 template=custom_prompt,
-                input_variables=["message_histories", "context", "question"]
+                input_variables=["context", "question"]
             )
             chain_type_kwargs = {"prompt": stuff_prompt}
             stuff_qa = RetrievalQA.from_chain_type(

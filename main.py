@@ -182,11 +182,17 @@ class MyBot(commands.Bot):
             # 「conversation」に分類されなかった場合は「search」と推定してRetrival QAを実行する（検索優先の原則）
             if "search" in bot_classification:
                 print("Retrival QAを実行します")
-                async with message.channel.typing():
+                async with (message.channel.typing()):
                     start_time = time.time()
-                    retrival_qa = RetrievalQAFromFaiss()
+                    # メンションしたユーザーのIDと名前を取得
+                    user_id = str(message.author.id)
+                    user_name = message.author.display_name
+                    # ユーザーのIDと名前を組み合わせて、ユーザーを一意に識別するユーザーキーを作成
+                    user_key = f'{user_id}_{user_name}'
+                    retrival_qa = RetrievalQAFromFaiss(self)
                     # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
-                    bot_response, source_url, input_query = await retrival_qa.GetAnswerFromFaiss(message.content)
+                    bot_response, source_url, input_query = await retrival_qa.GetAnswerFromFaiss(message.content,
+                                                                                                 user_key)
                     elapsed_time = time.time() - start_time
                     print(f"The retrieval qa process took {elapsed_time} seconds.")
                     system_message_instance = SystemMessage(topic=Topic.DETERMINE_ANSWERED_OR_NOT_ANSWERED)
@@ -239,8 +245,8 @@ class MyBot(commands.Bot):
                 # メッセージの履歴を10000トークン以下にして送信する
                 message_history = truncate_message_histories_and_tokens(10000, self.message_histories[user_key])
                 print("\033[93m「会話」に分類されため、gpt-3.5-turbo-16k-0613を使用して会話を続けます\033[0m")
-                retrieval_conversation = RetrievalConversationWithFaiss()
-                bot_response, input_query = await retrieval_conversation.GetResponseWithFaiss(message.content)
+                retrieval_conversation = RetrievalConversationWithFaiss(self)
+                bot_response, input_query = await retrieval_conversation.GetResponseWithFaiss(message.content, user_key)
                 print("システムメッージ: ", system_message_content)
                 print("Send query user conversation to OpenAI API with async typing function: ",
                       message.content)

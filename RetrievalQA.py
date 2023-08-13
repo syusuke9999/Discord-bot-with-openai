@@ -12,12 +12,14 @@ import pytz
 
 
 class RetrievalQAFromFaiss:
-    def __init__(self):
+    def __init__(self, bot_instance):
         self.message_histories = {}
         self.total_tokens = 0
         self.input_txt = ""
+        # MyBotのmessage_historiesを参照
+        self.message_histories = bot_instance.message_histories
 
-    async def GetAnswerFromFaiss(self, input_txt):
+    async def GetAnswerFromFaiss(self, input_txt, user_key):
         self.input_txt = input_txt
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
@@ -34,7 +36,8 @@ class RetrievalQAFromFaiss:
             year = now.year
             month = now.month
             day = now.day
-            custom_prompt = (f"Today is the year {year}, the month is {month} and the date {day}."
+            custom_prompt = (f"Previous Conversation: {self.message_histories[user_key]}\n"
+                             f"Today is the year {year}, the month is {month} and the date {day}."
                              f"The current time is {now}."
                              "Use the following pieces of context to answer the question at the end. If you don't "
                              "know the answer,"

@@ -14,14 +14,14 @@ import pytz
 
 class RetrievalConversationWithFaiss:
     conversation_history = []  # クラスレベルで会話の履歴を保持するリストを作成
-    def __init__(self):
-        self.message_histories = {}
+
+    def __init__(self, bot_instance):
         self.total_tokens = 0
         self.input_txt = ""
+        # MyBotのmessage_historiesを参照
+        self.message_histories = bot_instance.message_histories
 
-    async def GetResponseWithFaiss(self, query):
-        # 以前の会話履歴を取得
-        previous_conversation = ' '.join(RetrievalConversationWithFaiss.conversation_history[-5:]) # 最新の5つのメッセージを取得
+    async def GetResponseWithFaiss(self, query, user_key):
         self.input_txt = query
         llm = load_llm("my_conversation_llm.json")
         embeddings = OpenAIEmbeddings()
@@ -37,7 +37,7 @@ class RetrievalConversationWithFaiss:
             year = now.year
             month = now.month
             day = now.day
-            custom_prompt = (f"Previous Conversation: {previous_conversation}\n"
+            custom_prompt = (f"Previous Conversation: {self.message_histories[user_key]}\n"
                              f"Today is the year {year}, the month is {month} and the date {day}."
                              f"The current time is {now}."
                              "Please use the following context, if it is relevant to the user's question, "

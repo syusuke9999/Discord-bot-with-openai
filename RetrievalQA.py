@@ -16,7 +16,7 @@ class RetrievalQAFromFaiss:
     async def GetAnswerFromFaiss(self, query):
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=3)
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=6)
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
@@ -39,5 +39,10 @@ class RetrievalQAFromFaiss:
                 refined_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 print(f"refined_answer: {refined_answer}")
                 return refined_answer, source_url, self
-
+            try:
+                source_url = response[0]["source_url"]
+            except (TypeError, KeyError, IndexError):
+                source_url = ""
+                print(f"source_url: {source_url}")
+                return refined_answer, source_url, self
             return refined_answer, source_url, self

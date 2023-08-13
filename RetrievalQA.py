@@ -36,7 +36,8 @@ class RetrievalQAFromFaiss:
             year = now.year
             month = now.month
             day = now.day
-            custom_prompt = (f"Previous Conversation: {self.message_histories[user_key]}\n"
+            message_histories = self.message_histories[user_key]
+            custom_prompt = (f"Previous Conversation: {message_histories}\n"
                              f"Today is the year {year}, the month is {month} and the date {day}."
                              f"The current time is {now}."
                              "Use the following pieces of context to answer the question at the end. If you don't "
@@ -50,7 +51,7 @@ class RetrievalQAFromFaiss:
                              "Helpful Answer:")
             stuff_prompt = PromptTemplate(
                 template=custom_prompt,
-                input_variables=["context", "question"]
+                input_variables=["message_histories", "context", "question"]
             )
             chain_type_kwargs = {"prompt": stuff_prompt}
             stuff_qa = RetrievalQA.from_chain_type(

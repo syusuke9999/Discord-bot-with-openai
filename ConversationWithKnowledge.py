@@ -37,7 +37,8 @@ class RetrievalConversationWithFaiss:
             year = now.year
             month = now.month
             day = now.day
-            custom_prompt = (f"Previous Conversation: {self.message_histories[user_key]}\n"
+            message_histories = self.message_histories[user_key]
+            custom_prompt = (f"Previous Conversation: {message_histories}\n"
                              f"Today is the year {year}, the month is {month} and the date {day}."
                              f"The current time is {now}."
                              "Please use the following context, if it is relevant to the user's question, "

@@ -51,7 +51,7 @@ class RetrievalQAFromFaiss:
                              "know the answer,"
                              " just say 「分かりません」, don't try to make up an answer. "
                              "Please use Japanese only. Don't use English."
-                             "日本人として日本語を使って会話をして下さい。"
+                             "日本人として日本語を使って質問に答えて下さい。"
                              " \n"
                              "Context:{context}"
                              " \n"

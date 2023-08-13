@@ -261,7 +261,6 @@ class MyBot(commands.Bot):
                     elapsed_time = time.time() - start_time
                     print(f"The OpenAI API conversation process took {elapsed_time} seconds.")
             # ユーザーの発言とアシスタントの発言を辞書形式に変換して、メッセージの履歴に追加
-            self.message_histories[user_key].append(system_message_dict)
             self.message_histories[user_key].append({"role": "user", "content": message.content})
             self.message_histories[user_key].append({"role": "assistant",
                                                      "content": bot_response})

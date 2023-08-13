@@ -68,9 +68,6 @@ class RetrievalConversationWithFaiss:
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: stuff_qa.apply([self.input_txt]))
             print(f"Input data: {query}")
-            # クエリと応答を会話履歴に追加
-            RetrievalConversationWithFaiss.conversation_history.append(query)
-            RetrievalConversationWithFaiss.conversation_history.append(response[0]["result"])
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 answer = response[0]["result"]

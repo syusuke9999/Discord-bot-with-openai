@@ -86,22 +86,6 @@ class RetrievalQAFromFaiss:
                 print(f"source_url: {source_url}")
             except (TypeError, KeyError, IndexError):
                 source_url = None
-            refine_qa = stuff_qa.from_chain_type(
-                chain_type="refine",
-                llm=llm,
-                retriever=compression_retriever,
-                verbose=False,
-            )
-            # applyメソッドを使用してレスポンスを取得
-            loop = asyncio.get_event_loop()
-            print(f"Input stuff_answer: {stuff_answer}")
-            response = await loop.run_in_executor(None, lambda: refine_qa.apply([stuff_answer]))
-            # responseオブジェクトからanswerとsource_urlを抽出
-            try:
-                refined_answer = response[0]["result"]
-            except (TypeError, KeyError, IndexError):
-                refined_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
-                print(f"refined_answer: {refined_answer}")
-                return refined_answer, source_url, input_txt
 
-            return refined_answer, source_url, input_txt
+
+            return stuff_answer, source_url, input_txt

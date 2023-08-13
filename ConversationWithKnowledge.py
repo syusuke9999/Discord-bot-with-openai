@@ -52,7 +52,7 @@ class RetrievalConversationWithFaiss:
                              "Fun Conversation Response:")
             stuff_prompt = PromptTemplate(
                 template=custom_prompt,
-                input_variables=["context", "question"]
+                input_variables=["message_histories", "context", "question"]
             )
             chain_type_kwargs = {"prompt": stuff_prompt}
             stuff_qa = RetrievalQA.from_chain_type(

@@ -4,7 +4,7 @@ tiktoken
 httpx
 tenacity
 openai
-langchain
+langchain>=0.0.218
 pytz
 faiss-cpu
-wandb
+wandb>=0.15.4

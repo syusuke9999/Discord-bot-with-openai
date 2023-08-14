@@ -1,5 +1,5 @@
 import wandb
-from wandb.integration.openai import autolog
+from wandb.integration.langchain import WandbTracer
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms.loading import load_llm
 from langchain.chains import RetrievalQA
@@ -21,7 +21,7 @@ class RetrievalConversationWithFaiss:
         self.message_histories = bot_instance.message_histories
 
     async def GetResponseWithFaiss(self, query, user_key):
-        autolog({
+        WandbTracer.init({
             "project": "discord-bot-llm-trace",
             "group": "GetResponseWithFaiss"
         })
@@ -86,7 +86,7 @@ class RetrievalConversationWithFaiss:
             except (TypeError, KeyError, IndexError):
                 answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 print(f"stuff_answer: {answer}")
-                autolog.disable()  # 追加
+                WandbTracer.disable()  # 追加
                 return answer, self.input_txt
-            autolog.disable()  # 追加
+            WandbTracer.disable()  # 追加
             return answer, self.input_txt

@@ -14,7 +14,7 @@ from RetrievalQA import RetrievalQAFromFaiss
 from ConversationWithKnowledge import RetrievalConversationWithFaiss
 import langchain
 import wandb
-from wandb.integration.openai import autolog
+from wandb.integration.langchain import WandbTracer
 
 assert langchain.__version__ >= "0.0.218", "Please ensure you are using LangChain v0.0.188 or higher"
 

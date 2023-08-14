@@ -20,6 +20,9 @@ assert langchain.__version__ >= "0.0.218", "Please ensure you are using LangChai
 wbkey = os.getenv("wbkey")
 wandb.login(key=wbkey)
 
+os.environ["LANGCHAIN_WANDB_TRACING"] = "true"
+os.environ["WANDB_PROJECT"] = "discord-bot-llm-trace"
+
 debug_mode = False
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

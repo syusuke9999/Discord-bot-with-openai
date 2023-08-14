@@ -15,7 +15,7 @@ class RetrievalQAFromFaiss:
         self.total_tokens = 0
 
     async def GetAnswerFromFaiss(self, query):
-        WandbTracer.init({"project": "wandb_prompts"})
+        WandbTracer.init({"group": "GetAnswerFromFaiss"})
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=6)

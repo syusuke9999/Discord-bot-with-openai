@@ -20,7 +20,7 @@ class RetrievalConversationWithFaiss:
         self.message_histories = bot_instance.message_histories
 
     async def GetResponseWithFaiss(self, query, user_key):
-        WandbTracer.init({"project": "wandb_prompts"})
+        WandbTracer.init({"group": "GetResponseWithFaiss"})
         self.input_txt = query
         llm = load_llm("my_conversation_llm.json")
         embeddings = OpenAIEmbeddings()

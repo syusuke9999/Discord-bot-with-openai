@@ -158,7 +158,7 @@ class MyBot(commands.Bot):
             system_message_dict = {"role": "system", "content": system_message_content}
             print("「検索」か「その他」かの判定を行うシステムメッセージ: ", system_message_content)
             # 判定にはgpt-3.5-turbo-0613を使用する
-            self.model_name = "gpt-3.5-turbo-0613"
+            self.model_name = "gpt-4-0613"
             self.max_tokens = 1
             self.model_temperature = 0
             self.model_top_p = 0

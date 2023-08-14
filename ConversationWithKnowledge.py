@@ -18,9 +18,10 @@ class RetrievalConversationWithFaiss:
         self.input_txt = ""
         # MyBotのmessage_historiesを参照
         self.message_histories = bot_instance.message_histories
+        self.tracer = WandbTracer()  # WandbTracerインスタンスを作成
 
     async def GetResponseWithFaiss(self, query, user_key):
-        WandbTracer.init({"group": "GetResponseWithFaiss"})
+        self.tracer.init({"group": "GetAnswerFromFaiss"})  # ここでtracerインスタンスを使用
         self.input_txt = query
         llm = load_llm("my_conversation_llm.json")
         embeddings = OpenAIEmbeddings()

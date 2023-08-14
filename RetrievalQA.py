@@ -5,6 +5,12 @@ from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.prompts import PromptTemplate
+from langchain.prompts.chat import (
+    AIMessagePromptTemplate,
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    SystemMessagePromptTemplate,
+)
 import os
 import asyncio
 from datetime import datetime
@@ -21,7 +27,7 @@ class RetrievalQAFromFaiss:
         self.input_txt = input_txt
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=4)
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, k=6)
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
@@ -41,9 +47,9 @@ class RetrievalQAFromFaiss:
                              " just say 「分かりません」, don't try to make up an answer. Answer the question"
                              " as if you were a native Japanese speaker."
                              " \n"
-                             "Context:{context}"
+                             "Context:{context}\n"
                              " \n"
-                             "Question: {question}"
+                             "Question: {question}\n"
                              "Helpful Answer:")
             stuff_prompt = PromptTemplate(
                 template=custom_prompt,
@@ -56,19 +62,10 @@ class RetrievalQAFromFaiss:
                 retriever=compression_retriever,
                 chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )
-            stuff_answer = stuff_qa(input_txt)
-            print(f"stuff_answer: {stuff_answer}")
-            refine_qa = stuff_qa.from_chain_type(
-                chain_type="refine",
-                llm=llm,
-                retriever=compression_retriever,
-            )
             # return_source_documentsプロパティをTrueにセット
             stuff_qa.return_source_documents = True
-            # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
-            print(f"Input dict before apply: {input_txt}")
-            response = await loop.run_in_executor(None, lambda: refine_qa.apply([input_txt]))
+            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([input_txt]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 answer = response[0]["result"]

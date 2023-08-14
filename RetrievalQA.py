@@ -35,14 +35,14 @@ class RetrievalQAFromFaiss:
             response = await loop.run_in_executor(None, lambda: refine_qa.apply([query]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
-                stuff_answer = response[0]["result"]
+                refine_answer = response[0]["result"]
             except (TypeError, KeyError, IndexError):
-                stuff_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
-                print(f"stuff_answer: {stuff_answer}")
-                return stuff_answer, source_url, self
+                refine_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
+                print(f"stuff_answer: {refine_answer}")
+                return refine_answer, source_url, self
             try:
                 source_url = response[0]["source_url"]
             except (TypeError, KeyError, IndexError):
                 source_url = ""
-                return stuff_answer, source_url, self
-            return stuff_answer, source_url, self
+                return refine_answer, source_url, self
+            return refine_answer, source_url, self

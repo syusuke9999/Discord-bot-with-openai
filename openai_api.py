@@ -42,17 +42,22 @@ async def call_openai_api(hyper_parameters, system_message, new_message, message
         async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(url, headers=headers, data=json.dumps(data))
             response.raise_for_status()  # Raise an exception if the status code is not in the 200 range.
+            wandb.finish()
             return response.json()
     except httpx.HTTPStatusError as exc:
         logger.warning(f"HTTP status error {exc}")
+        wandb.finish()
         # Handle HTTP status error
     except json.JSONDecodeError as e:
         logger.exception(f"A JSON decode error occurred: {e}")
+        wandb.finish()
         # Handle JSON decode error
     except httpx.TimeoutException as e:
         logger.exception(f"A timeout error occurred: {e}")
+        wandb.finish()
         # Handle timeout error
     except httpx.RequestError as e:
         logger.exception(f"A network error occurred: {e}")
+        wandb.finish()
         # Handle network error
     wandb.finish()

@@ -27,7 +27,7 @@ class RetrievalQAFromFaiss:
         self.input_txt = input_txt
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, k=6)
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings)
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)

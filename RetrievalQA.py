@@ -16,7 +16,7 @@ class RetrievalQAFromFaiss:
     async def GetAnswerFromFaiss(self, query):
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings)
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, k=6)
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
@@ -24,7 +24,7 @@ class RetrievalQAFromFaiss:
                                                                    base_retriever=docsearch.as_retriever())
             # 現在の日付と時刻を取得します（日本時間）。
             refine_qa = RetrievalQA.from_chain_type(
-                chain_type="stuff",
+                chain_type="refine",
                 llm=llm,
                 retriever=compression_retriever,
                 verbose=True,

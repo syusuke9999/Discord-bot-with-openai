@@ -14,10 +14,10 @@ logger.setLevel(logging.WARNING)
 # APIへのリクエストが失敗したさいに、リトライするデコレーター
 @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=3, max=60))
 async def call_openai_api(hyper_parameters, system_message, new_message, message_history: List[Dict] = None):
-    autolog({
+    """autolog({
         "project": "discord-bot-llm-trace",
         "group": "call_openai_api"
-    })
+    })"""
     temperature = float(hyper_parameters["temperature"])
     model_name = str(hyper_parameters["model_name"])
     max_tokens = int(hyper_parameters["max_tokens"])

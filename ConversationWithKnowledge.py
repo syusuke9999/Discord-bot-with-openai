@@ -1,3 +1,4 @@
+import wandb
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms.loading import load_llm
 from langchain.chains import RetrievalQA
@@ -19,6 +20,7 @@ class RetrievalConversationWithFaiss:
         self.message_histories = bot_instance.message_histories
 
     async def GetResponseWithFaiss(self, query, user_key):
+        wandb.init(project="discord-bot-llm-trace", group="retrieval_conversation", tags=["RetrievalConversationWithFaiss"])
         self.input_txt = query
         llm = load_llm("my_conversation_llm.json")
         embeddings = OpenAIEmbeddings()
@@ -81,4 +83,5 @@ class RetrievalConversationWithFaiss:
                 answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 print(f"stuff_answer: {answer}")
                 return answer, self.input_txt
+            wandb.finish()
             return answer, self.input_txt

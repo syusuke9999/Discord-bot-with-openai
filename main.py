@@ -235,7 +235,7 @@ class MyBot(commands.Bot):
                         if source_url is not None:
                             await send_message(message, source_url)
             # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
-            elif "conversation" in bot_classification:
+            elif "conversation" or "other" in bot_classification:
                 self.max_tokens = 10000
                 self.model_name = "gpt-3.5-turbo-16k-0613"
                 self.model_frequency_penalty = 0.6

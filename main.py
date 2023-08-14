@@ -152,7 +152,7 @@ class MyBot(commands.Bot):
                 self.message_histories[user_key] = []
             print(user_key + ":message = " + message.content)
             new_message_dict = {"role": "user", "content": message.content}
-            # MQL言語に関する具体的なトピックがどうかをGPT-3.5に判断させる。
+            # Dead by Daylightに関する具体的なトピックがどうかをGPT-3.5に判断させる。
             system_message_instance = SystemMessage(topic=Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC)
             system_message_content = system_message_instance.get_system_message_content()
             system_message_dict = {"role": "system", "content": system_message_content}

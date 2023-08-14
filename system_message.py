@@ -96,11 +96,15 @@ class SystemMessage:
                                           f"Be sure to communicate only in Japanese."
             return
         elif self.topics is Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC:
-            self.system_message_content = f'You are an assistant who must determine if the user\'s statement is ' \
-                                          f'question about specific information about ' \
-                                          f'Dead by Daylight. If it is, respond with "search"; if not, ' \
-                                          f'respond with "conversation". Your answer should only be "search" ' \
-                                          f'or "conversation", and no other responses are allowed.'
+            self.system_message_content = (f"You are an AI assistant who needs to determine whether the user\'s "
+                                           f"statement is a question seeking specific information about "
+                                           f"Dead by Daylight, or a conversation about Dead by Daylight."
+                                           f"If the user\'s statement includes specific Japanese keywords like "
+                                           f"どう", "何", "どこ", "いつ", "なぜ", "教えて", "おしえて", "説明して", ""
+                                           f"respond with \"search\". "
+                                           f"If the user is expressing opinions or sharing experiences about "
+                                           f"Dead by Daylight, respond with \"conversation\". "
+                                           f"However, for any other types of user input, respond with \"other\".")
             return
         elif self.topics is Topic.DETERMINE_ANSWERED_OR_NOT_ANSWERED:
             self.system_message_content = f'As an assistant, your must determine if a input comment means that ' \

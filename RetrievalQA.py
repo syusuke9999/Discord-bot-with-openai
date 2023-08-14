@@ -4,7 +4,6 @@ from langchain.chains import RetrievalQA
 from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
-from wandb.integration.langchain import WandbTracer
 import os
 import asyncio
 
@@ -17,23 +16,23 @@ class RetrievalQAFromFaiss:
     async def GetAnswerFromFaiss(self, query):
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=6)
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=3)
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
                                                                    base_retriever=docsearch.as_retriever())
             # 現在の日付と時刻を取得します（日本時間）。
-            stuff_qa = RetrievalQA.from_chain_type(
-                chain_type="stuff",
+            refine_qa = RetrievalQA.from_chain_type(
+                chain_type="refine",
                 llm=llm,
                 retriever=compression_retriever,
                 verbose=True,
             )
-            stuff_qa.return_source_documents = True
+            refine_qa.return_source_documents = True
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([query]))
+            response = await loop.run_in_executor(None, lambda: refine_qa.apply([query]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 stuff_answer = response[0]["result"]

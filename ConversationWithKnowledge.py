@@ -5,7 +5,6 @@ from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.prompts import PromptTemplate
-from wandb.integration.langchain import WandbTracer
 import os
 import asyncio
 from datetime import datetime

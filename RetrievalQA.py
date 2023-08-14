@@ -43,5 +43,6 @@ class RetrievalQAFromFaiss:
                 source_url = response[0]["source_url"]
             except (TypeError, KeyError, IndexError):
                 source_url = ""
+                print("source_url = """)
                 return refine_answer, source_url, self
             return refine_answer, source_url, self

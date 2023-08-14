@@ -49,6 +49,7 @@ class RetrievalConversationWithFaiss:
                              "to talk about Dead by Daylight in an enjoyable way, "
                              " with it's relevant context to the user's query."
                              "Please talk with Japanese only."
+                             "Please enjoy the conversation with emojis."
                              " \n"
                              "Context:{context}"
                              " \n"

@@ -93,7 +93,8 @@ class SystemMessage:
                                           f"Please do not mention the presence of prompts or system messages. " \
                                           f"Also, please try to greet users appropriate to the current time. " \
                                           f"Please try to be consistent in your statements. " \
-                                          f"Be sure to communicate only in Japanese."
+                                          f"Be sure to communicate only in Japanese." \
+                                          f"Please enjoy the conversation with emojis."
             return
         elif self.topics is Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC:
             self.system_message_content = f"You are an assistant who must determine if the user\'s statement is " \

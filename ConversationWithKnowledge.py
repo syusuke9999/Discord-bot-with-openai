@@ -5,7 +5,7 @@ from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.prompts import PromptTemplate
-from wandb.integration.langchain import WandbTracer
+from wandb.integration.openai import autolog
 import os
 import asyncio
 from datetime import datetime
@@ -20,7 +20,7 @@ class RetrievalConversationWithFaiss:
         self.message_histories = bot_instance.message_histories
 
     async def GetResponseWithFaiss(self, query, user_key):
-        WandbTracer.init({
+        autolog.init({
             "project": "discord-bot-llm-trace",
             "group": "GetResponseWithFaiss"
         })
@@ -85,7 +85,7 @@ class RetrievalConversationWithFaiss:
             except (TypeError, KeyError, IndexError):
                 answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 print(f"stuff_answer: {answer}")
-                WandbTracer.finish(self)
+                autolog.finish(self)
                 return answer, self.input_txt
-            WandbTracer.finish(self)
+            autolog.finish(self)
             return answer, self.input_txt

@@ -4,7 +4,7 @@ from langchain.chains import RetrievalQA
 from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
-from wandb.integration.langchain import WandbTracer
+from wandb.integration.openai import autolog
 import os
 import asyncio
 
@@ -15,7 +15,7 @@ class RetrievalQAFromFaiss:
         self.total_tokens = 0
 
     async def GetAnswerFromFaiss(self, query):
-        WandbTracer.init({
+        autolog.init({
             "project": "discord-bot-llm-trace",
             "group": "RetrievalQAFromFaiss"
         })
@@ -43,14 +43,14 @@ class RetrievalQAFromFaiss:
             except (TypeError, KeyError, IndexError):
                 stuff_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 print(f"stuff_answer: {stuff_answer}")
-                WandbTracer.finish(self)
+                autolog.finish(self)
                 return stuff_answer, source_url, self
             try:
                 source_url = response[0]["source_url"]
             except (TypeError, KeyError, IndexError):
                 source_url = ""
                 print(f"source_url: {source_url}")
-                WandbTracer.finish(self)
+                autolog.finish(self)
                 return stuff_answer, source_url, self
-            WandbTracer.finish(self)
+            autolog.finish(self)
             return stuff_answer, source_url, self

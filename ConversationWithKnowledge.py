@@ -49,12 +49,11 @@ class RetrievalConversationWithFaiss:
                              "Please use the following context, if it is relevant to the user's question, "
                              "to talk about Dead by Daylight in an enjoyable way, "
                              " with it's relevant context to the user's query."
-                             "Please use Japanese only. Don't use English."
-                             "日本人として日本語を使って会話をして下さい。"
+                             "Please talk with Japanese only."
                              " \n"
                              "Context:{context}"
                              " \n"
-                             "subject: {question}"
+                             "subject: {question}\n"
                              "Fun Conversational Response:")
             stuff_prompt = PromptTemplate(
                 template=custom_prompt,

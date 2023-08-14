@@ -227,10 +227,13 @@ class MyBot(commands.Bot):
                           bot_classification, "\033[0m")
                     if "don't Know" in bot_classification:
                         print("\033[93m検索結果から回答を見つけられなかったため、URLは添付しません。\033[0m")
-                        await send_message(message, bot_response)
+                        if bot_response is not None:
+                            await send_message(message, bot_response)
                     elif "answered" in bot_classification:
-                        await send_message(message, bot_response)
-                        await send_message(message, source_url)
+                        if bot_response is not None:
+                            await send_message(message, bot_response)
+                        if source_url is not None:
+                            await send_message(message, source_url)
             # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
             elif "conversation" in bot_classification:
                 self.max_tokens = 10000

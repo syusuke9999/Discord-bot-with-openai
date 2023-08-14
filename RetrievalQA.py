@@ -30,6 +30,7 @@ class RetrievalQAFromFaiss:
                 retriever=compression_retriever,
                 verbose=True,
             )
+            stuff_qa.return_source_documents = True
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: stuff_qa.apply([query]))

@@ -31,9 +31,11 @@ class RetrievalQAFromFaiss:
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
+            search_kwargs = {"k": 8, "return_metadata": True}
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
                                                                    base_retriever=docsearch.as_retriever(
-                                                                       search_type="mmr"))
+                                                                       search_type="mmr",
+                                                                       search_kwargs=search_kwargs))
 
             # 現在の日付と時刻を取得します（日本時間）。
             now = datetime.now(pytz.timezone('Asia/Tokyo'))

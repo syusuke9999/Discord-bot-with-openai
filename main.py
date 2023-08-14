@@ -21,7 +21,7 @@ wbkey = os.getenv("wbkey")
 wandb.login(key=wbkey)
 
 os.environ["LANGCHAIN_WANDB_TRACING"] = "true"  # ここで環境変数を設定
-os.environ["WANDB_PROJECT"] = "discord-bot-llm-trace"  # ここで環境変数を設定
+wandb.init(project="discord-bot-llm-trace")
 
 debug_mode = False
 

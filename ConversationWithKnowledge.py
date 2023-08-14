@@ -20,7 +20,7 @@ class RetrievalConversationWithFaiss:
         self.message_histories = bot_instance.message_histories
 
     async def GetResponseWithFaiss(self, query, user_key):
-        autolog.init({
+        autolog({
             "project": "discord-bot-llm-trace",
             "group": "GetResponseWithFaiss"
         })

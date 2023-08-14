@@ -15,7 +15,7 @@ class RetrievalQAFromFaiss:
         self.total_tokens = 0
 
     async def GetAnswerFromFaiss(self, query):
-        autolog.init({
+        autolog({
             "project": "discord-bot-llm-trace",
             "group": "RetrievalQAFromFaiss"
         })

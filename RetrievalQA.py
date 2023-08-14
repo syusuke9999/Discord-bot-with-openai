@@ -23,26 +23,26 @@ class RetrievalQAFromFaiss:
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
                                                                    base_retriever=docsearch.as_retriever())
             # 現在の日付と時刻を取得します（日本時間）。
-            refine_qa = RetrievalQA.from_chain_type(
-                chain_type="refine",
+            stuff_qa = RetrievalQA.from_chain_type(
+                chain_type="stuff",
                 llm=llm,
                 retriever=compression_retriever,
                 verbose=True,
             )
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(None, lambda: refine_qa.apply([query]))
+            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([query]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
-                refined_answer = response[0]["result"]
+                stuff_answer = response[0]["result"]
             except (TypeError, KeyError, IndexError):
-                refined_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
-                print(f"refined_answer: {refined_answer}")
-                return refined_answer, source_url, self
+                stuff_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
+                print(f"stuff_answer: {stuff_answer}")
+                return stuff_answer, source_url, self
             try:
                 source_url = response[0]["source_url"]
             except (TypeError, KeyError, IndexError):
                 source_url = ""
                 print(f"source_url: {source_url}")
-                return refined_answer, source_url, self
-            return refined_answer, source_url, self
+                return stuff_answer, source_url, self
+            return stuff_answer, source_url, self

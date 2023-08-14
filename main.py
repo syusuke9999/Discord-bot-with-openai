@@ -315,6 +315,9 @@ class MyBot(commands.Bot):
 
 
 def main():
+    WandbTracer.init({
+        "project": "discord-bot-llm-trace",
+    })
     # Discord接続を初期化
     intents = discord.Intents.all()
     # ボイスステータスのインテントを取得する意図を明視するため
@@ -322,6 +325,7 @@ def main():
     bot = MyBot(command_prefix='!', intents=intents, enum_of_topic=THIS_TOPIC_ENUM)
     # Discordボットのトークンを指定
     bot.run(DISCORD_TOKEN)
+    WandbTracer.finish()
 
 
 if __name__ == "__main__":

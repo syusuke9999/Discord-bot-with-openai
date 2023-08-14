@@ -5,6 +5,7 @@ from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 import wandb
+from wandb.integration.openai import autolog
 import os
 import asyncio
 
@@ -15,7 +16,8 @@ class RetrievalQAFromFaiss:
         self.total_tokens = 0
 
     async def GetAnswerFromFaiss(self, query):
-        wandb.init(project="discord-bot-llm-trace", group="retrieval_qa", tags=["GetAnswerFromFaiss"])
+        autolog({"project": "discord-bot-llm-trace"})
+        wandb.init(project="discord-bot-llm-trace", group='GetAnswerFromFaiss')
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=6)
@@ -40,6 +42,7 @@ class RetrievalQAFromFaiss:
             except (TypeError, KeyError, IndexError):
                 stuff_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 print(f"stuff_answer: {stuff_answer}")
+                autolog.disable()  # 追加
                 wandb.finish()
                 return stuff_answer, source_url, self
             try:
@@ -47,9 +50,11 @@ class RetrievalQAFromFaiss:
             except (TypeError, KeyError, IndexError):
                 source_url = ""
                 print(f"source_url: {source_url}")
+                autolog.disable()  # 追加
                 wandb.finish()
                 return stuff_answer, source_url, self
+            autolog.disable()  # 追加
             wandb.finish()
             return stuff_answer, source_url, self
-
+        autolog.disable()  # 追加
         wandb.finish()

@@ -1,4 +1,3 @@
-from langchain.chains.summarize import load_summarize_chain
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms.loading import load_llm
 from langchain.chains import RetrievalQA
@@ -6,7 +5,6 @@ from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.prompts import PromptTemplate
-from langchain.output_parsers import RegexParser  # New import for the output parser
 import os
 import asyncio
 from datetime import datetime
@@ -22,27 +20,54 @@ class RetrievalQAFromFaiss:
     async def GetAnswerFromFaiss(self, input_txt):
         self.input_txt = input_txt
         llm = load_llm("my_llm.json")
-        if "パークの効果" in input_txt:
-            input_txt = input_txt.replace("パークの効果", "パークの性能と効果")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings)
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=4)
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
                                                                    base_retriever=docsearch.as_retriever())
-            # Change chain_type from "stuff" to "refine"
-            qa = RetrievalQA.from_chain_type(
+
+            # 現在の日付と時刻を取得します（日本時間）。
+            now = datetime.now(pytz.timezone('Asia/Tokyo'))
+            # 年、月、日を取得します。
+            year = now.year
+            month = now.month
+            day = now.day
+            custom_prompt = (f"Today is the year {year}, the month is {month} and the date {day}."
+                             f"The current time is {now}."
+                             "Use the following pieces of context to answer the question at the end. If you don't "
+                             "know the answer,"
+                             " just say 「分かりません」, don't try to make up an answer. Answer the question"
+                             " as if you were a native Japanese speaker."
+                             " \n"
+                             "Context:{context}"
+                             " \n"
+                             "Question: {question}"
+                             "Helpful Answer:")
+            stuff_prompt = PromptTemplate(
+                template=custom_prompt,
+                input_variables=["context", "question"]
+            )
+            chain_type_kwargs = {"prompt": stuff_prompt}
+            stuff_qa = RetrievalQA.from_chain_type(
                 llm=llm,
+                chain_type="stuff",
+                retriever=compression_retriever,
+                chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
+            )
+            stuff_answer = stuff_qa(input_txt)
+            refine_qa = stuff_qa.from_chain_type(
                 chain_type="refine",
+                llm=llm,
                 retriever=compression_retriever,
             )
             # return_source_documentsプロパティをTrueにセット
-            qa.return_source_documents = True
+            stuff_qa.return_source_documents = True
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
             print(f"Input dict before apply: {input_txt}")
-            response = await loop.run_in_executor(None, lambda: qa.apply([self.input_txt]))
+            response = await loop.run_in_executor(None, lambda: refine_qa.apply([stuff_answer]))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 answer = response[0]["result"]

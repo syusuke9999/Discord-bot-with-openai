@@ -13,10 +13,8 @@ class RetrievalQAFromFaiss:
     def __init__(self):
         self.message_histories = {}
         self.total_tokens = 0
-        self.tracer = WandbTracer()  # WandbTracerインスタンスを作成
 
     async def GetAnswerFromFaiss(self, query):
-        self.tracer.init({"group": "GetAnswerFromFaiss"})  # ここでtracerインスタンスを使用
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=6)

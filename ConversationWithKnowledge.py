@@ -5,7 +5,7 @@ from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.prompts import PromptTemplate
-from wandb.integration.openai import autolog
+from wandb.integration.langchain import WandbTracer
 import os
 import asyncio
 from datetime import datetime
@@ -20,10 +20,7 @@ class RetrievalConversationWithFaiss:
         self.message_histories = bot_instance.message_histories
 
     async def GetResponseWithFaiss(self, query, user_key):
-        autolog({
-            "project": "discord-bot-llm-trace",
-            "group": "GetResponseWithFaiss"
-        })
+        WandbTracer.init({"project": "wandb_prompts"})
         self.input_txt = query
         llm = load_llm("my_conversation_llm.json")
         embeddings = OpenAIEmbeddings()

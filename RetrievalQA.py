@@ -4,7 +4,7 @@ from langchain.chains import RetrievalQA
 from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
-from wandb.integration.openai import autolog
+from wandb.integration.langchain import WandbTracer
 import os
 import asyncio
 
@@ -15,10 +15,7 @@ class RetrievalQAFromFaiss:
         self.total_tokens = 0
 
     async def GetAnswerFromFaiss(self, query):
-        autolog({
-            "project": "discord-bot-llm-trace",
-            "group": "RetrievalQAFromFaiss"
-        })
+        WandbTracer.init({"project": "wandb_prompts"})
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=6)

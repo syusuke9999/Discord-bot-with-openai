@@ -27,8 +27,8 @@ class RetrievalQAFromFaiss:
                 chain_type="refine",
                 llm=llm,
                 retriever=compression_retriever,
+                reurn_source_documents=True,
             )
-            refine_qa.return_source_documents = True
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: refine_qa.apply([query]))

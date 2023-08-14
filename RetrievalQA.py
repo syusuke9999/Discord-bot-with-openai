@@ -27,6 +27,7 @@ class RetrievalQAFromFaiss:
                 chain_type="refine",
                 llm=llm,
                 retriever=compression_retriever,
+                verbose=True,
             )
             refine_qa.return_source_documents = True
             # applyメソッドを使用してレスポンスを取得

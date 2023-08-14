@@ -16,7 +16,7 @@ class RetrievalQAFromFaiss:
     async def GetAnswerFromFaiss(self, query):
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=3)
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=4)
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
@@ -27,7 +27,6 @@ class RetrievalQAFromFaiss:
                 chain_type="refine",
                 llm=llm,
                 retriever=compression_retriever,
-                verbose=True,
             )
             refine_qa.return_source_documents = True
             # applyメソッドを使用してレスポンスを取得

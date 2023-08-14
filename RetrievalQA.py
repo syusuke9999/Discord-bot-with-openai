@@ -16,8 +16,10 @@ class RetrievalQAFromFaiss:
         self.total_tokens = 0
 
     async def GetAnswerFromFaiss(self, query):
-        autolog({"project": "discord-bot-llm-trace"})
-        wandb.init(project="discord-bot-llm-trace", group='GetAnswerFromFaiss')
+        autolog({
+            "project": "discord-bot-llm-trace",
+            "group": "GetAnswerFromFaiss"
+        })
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
         embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=6)
@@ -43,7 +45,6 @@ class RetrievalQAFromFaiss:
                 stuff_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 print(f"stuff_answer: {stuff_answer}")
                 autolog.disable()  # 追加
-                wandb.finish()
                 return stuff_answer, source_url, self
             try:
                 source_url = response[0]["source_url"]
@@ -51,10 +52,7 @@ class RetrievalQAFromFaiss:
                 source_url = ""
                 print(f"source_url: {source_url}")
                 autolog.disable()  # 追加
-                wandb.finish()
                 return stuff_answer, source_url, self
             autolog.disable()  # 追加
-            wandb.finish()
             return stuff_answer, source_url, self
         autolog.disable()  # 追加
-        wandb.finish()

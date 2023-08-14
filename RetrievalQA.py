@@ -43,13 +43,10 @@ class RetrievalQAFromFaiss:
             except (TypeError, KeyError, IndexError):
                 stuff_answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 print(f"stuff_answer: {stuff_answer}")
-                autolog.disable()
                 return stuff_answer, source_url, self
             try:
                 source_url = response[0]["source_url"]
             except (TypeError, KeyError, IndexError):
                 source_url = ""
-                autolog.disable()
                 return stuff_answer, source_url, self
-            autolog.disable()
             return stuff_answer, source_url, self

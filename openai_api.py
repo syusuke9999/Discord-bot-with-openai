@@ -49,18 +49,13 @@ async def call_openai_api(hyper_parameters, system_message, new_message, message
             return response.json()
     except httpx.HTTPStatusError as exc:
         logger.warning(f"HTTP status error {exc}")
-        autolog.disable()  # 追加
         # Handle HTTP status error
     except json.JSONDecodeError as e:
         logger.exception(f"A JSON decode error occurred: {e}")
-        autolog.disable()  # 追加
         # Handle JSON decode error
     except httpx.TimeoutException as e:
         logger.exception(f"A timeout error occurred: {e}")
-        autolog.disable()  # 追加
         # Handle timeout error
     except httpx.RequestError as e:
         logger.exception(f"A network error occurred: {e}")
-        autolog.disable()  # 追加
         # Handle network error
-    autolog.disable()  # 追加

@@ -85,7 +85,5 @@ class RetrievalConversationWithFaiss:
             except (TypeError, KeyError, IndexError):
                 answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
                 print(f"stuff_answer: {answer}")
-                autolog.disable()
                 return answer, self.input_txt
-            autolog.disable()
             return answer, self.input_txt

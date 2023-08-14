@@ -24,7 +24,7 @@ class RetrievalQAFromFaiss:
                                                                    base_retriever=docsearch.as_retriever())
             # 現在の日付と時刻を取得します（日本時間）。
             refine_qa = RetrievalQA.from_chain_type(
-                chain_type="refine",
+                chain_type="stuff",
                 llm=llm,
                 retriever=compression_retriever,
                 verbose=True,

@@ -4,17 +4,9 @@ from langchain.chains import RetrievalQA
 from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
-from langchain.prompts import PromptTemplate
-from langchain.prompts.chat import (
-    AIMessagePromptTemplate,
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    SystemMessagePromptTemplate,
-)
+from langchain.retrievers.document_compressors import LLMChainExtractor
 import os
 import asyncio
-from datetime import datetime
-import pytz
 
 
 class RetrievalQAFromFaiss:
@@ -31,14 +23,14 @@ class RetrievalQAFromFaiss:
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
-            search_kwargs = {"k": 4, "return_metadata": True}
+
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
-                                                                   base_retriever=docsearch.as_retriever(
-                                                                    search_kwargs=search_kwargs))
+                                                                   base_retriever=docsearch.as_retriever(),
+                                                                   return_source_documents=True)
             refine_qa = RetrievalQA.from_chain_type(
                 llm=llm,
                 chain_type="refine",
-                retriever=compression_retriever,
+                retriever=compression_retriever
                 # chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )
             # return_source_documentsプロパティをTrueにセット
@@ -54,7 +46,10 @@ class RetrievalQAFromFaiss:
                 source_url = response[0]["source_documents"][0].metadata["source"]
             except (TypeError, KeyError, IndexError):
                 source_url = None
-            return answer, source_url, self.input_txt
+            import re
+            text_japanese_only = re.sub(r'[a-zA-Z\s.,]+', '', answer)
+            print(text_japanese_only)
+            return text_japanese_only, source_url, self.input_txt
         else:
-            answer = "申し訳ありません。データベースに不具合が生じているようです。開発者にお問い合わせください。"
-            return answer, source_url, self.input_txt
+            text_japanese_only = "申し訳ありません。データベースに不具合が生じているようです。開発者にお問い合わせください。"
+            return text_japanese_only, source_url, self.input_txt

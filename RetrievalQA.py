@@ -5,8 +5,33 @@ from langchain.vectorstores import FAISS
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.retrievers.document_compressors import LLMChainExtractor
+from langdetect import detect
+import re
 import os
 import asyncio
+
+
+def remove_english(text):
+    # 英語のセンテンスを削除
+    sentences = re.split(r'(\s*[.?!]\s*)', text)
+    non_english_sentences = []
+
+    for i in range(0, len(sentences) - 1, 2):
+        sentence = sentences[i]
+        # センテンスが空でない場合のみ言語検出を行う
+        if sentence.strip():
+            try:
+                if detect(sentence) != 'en':
+                    non_english_sentences.append(sentence + sentences[i + 1])
+            except:
+                # 言語検出に失敗した場合、センテンスをそのまま追加
+                non_english_sentences.append(sentence + sentences[i + 1])
+
+    # 最後のセンテンスが残っている場合、追加
+    if len(sentences) % 2 != 0:
+        non_english_sentences.append(sentences[-1])
+
+    return "".join(non_english_sentences)
 
 
 class RetrievalQAFromFaiss:
@@ -47,15 +72,10 @@ class RetrievalQAFromFaiss:
             except (TypeError, KeyError, IndexError):
                 source_url = None
             print("answer: ", answer)
-            import re
             # 英語の部分を削除
-            text_removed_english = re.sub(r'[a-zA-Z\s.,]+:', '', answer)
-            # リストの番号の後にカンマを追加
-            text_with_commas = re.sub(r'(\d)([^\d])', r'\1,\2', text_removed_english)
-            # 改行を追加
-            text_with_newlines = re.sub(r'(\d,)', r'\n\1', text_with_commas)
-            print(text_with_newlines)
-            return text_with_newlines, source_url, self.input_txt
+            text_japanese_only = remove_english(answer)  # 英語の部分を削除
+            print(text_japanese_only)
+            return text_japanese_only, source_url, self.input_txt
         else:
             text_japanese_only = "申し訳ありません。データベースに不具合が生じているようです。開発者にお問い合わせください。"
             return text_japanese_only, source_url, self.input_txt

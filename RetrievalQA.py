@@ -46,6 +46,7 @@ class RetrievalQAFromFaiss:
                 source_url = response[0]["source_documents"][0].metadata["source"]
             except (TypeError, KeyError, IndexError):
                 source_url = None
+            print("answer: ", answer)
             import re
             text_japanese_only = re.sub(r'[a-zA-Z\s.,]+', '', answer)
             print(text_japanese_only)

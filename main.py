@@ -18,7 +18,6 @@ import wandb
 assert langchain.__version__ >= "0.0.218", "Please ensure you are using LangChain v0.0.188 or higher"
 
 wbkey = os.getenv("wbkey")
-wandb.init(project="discord-bot-llm-trace")
 wandb.login(key=wbkey)
 
 os.environ["LANGCHAIN_WANDB_TRACING"] = "true"  # ここで環境変数を設定

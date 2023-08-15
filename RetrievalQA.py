@@ -1,10 +1,7 @@
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.llms.loading import load_llm
-from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
 from langchain.chains.question_answering import load_qa_chain
 from langchain.vectorstores import FAISS
-from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 from langdetect import detect
 import re
@@ -43,9 +40,7 @@ class RetrievalQAFromFaiss:
 
     async def GetAnswerFromFaiss(self, query):
         self.input_txt = query
-        llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
-        source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
             refine_prompt_template = (
@@ -77,7 +72,7 @@ class RetrievalQAFromFaiss:
                 input_variables=["context_str", "question"], template=initial_qa_template
             )
             qa_chain = load_qa_chain(
-                ChatOpenAI(temperature=0),
+                ChatOpenAI(temperature=0, model_name="gpt-4-0613", max_tokens=1000, top_p=0, presence_penalty=0.6),
                 chain_type="refine",
                 return_refine_steps=True,
                 question_prompt=initial_qa_prompt,

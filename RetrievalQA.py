@@ -1,10 +1,11 @@
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms.loading import load_llm
 from langchain.chains import RetrievalQA
+from langchain.chat_models import ChatOpenAI
+from langchain.chains.question_answering import load_qa_chain
 from langchain.vectorstores import FAISS
-from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers.document_compressors import EmbeddingsFilter
-from langchain.retrievers.document_compressors import LLMChainExtractor
+from langchain.llms import OpenAI
+from langchain.prompts import PromptTemplate
 from langdetect import detect
 import re
 import os
@@ -40,42 +41,62 @@ class RetrievalQAFromFaiss:
         self.total_tokens = 0
         self.input_txt = ""
 
-    async def GetAnswerFromFaiss(self, input_txt):
-        self.input_txt = input_txt
+    async def GetAnswerFromFaiss(self, query):
+        self.input_txt = query
         llm = load_llm("my_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings)
         source_url = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
-
-            compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
-                                                                   base_retriever=docsearch.as_retriever(),
-                                                                   return_source_documents=True)
-            refine_qa = RetrievalQA.from_chain_type(
-                llm=llm,
-                chain_type="refine",
-                retriever=compression_retriever
-                # chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
+            refine_prompt_template = (
+                "The original question is as follows: {question}\n"
+                "We have provided an existing answer: {existing_answer}\n"
+                "We have the opportunity to refine the existing answer"
+                "(only if needed) with some more context below.\n"
+                "------------\n"
+                "{context_str}\n"
+                "------------\n"
+                "Given the new context, refine the original answer to better "
+                "answer the question. answer must be in Japanese.\n"
+                "If the context isn't useful, return the original answer."
             )
-            # return_source_documentsプロパティをTrueにセット
-            refine_qa.return_source_documents = True
+            refine_prompt = PromptTemplate(
+                input_variables=["question", "existing_answer", "context_str"],
+                template=refine_prompt_template,
+            )
+            initial_qa_template = (
+                "Context information is below. \n"
+                "---------------------\n"
+                "{context_str}"
+                "\n---------------------\n"
+                "Given the context information and not prior knowledge, "
+                "Your answer should be in Japanese.\n"
+                "answer the question: {question}\n"
+            )
+            initial_qa_prompt = PromptTemplate(
+                input_variables=["context_str", "question"], template=initial_qa_template
+            )
+            qa_chain = load_qa_chain(
+                ChatOpenAI(temperature=0),
+                chain_type="refine",
+                return_refine_steps=True,
+                question_prompt=initial_qa_prompt,
+                refine_prompt=refine_prompt
+            )
+            similar_documents = docsearch.similarity_search(query=query, k=4)
             loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(None, lambda: refine_qa.apply([input_txt]))
+            response = await loop.run_in_executor(None, lambda: qa_chain({"input_documents":
+                                                                         similar_documents,
+                                                                         "question": query},
+                                                                         return_only_outputs=True)
+                                                  )
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
-                answer = response[0]["result"]
+                answer = response['output_text']
             except (TypeError, KeyError, IndexError):
                 answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
-            try:
-                source_url = response[0]["source_documents"][0].metadata["source"]
-            except (TypeError, KeyError, IndexError):
-                source_url = None
             print("answer: ", answer)
-            # 英語の部分を削除
-            text_japanese_only = remove_english(answer)  # 英語の部分を削除
-            print(text_japanese_only)
-            return text_japanese_only, source_url, self.input_txt
+            return answer, self.input_txt
         else:
-            text_japanese_only = "申し訳ありません。データベースに不具合が生じているようです。開発者にお問い合わせください。"
-            return text_japanese_only, source_url, self.input_txt
+            answer = "申し訳ありません。データベースに不具合が生じているようです。開発者にお問い合わせください。"
+            return answer, self.input_txt

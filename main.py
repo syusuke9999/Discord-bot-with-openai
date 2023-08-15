@@ -192,13 +192,15 @@ class MyBot(commands.Bot):
                     user_key = f'{user_id}_{user_name}'
                     retrival_qa = RetrievalQAFromFaiss()
                     # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
-                    bot_response, source_url, input_query = await retrival_qa.GetAnswerFromFaiss(message.content)
+                    bot_response, input_query = await retrival_qa.GetAnswerFromFaiss(message.content)
                     elapsed_time = time.time() - start_time
                     print(f"The retrieval qa process took {elapsed_time} seconds.")
                     system_message_instance = SystemMessage(topic=Topic.DETERMINE_ANSWERED_OR_NOT_ANSWERED)
                     system_message_content = system_message_instance.get_system_message_content()
                     system_message_dict = {"role": "system", "content": system_message_content}
                     new_message_dict = {"role": "user", "content": bot_response}
+                    print("new_message_dict: ", new_message_dict)
+                    print("「回答」か「回答できない」かの判定を行うシステムメッセージ: ", system_message_content)
                     # 判定にはgpt-4-0613を使用する
                     self.model_name = "gpt-4-0613"
                     self.max_tokens = 10
@@ -232,8 +234,6 @@ class MyBot(commands.Bot):
                     elif "answered" in bot_classification:
                         if bot_response is not None:
                             await send_message(message, bot_response)
-                        if source_url is not None:
-                            await send_message(message, source_url)
             # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
             elif "conversation" in bot_classification:
                 self.max_tokens = 10000

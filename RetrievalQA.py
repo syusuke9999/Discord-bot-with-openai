@@ -48,9 +48,14 @@ class RetrievalQAFromFaiss:
                 source_url = None
             print("answer: ", answer)
             import re
-            text_japanese_only = re.sub(r'[a-zA-Z\s.,]+', '', answer)
-            print(text_japanese_only)
-            return text_japanese_only, source_url, self.input_txt
+            # 英語の部分を削除
+            text_removed_english = re.sub(r'[a-zA-Z\s.,]+:', '', answer)
+            # リストの番号の後にカンマを追加
+            text_with_commas = re.sub(r'(\d)([^\d])', r'\1,\2', text_removed_english)
+            # 改行を追加
+            text_with_newlines = re.sub(r'(\d,)', r'\n\1', text_with_commas)
+            print(text_with_newlines)
+            return text_with_newlines, source_url, self.input_txt
         else:
             text_japanese_only = "申し訳ありません。データベースに不具合が生じているようです。開発者にお問い合わせください。"
             return text_japanese_only, source_url, self.input_txt

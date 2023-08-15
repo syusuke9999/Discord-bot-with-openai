@@ -57,8 +57,8 @@ class RetrievalQAFromFaiss:
                 "{context_str}\n"
                 "------------\n"
                 "Given the new context, refine the original answer to better "
-                "answer the question. answer must be in Japanese.\n"
-                "If the context isn't useful, return the original answer."
+                "answer the question in Japanese.\n"
+                "If the context isn't useful, return the original answer in Japanese."
             )
             refine_prompt = PromptTemplate(
                 input_variables=["question", "existing_answer", "context_str"],

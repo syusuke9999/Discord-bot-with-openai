@@ -231,7 +231,7 @@ class MyBot(commands.Bot):
                     system_message_dict = {"role": "system", "content": system_message_content}
                     new_message_dict = {"role": "user", "content": bot_response}
                     self.model_name = "gpt-4-0613"
-                    self.max_tokens = 1000
+                    self.max_tokens = 500
                     self.model_temperature = 0
                     self.model_top_p = 0
                     self.model_presence_penalty = 0

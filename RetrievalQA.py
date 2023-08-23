@@ -3,33 +3,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains.question_answering import load_qa_chain
 from langchain.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
-from langdetect import detect
-import re
 import os
 import asyncio
-
-
-def remove_english(text):
-    # 英語のセンテンスを削除
-    sentences = re.split(r'(\s*[.?!]\s*)', text)
-    non_english_sentences = []
-
-    for i in range(0, len(sentences) - 1, 2):
-        sentence = sentences[i]
-        # センテンスが空でない場合のみ言語検出を行う
-        if sentence.strip():
-            try:
-                if detect(sentence) != 'en':
-                    non_english_sentences.append(sentence + sentences[i + 1])
-            except:
-                # 言語検出に失敗した場合、センテンスをそのまま追加
-                non_english_sentences.append(sentence + sentences[i + 1])
-
-    # 最後のセンテンスが残っている場合、追加
-    if len(sentences) % 2 != 0:
-        non_english_sentences.append(sentences[-1])
-
-    return "".join(non_english_sentences)
 
 
 class RetrievalQAFromFaiss:
@@ -79,6 +54,9 @@ class RetrievalQAFromFaiss:
                 refine_prompt=refine_prompt
             )
             similar_documents = docsearch.similarity_search(query=query, k=4)
+            for doc in similar_documents:
+                print("page_content= ", doc.page_content)
+                print("metadata= ", str(doc.metadata))
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: qa_chain({"input_documents":
                                                                          similar_documents,

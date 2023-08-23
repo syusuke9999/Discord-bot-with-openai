@@ -9,7 +9,7 @@ class Topic(Enum):
     IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC = 3
     DETERMINE_ANSWERED_OR_NOT_ANSWERED = 4
     DETERMINE_MQL_QUESTION_OR_NOT = 5
-    MQL_LANGUAGE_TOPIC = 6
+    PARAPHRASE_THE_RESPONSE_TEXT = 6
 
 
 class Channel(Enum):
@@ -110,6 +110,17 @@ class SystemMessage:
                                           f'simply respond "answered". ' \
                                           f'Your answer should only be "don\'t Know", ' \
                                           f'and no other responses are allowed.'
+        elif self.topics is Topic.PARAPHRASE_THE_RESPONSE_TEXT:
+            self.system_message_content = """あなたは、文章の中から特定の語句や文言、言い回しを除去して文章を整えるアシスタントです。"
+                                           「新たに提供された情報によると」～内容～「確認できます・分かります」という言い回しは、
+                                           単に～内容～を記述するのみにして下さい。
+                                           「コンテキスト情報からは、」～内容～「についての情報は得られませんでした。」
+                                           と言い換えて下さい。
+                                           という言い回しは、「参照したデータからは」～内容～「についての情報が得られませんでした。」
+                                           と言い換えて下さい。「この文脈では、」～内容～「示されていません」という言い回しは、
+                                           「参照したデータからは」～内容～「についての情報が得られませんでした。」と言い換えて下さい。
+                                           「この新たな文脈では、」～内容～「具体的な情報は提供されていません」という言い回しは、
+                                           「参照したデータからは」～内容～「についての情報が得られませんでした。」と言い換えて下さい。"""
 
     def get_system_message_content(self):
         return self.system_message_content

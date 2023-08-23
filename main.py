@@ -92,7 +92,8 @@ class MyBot(commands.Bot):
         # 個別のモデルに配慮して、トークン数を制限した会話履歴
         self.truncated_message_histories = {}
         self.total_tokens = 0  # トークン数の合計を保持するための変数を追加
-        self.special_channel_ids = [1117363032172003328, 1139850220914610236, 1143847146697793618]  # 特定のチャンネルのIDをリストで設定します。
+        # 特定のチャンネルのIDをリストで設定します。
+        self.special_channel_ids = [1117363032172003328, 1139850220914610236, 1143847146697793618]
         self.max_tokens = 3000
         self.model_name = model_name
         self.model_temperature = 0.2

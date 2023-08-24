@@ -26,7 +26,7 @@ class RetrievalQAFromFaiss:
                 "------------\n"
                 "{context_str}\n"
                 "------------\n"
-                "Based on the new context, provide a clear and direct answer to the question in Japanese."
+                "Based on the new context, provide a direct answer to the question in Japanese."
                 "If the context is not relevant, provide the best answer to the question in Japanese."
             )
             refine_prompt = PromptTemplate(
@@ -47,7 +47,6 @@ class RetrievalQAFromFaiss:
             qa_chain = load_qa_chain(
                 OpenAI(temperature=0, model_name="gpt-4-0613", top_p=0, max_tokens=500, presence_penalty=0.6),
                 chain_type="refine",
-                return_refine_steps=True,
                 question_prompt=initial_qa_prompt,
                 refine_prompt=refine_prompt
             )

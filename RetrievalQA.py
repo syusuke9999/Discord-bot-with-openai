@@ -21,12 +21,15 @@ class RetrievalQAFromFaiss:
             docsearch = FAISS.load_local("./faiss_index", embeddings)
             refine_prompt_template = (
                 "The original question is as follows: {question}\n"
-                "The existing answer is provided below: {existing_answer}\n"
-                "You have the opportunity to refine the answer if needed, considering the additional context below.\n"
+                "We have provided an existing answer: {existing_answer}\n"
+                "We have the opportunity to refine the existing answer"
+                "(only if needed) with some more context below.\n"
                 "------------\n"
                 "{context_str}\n"
                 "------------\n"
-                "Based on the new context, provide a direct answer to the question in Japanese."
+                "Given the new context, refine the original answer to better "
+                "answer the question. "
+                "If the context isn't useful, return the original answer in Japanese."
                 "If the context is not relevant, provide the best answer to the question in Japanese."
             )
             refine_prompt = PromptTemplate(

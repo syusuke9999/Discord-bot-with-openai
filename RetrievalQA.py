@@ -1,3 +1,4 @@
+from langchain import OpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
 from langchain.chains.question_answering import load_qa_chain
@@ -44,7 +45,7 @@ class RetrievalQAFromFaiss:
                 input_variables=["context_str", "question"], template=initial_qa_template
             )
             qa_chain = load_qa_chain(
-                ChatOpenAI(temperature=0, model_name="gpt-4-0613", max_tokens=500, presence_penalty=0.6),
+                OpenAI(temperature=0, model_name="gpt-4-0613", top_p=0, max_tokens=500, presence_penalty=0.6),
                 chain_type="refine",
                 return_refine_steps=True,
                 question_prompt=initial_qa_prompt,

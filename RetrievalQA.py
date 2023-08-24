@@ -45,7 +45,7 @@ class RetrievalQAFromFaiss:
                 input_variables=["context_str", "question"], template=initial_qa_template
             )
             qa_chain = load_qa_chain(
-                OpenAI(temperature=0, model_name="gpt-4-0613", top_p=0, max_tokens=500, presence_penalty=0.6),
+                ChatOpenAI(temperature=0, model_name="gpt-4-0613", top_p=0, max_tokens=500, presence_penalty=0.6),
                 chain_type="refine",
                 question_prompt=initial_qa_prompt,
                 refine_prompt=refine_prompt

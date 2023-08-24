@@ -166,7 +166,7 @@ class MyBot(commands.Bot):
             self.model_presence_penalty = 0
             self.model_frequency_penalty = 0
             hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
+                                self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
                                     self.model_presence_penalty, "frequency_penalty": self.model_frequency_penalty}
             # タイピングアニメーションと共に話題が「search」か「conversation」かを判定させる
             response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, new_message_dict)
@@ -210,7 +210,7 @@ class MyBot(commands.Bot):
                     self.model_presence_penalty = 0
                     self.model_frequency_penalty = 0
                     hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                        self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
+                                        self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
                                             self.model_presence_penalty, "frequency_penalty":
                                             self.model_frequency_penalty}
                     response = await openai_api.call_openai_api(hyper_parameters, system_message_dict,
@@ -226,41 +226,15 @@ class MyBot(commands.Bot):
                         return
                     print("ユーザーの発言: ", message.content)
                     print("Retrival QAによる回答: ", bot_response)
-                    system_message_instance = SystemMessage(topic=Topic.PARAPHRASE_THE_RESPONSE_TEXT)
-                    system_message_content = system_message_instance.get_system_message_content()
-                    system_message_dict = {"role": "system", "content": system_message_content}
-                    new_message_dict = {"role": "user", "content": bot_response}
-                    self.model_name = "gpt-4-0613"
-                    self.max_tokens = 500
-                    self.model_temperature = 0
-                    self.model_top_p = 0
-                    self.model_presence_penalty = 0
-                    self.model_frequency_penalty = 0.6
-                    hyper_parameters = {"model_name": self.model_name, "max_tokens": self.max_tokens, "temperature":
-                                        self.model_temperature, "top_p": self.model_top_p, "presence_penalty":
-                                            self.model_presence_penalty, "frequency_penalty":
-                                            self.model_frequency_penalty}
-                    response = await openai_api.call_openai_api(hyper_parameters, system_message_dict,
-                                                                new_message_dict)
-                    try:
-                        content = response["choices"][0]["message"]["content"]
-                    except (TypeError, KeyError, IndexError):
-                        content = None
-                    if content is not None:
-                        rephrased_response = content
-                    else:
-                        print("initial bot_response is None or empty.")
-                        return
-                    print("Retrival QAによる回答を言い換えたもの: ", rephrased_response)
                     print("\033[93mAIが質問に答えられたかの判定「don't know」,「other」:\033[0m \033[91m",
                           bot_classification, "\033[0m")
                     if "don't Know" in bot_classification:
                         print("\033[93m検索結果から回答を見つけられなかったため、URLは添付しません。\033[0m")
-                        if rephrased_response is not None:
-                            await send_message(message, rephrased_response)
+                        if bot_response is not None:
+                            await send_message(message, bot_response)
                     elif "answered" in bot_classification:
-                        if rephrased_response is not None:
-                            await send_message(message, rephrased_response)
+                        if bot_response is not None:
+                            await send_message(message, bot_response)
             # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
             elif "conversation" in bot_classification:
                 self.max_tokens = 10000

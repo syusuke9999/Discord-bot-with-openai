@@ -58,16 +58,23 @@ class RetrievalQAFromFaiss:
             vectorizer = TfidfVectorizer()
             X = vectorizer.fit_transform(similar_documents_text)
             # 各語句のTF-IDFスコアを計算
-            feature_names = np.array(vectorizer.get_feature_names())
-            sorted_by_tfidf = np.argsort(X.sum(axis=0).A1)
-
-            # スコアが高い語句を抽出（ここでは上位3語）
-            top_terms = feature_names[sorted_by_tfidf[-5:]]
-            # クエリに固有表現を追加
-            modified_query = initial_query
-            for term in top_terms:
-                modified_query = modified_query.replace(term, f"[{term}]")
-                print("modified_query: ", modified_query)
+            # ローカル変数 'feature_names' の初期化
+            feature_names = None
+            # この行でエラーが出ている場合、上の.fit_transform()が成功しているか確認
+            try:
+                feature_names = np.array(vectorizer.get_feature_names_out())
+            except AttributeError:
+                print("TfidfVectorizerが適切にフィットされていません。")
+            # feature_namesがNoneでない場合のみ後続の処理を行う
+            if feature_names is not None:
+                sorted_by_tfidf = np.argsort(X.sum(axis=0).A1)
+                # スコアが高い語句を抽出（ここでは上位3語）
+                top_terms = feature_names[sorted_by_tfidf[-5:]]
+                # クエリに固有表現を追加
+                modified_query = initial_query
+                for term in top_terms:
+                    modified_query = modified_query.replace(term, f"[{term}]")
+                    print("modified_query: ", modified_query)
             # for doc in similar_documents:
             #     print("page_content= ", doc.page_content)
             #     print("metadata= ", str(doc.metadata))

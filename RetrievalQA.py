@@ -22,15 +22,12 @@ class RetrievalQAFromFaiss:
             refine_prompt_template = (
                 "The original question is as follows: {question}\n"
                 "We have provided an existing answer: {existing_answer}\n"
-                "We have the opportunity to refine the existing answer"
-                "(only if needed) with some more context below.\n"
                 "------------\n"
                 "{context_str}\n"
                 "------------\n"
-                "Given the new context, refine the original answer to better "
-                "answer the question. "
-                "If the context isn't useful, return the original answer in Japanese."
-                "If the context is not relevant, provide the best answer to the question in Japanese."
+                "Please provide a concise and clear answer to the original question in Japanese, "
+                "considering the information above. If the information above doesn't contribute to the answer, "
+                "return the original answer in Japanese."
             )
             refine_prompt = PromptTemplate(
                 input_variables=["question", "existing_answer", "context_str"],

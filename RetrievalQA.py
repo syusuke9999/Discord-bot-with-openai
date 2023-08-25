@@ -52,11 +52,13 @@ class RetrievalQAFromFaiss:
                 refine_prompt=refine_prompt
             )
             similar_documents = docsearch.similarity_search(query=initial_query, k=4)
+            # 'Documentオブジェクトからテキストを抽出（仮定）
+            similar_documents_text = [doc.page_content for doc in similar_documents]
             # TF-IDFベクトル化
-            vectorized = TfidfVectorizer()
-            X = vectorized.fit_transform(similar_documents)
+            vectorizer = TfidfVectorizer()
+            X = vectorizer.fit_transform(similar_documents_text)
             # 各語句のTF-IDFスコアを計算
-            feature_names = np.array(vectorized.get_feature_names())
+            feature_names = np.array(vectorizer.get_feature_names())
             sorted_by_tfidf = np.argsort(X.sum(axis=0).A1)
 
             # スコアが高い語句を抽出（ここでは上位3語）

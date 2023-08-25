@@ -72,7 +72,7 @@ class RetrievalQAFromFaiss:
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: qa_chain({"input_documents":
                                                                          similar_documents,
-                                                                         "question": query},
+                                                                         "question": initial_query},
                                                                          return_only_outputs=True)
                                                   )
             # responseオブジェクトからanswerとsource_urlを抽出

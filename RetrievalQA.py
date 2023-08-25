@@ -55,9 +55,8 @@ class RetrievalQAFromFaiss:
             # 'Documentオブジェクトからテキストを抽出（仮定）
             similar_documents_text = [doc.page_content for doc in similar_documents]
             # TF-IDFベクトル化
-            vectorizer = TfidfVectorizer()
+            vectorizer = TfidfVectorizer(ngram_range=(1, 3))  # 1-gramから3-gramまで考慮
             X = vectorizer.fit_transform(similar_documents_text)
-            # 各語句のTF-IDFスコアを計算
             # ローカル変数 'feature_names' の初期化
             feature_names = None
             # この行でエラーが出ている場合、上の.fit_transform()が成功しているか確認
@@ -68,13 +67,13 @@ class RetrievalQAFromFaiss:
             # feature_namesがNoneでない場合のみ後続の処理を行う
             if feature_names is not None:
                 sorted_by_tfidf = np.argsort(X.sum(axis=0).A1)
-                # スコアが高い語句を抽出（ここでは上位3語）
                 top_terms = feature_names[sorted_by_tfidf[-6:]]
                 # クエリに固有表現を追加
                 modified_query = initial_query
+                # TF-IDFで抽出した語句を使用して固有表現を追加
                 for term in top_terms:
                     modified_query = modified_query.replace(term, f"[{term}]")
-                    print("modified_query: ", modified_query)
+                print("modified_query: ", modified_query)
             for doc in similar_documents:
                 print("page_content= ", doc.page_content)
                 print("metadata= ", str(doc.metadata))

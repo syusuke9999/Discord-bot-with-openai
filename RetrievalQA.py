@@ -51,7 +51,7 @@ class RetrievalQAFromFaiss:
                 question_prompt=initial_qa_prompt,
                 refine_prompt=refine_prompt
             )
-            similar_documents = docsearch.similarity_search(query=initial_query, k=20)
+            similar_documents = docsearch.similarity_search(query=initial_query)
             # 'Documentオブジェクトからテキストを抽出（仮定）
             similar_documents_text = [doc.page_content for doc in similar_documents]
             # TF-IDFベクトル化

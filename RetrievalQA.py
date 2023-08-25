@@ -75,9 +75,9 @@ class RetrievalQAFromFaiss:
                 for term in top_terms:
                     modified_query = modified_query.replace(term, f"[{term}]")
                     print("modified_query: ", modified_query)
-            # for doc in similar_documents:
-            #     print("page_content= ", doc.page_content)
-            #     print("metadata= ", str(doc.metadata))
+            for doc in similar_documents:
+                print("page_content= ", doc.page_content)
+                print("metadata= ", str(doc.metadata))
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: qa_chain({"input_documents":
                                                                          similar_documents,

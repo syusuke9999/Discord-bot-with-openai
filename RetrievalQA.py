@@ -54,6 +54,7 @@ class RetrievalQAFromFaiss:
             similar_documents = docsearch.similarity_search(query=initial_query)
             # 'Documentオブジェクトからテキストを抽出（仮定）
             similar_documents_text = [doc.page_content for doc in similar_documents]
+            custom_dictionary = ["", ""]
             # TF-IDFベクトル化
             vectorizer = TfidfVectorizer(ngram_range=(1, 3))  # 1-gramから3-gramまで考慮
             X = vectorizer.fit_transform(similar_documents_text)
@@ -70,6 +71,9 @@ class RetrievalQAFromFaiss:
                 top_terms = feature_names[sorted_by_tfidf[-6:]]
                 # クエリに固有表現を追加
                 modified_query = initial_query
+                # カスタム辞書を使用して固有表現を追加
+                for term in custom_dictionary:
+                    modified_query = modified_query.replace(term, f"[{term}]")
                 # TF-IDFで抽出した語句を使用して固有表現を追加
                 for term in top_terms:
                     modified_query = modified_query.replace(term, f"[{term}]")

@@ -51,7 +51,7 @@ class RetrievalQAFromFaiss:
                 question_prompt=initial_qa_prompt,
                 refine_prompt=refine_prompt
             )
-            similar_documents = docsearch.similarity_search(query=initial_query, k=4)
+            similar_documents = docsearch.similarity_search(query=initial_query, k=6)
             # 'Documentオブジェクトからテキストを抽出（仮定）
             similar_documents_text = [doc.page_content for doc in similar_documents]
             # TF-IDFベクトル化
@@ -69,7 +69,7 @@ class RetrievalQAFromFaiss:
             if feature_names is not None:
                 sorted_by_tfidf = np.argsort(X.sum(axis=0).A1)
                 # スコアが高い語句を抽出（ここでは上位3語）
-                top_terms = feature_names[sorted_by_tfidf[-5:]]
+                top_terms = feature_names[sorted_by_tfidf[-6:]]
                 # クエリに固有表現を追加
                 modified_query = initial_query
                 for term in top_terms:

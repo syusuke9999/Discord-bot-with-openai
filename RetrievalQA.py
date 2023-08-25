@@ -54,7 +54,7 @@ class RetrievalQAFromFaiss:
             similar_documents = docsearch.similarity_search(query=initial_query)
             # 'Documentオブジェクトからテキストを抽出（仮定）
             similar_documents_text = [doc.page_content for doc in similar_documents]
-            custom_dictionary = ["", ""]
+            custom_dictionary = ["迅速効果", "疲労状態"]
             # TF-IDFベクトル化
             vectorizer = TfidfVectorizer(ngram_range=(1, 3))  # 1-gramから3-gramまで考慮
             X = vectorizer.fit_transform(similar_documents_text)

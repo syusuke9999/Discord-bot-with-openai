@@ -1,4 +1,5 @@
-from langchain import OpenAI
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
 from langchain.chains.question_answering import load_qa_chain
@@ -14,8 +15,8 @@ class RetrievalQAFromFaiss:
         self.total_tokens = 0
         self.input_txt = ""
 
-    async def GetAnswerFromFaiss(self, query):
-        self.input_txt = query
+    async def GetAnswerFromFaiss(self, initial_query):
+        self.input_txt = initial_query
         embeddings = OpenAIEmbeddings()
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
@@ -50,10 +51,24 @@ class RetrievalQAFromFaiss:
                 question_prompt=initial_qa_prompt,
                 refine_prompt=refine_prompt
             )
-            similar_documents = docsearch.similarity_search(query=query, k=4)
-            for doc in similar_documents:
-                print("page_content= ", doc.page_content)
-                print("metadata= ", str(doc.metadata))
+            similar_documents = docsearch.similarity_search(query=initial_query, k=4)
+            # TF-IDFベクトル化
+            vectorized = TfidfVectorizer()
+            X = vectorized.fit_transform(similar_documents)
+            # 各語句のTF-IDFスコアを計算
+            feature_names = np.array(vectorized.get_feature_names())
+            sorted_by_tfidf = np.argsort(X.sum(axis=0).A1)
+
+            # スコアが高い語句を抽出（ここでは上位3語）
+            top_terms = feature_names[sorted_by_tfidf[-5:]]
+            # クエリに固有表現を追加
+            modified_query = initial_query
+            for term in top_terms:
+                modified_query = modified_query.replace(term, f"[{term}]")
+                print("modified_query: ", modified_query)
+            # for doc in similar_documents:
+            #     print("page_content= ", doc.page_content)
+            #     print("metadata= ", str(doc.metadata))
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: qa_chain({"input_documents":
                                                                          similar_documents,

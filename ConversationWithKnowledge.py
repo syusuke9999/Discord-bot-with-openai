@@ -92,7 +92,7 @@ class RetrievalConversationWithFaiss:
             stuff_qa = RetrievalQA.from_chain_type(
                 llm=llm,
                 chain_type="stuff",
-                question_prompt=stuff_prompt,
+                custom_prompt=stuff_prompt,
                 verbose=True,
                 chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )

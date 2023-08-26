@@ -95,11 +95,13 @@ class SystemMessage:
             return
         elif self.topics is Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC:
             self.system_message_content = f'Determine if the user\'s statement is a question about specific ' \
-                                           f'information or a casual conversation. If it is a question, ' \
-                                           f'respond with "refine"; if it is a conversation include questions ' \
-                                           f'about yourself , respond with "casual". ' \
-                                           f'Your answer should only be "refine" or "casual", ' \
-                                           f'and no other responses are allowed.'
+                                          f'information or a casual conversation. If the user\'s question is neither ' \
+                                          f'a question about yourself, idle conversation, or humor, ' \
+                                          f'but a question about the detailed rules of Dead by Daylight, ' \
+                                          f'respond with "refine"; if it is a conversation include questions ' \
+                                          f'about yourself , respond with "casual". ' \
+                                          f'Your answer should only be "refine" or "casual", ' \
+                                          f'and no other responses are allowed.'
             return
         elif self.topics is Topic.DETERMINE_ANSWERED_OR_NOT_ANSWERED:
             self.system_message_content = f'As an assistant, your must determine if a input comment means that ' \

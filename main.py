@@ -238,7 +238,7 @@ class MyBot(commands.Bot):
                         system_message_dict = {"role": "system", "content": system_message_content}
                         new_message_dict = {"role": "user", "content": bot_response}
                         print("new_message_dict: ", new_message_dict)
-                        paraphrased_response = await openai_api.call_openai_api(hyper_parameters, system_message_dict, )
+                        paraphrased_response = await openai_api.call_openai_api(hyper_parameters, system_message_dict)
                         if paraphrased_response is not None:
                             await send_message(message, paraphrased_response)
             # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける

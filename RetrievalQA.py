@@ -1,5 +1,7 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
+import spacy
+from spacy.matcher import Matcher
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
 from langchain.chains.question_answering import load_qa_chain
@@ -52,32 +54,34 @@ class RetrievalQAFromFaiss:
                 refine_prompt=refine_prompt
             )
             similar_documents = docsearch.similarity_search(query=initial_query)
-            # 'Documentオブジェクトからテキストを抽出（仮定）
-            similar_documents_text = [doc.page_content for doc in similar_documents]
-            custom_dictionary = ["迅速効果", "疲労状態"]
-            # TF-IDFベクトル化
-            vectorizer = TfidfVectorizer(ngram_range=(1, 3))  # 1-gramから3-gramまで考慮
-            X = vectorizer.fit_transform(similar_documents_text)
-            # ローカル変数 'feature_names' の初期化
-            feature_names = None
-            # この行でエラーが出ている場合、上の.fit_transform()が成功しているか確認
-            try:
-                feature_names = np.array(vectorizer.get_feature_names_out())
-            except AttributeError:
-                print("TfidfVectorizerが適切にフィットされていません。")
-            # feature_namesがNoneでない場合のみ後続の処理を行う
-            if feature_names is not None:
-                sorted_by_tfidf = np.argsort(X.sum(axis=0).A1)
-                top_terms = feature_names[sorted_by_tfidf[-6:]]
-                # クエリに固有表現を追加
-                modified_query = initial_query
-                # カスタム辞書を使用して固有表現を追加
-                for term in custom_dictionary:
-                    modified_query = modified_query.replace(term, f"[{term}]")
-                # TF-IDFで抽出した語句を使用して固有表現を追加
-                for term in top_terms:
-                    modified_query = modified_query.replace(term, f"[{term}]")
-                print("modified_query: ", modified_query)
+            # spaCyの日本語モデルをロード
+            nlp = spacy.load("ja_core_news_sm")
+            # マッチャーを初期化
+            matcher = Matcher(nlp.vocab)
+            # パターンを定義
+            pattern1 = [{"LOWER": "効果"}, {"IS_PUNCT": True}]
+            pattern2 = [{"LOWER": "取得優先度"}, {"IS_PUNCT": True}]
+            pattern3 = [{"LOWER": "秒間"}]
+            pattern4 = [{"LOWER": "メートル"}]
+            pattern5 = [{"LOWER": "発動"}]
+            # パターンをマッチャーに追加
+            matcher.add("INFO", [pattern1, pattern2, pattern3, pattern4, pattern5])
+            # 抽出したキーワードを保存するリスト
+            extracted_keywords = []
+            # similar_documentsは、documentオブジェクトのリストと仮定
+            for doc_obj in similar_documents:
+                text = doc_obj.page_content  # page_contentからテキストを取得
+                doc = nlp(text)  # テキストを処理
+                # マッチングを実行
+                matches = matcher(doc)
+                # 結果を表示とキーワードの抽出
+                for match_id, start, end in matches:
+                    span = doc[start:end]
+                    print(f"Matched keyword: {span.text}, Position: {start}-{end}, Sentence: {span.sent.text}")
+                    extracted_keywords.append(span.text)
+            # 抽出したキーワードを使用してmodified_queryを作成
+            modified_query = " AND ".join(extracted_keywords)
+            print(f"Modified Query: {modified_query}")
             for doc in similar_documents:
                 print("page_content= ", doc.page_content)
                 print("metadata= ", str(doc.metadata))

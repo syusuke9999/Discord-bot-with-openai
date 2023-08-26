@@ -53,7 +53,7 @@ class RetrievalQAFromFaiss:
             )
             similar_documents = docsearch.similarity_search(query=initial_query)
             # カスタム辞書
-            custom_dictionary = ["予想外の展開", "堕落の介入", "人々のために"]
+            custom_dictionary = ["予想外の展開", "堕落の介入", "人々のために", "這いずり起こし"]
 
             # TF-IDFベクトル化
             vectorizer = TfidfVectorizer(ngram_range=(1, 3))  # 1-gramから3-gramまで考慮

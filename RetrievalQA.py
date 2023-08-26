@@ -74,10 +74,10 @@ class RetrievalQAFromFaiss:
                 modified_query = initial_query
                 # カスタム辞書を使用して固有表現を追加
                 for term in custom_dictionary:
-                    modified_query = modified_query.replace(term, f"[{term}]")
+                    modified_query = modified_query.replace(term, f"「{term}」")
                 # TF-IDFで抽出した語句を使用して固有表現を追加
                 for term in top_terms:
-                    modified_query = modified_query.replace(term, f"[{term}]")
+                    modified_query = modified_query.replace(term, f"「{term}」")
                 print("modified_query: ", modified_query)
             print(f"Modified Query: {modified_query}")
             for doc in similar_documents:
@@ -86,7 +86,7 @@ class RetrievalQAFromFaiss:
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: qa_chain({"input_documents":
                                                                          similar_documents,
-                                                                         "question": initial_query},
+                                                                         "question": modified_query},
                                                                          return_only_outputs=True)
                                                   )
             # responseオブジェクトからanswerとsource_urlを抽出

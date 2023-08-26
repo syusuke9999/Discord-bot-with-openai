@@ -106,22 +106,16 @@ class SystemMessage:
                                           f'Your answer should only be "don\'t Know", ' \
                                           f'and no other responses are allowed.'
         elif self.topics is Topic.PARAPHRASE_THE_RESPONSE_TEXT:
-            self.system_message_content = """あなたは、文章の中から特定の語句や文言、言い回しを除去して文章を整えるアシスタントです。"
-                                           「新たに提供された情報によると」～内容～「確認できます・分かります」という言い回しは、
-                                           単に～内容～を記述するのみにして下さい。
-                                           「コンテキスト情報からは、」～内容～「についての情報は得られませんでした。」
-                                           と言い換えて下さい。
-                                           という言い回しは、「参照したデータからは」～内容～「についての情報が得られませんでした。」
-                                           と言い換えて下さい。
-                                           「この文脈では、」～内容～「示されていません」という言い回しは、
-                                           「参照したデータからは」～内容～「についての情報が得られませんでした。」と言い換えて下さい。
-                                           「この新たな文脈では、」～内容～「具体的な情報は提供されていません」という言い回しは、
-                                           「参照したデータからは」～内容～「についての情報が得られませんでした。」と言い換えて下さい。
-                                           ”～内容～”「については、新たな情報からも明確な答えを導き出すことはできません」
-                                           という言い回しは、「参照したデータからは」～内容～「についての情報が得られませんでした。」
-                                           と言い換えて下さい。
-                                           最後に付け加えられた内容が、それ以前の内容と重複債は、付け加えられた内容を省いて下さい。
-                                           """
+            self.system_message_content = """
+            Given an original question, an existing answer, and a new context, 
+            you are an assistant who refines the existing answer by removing phrases indicating the thought process of 
+            the refinement such as 'From the new context information', 'The answer based on the new information is', 
+            'According to the new information'. If the answer to the question is clear, 
+            please recreate it as a single coherent answer with the main focus on the answer. 
+            In cases where the answer includes both a conclusion and an explanation, 
+            state the concise conclusion first. 
+            Please provide the refined answer in Japanese.
+            """
 
     def get_system_message_content(self):
         return self.system_message_content

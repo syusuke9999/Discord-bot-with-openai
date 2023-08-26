@@ -47,7 +47,6 @@ class RetrievalQAFromFaiss:
     async def GetAnswerFromFaiss(self, initial_query):
         self.input_txt = initial_query
         embeddings = OpenAIEmbeddings()
-        answer_with_source = ""
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
             refine_prompt_template = (
@@ -81,21 +80,10 @@ class RetrievalQAFromFaiss:
                 question_prompt=initial_qa_prompt,
                 refine_prompt=refine_prompt
             )
-            similar_documents, scores = docsearch.similarity_search(query=initial_query)
-            # スコアが0.76以上のドキュメントだけをフィルタリング
-            relevant_documents = [doc for doc, score in zip(similar_documents, scores) if score >= 0.76]
-            # 関連性のあるドキュメントからsource URLを抽出
-            source_urls = [doc.metadata.get('source', 'Unknown source') for doc in relevant_documents]
+            similar_documents = docsearch.similarity_search(query=initial_query)
             modified_ver_query, entities = extract_top_entities(similar_documents, initial_query)
             print("modified_ver_query: ", modified_ver_query)
             print("entities: ", entities)
-            # FAISSを使用して類似度の高いドキュメントを検索
-            similar_documents = docsearch.similarity_search(query=initial_query)
-            # FAISSのスコアなどを基に関連性のあるドキュメントをフィルタリング
-            relevant_documents = [doc for doc in similar_documents]  # 仮の条件
-            # 関連性のあるドキュメントからsource URLを抽出
-            source_urls = [doc.metadata.get('source', 'Unknown source') for doc in relevant_documents]
-
             # for doc in similar_documents:
             #    print("page_content= ", doc.page_content)
             #    print("metadata= ", str(doc.metadata))
@@ -109,10 +97,7 @@ class RetrievalQAFromFaiss:
             except (TypeError, KeyError, IndexError):
                 answer = "APIからのレスポンスに問題があります。開発者にお問い合わせください。"
             print("answer: ", answer)
-            # 関連性のあるsource URLを答えに添える
-            answer_with_source = f"{answer}\n参照元: {', '.join(source_urls)}"
-
-            return answer, self.input_txt, answer_with_source
+            return answer, self.input_txt
         else:
             answer = "申し訳ありません。データベースに不具合が生じているようです。開発者にお問い合わせください。"
-            return answer, self.input_txt, answer_with_source
+            return answer, self.input_txt

@@ -6,35 +6,36 @@ from langchain.prompts import PromptTemplate
 import os
 import asyncio
 import numpy as np
+import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 
-def extract_top_entities(input_documents, given_query):
-    # カスタム辞書
-    custom_dictionary = ["予想外の展開", "堕落の介入", "人々のために", "這いずり起こし", "疲労", "瀕死", "瀕死状態",
-                         "瀕死状態の", "瀕死状態の生存者", "怨恨", "迅速", "迅速効果", "迅速効果の", "迅速効果の生存者",
-                         "起こす", "強窓", "強ポジ", "強ポジション", "負傷", "負傷状態", "負傷状態の", "負傷状態の生存者"]
-
-    # Documentオブジェクトからテキストを抽出
-    documents_text = [doc.page_content for doc in input_documents]
-
-    # TF-IDFベクトル化（カスタム辞書を使用）
-    vectorizer = TfidfVectorizer(vocabulary=custom_dictionary)
-    X = vectorizer.fit_transform(documents_text)
-
-    # 各語句のTF-IDFスコアを計算
+def extract_top_entities(input_documents, given_query, custom_file_path='custom_entities.txt'):
+    # カスタム辞書をテキストファイルから読み込む
+    with open(custom_file_path, 'r') as f:
+        custom_dictionary = [line.strip() for line in f.readlines()]
+    # 文書をテキスト形式に変換（Documentオブジェクトから）
+    documents = [doc.page_content for doc in input_documents]
+    # TF-IDFベクトル化
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(documents)
     feature_names = np.array(vectorizer.get_feature_names_out())
-
-    # スコアが高い語句を抽出（ここでは上位6語）
-    sorted_by_tfidf = np.argsort(X.sum(axis=0).A1)
+    # 頻度が高い語句を抽出
+    sorted_by_tfidf = np.argsort(tfidf_matrix.sum(axis=0).A1)
     top_terms = feature_names[sorted_by_tfidf[-6:]]
-
     # クエリに固有表現を追加
-    modified_query = given_query
+    modified_ver_query = given_query
     for term in top_terms:
-        modified_query = modified_query.replace(term, f"[{term}]")
-
-    return modified_query, top_terms
+        modified_ver_query = modified_ver_query.replace(term, f"[{term}]")
+    # カスタム辞書を用いて固有表現を追加
+    for term in custom_dictionary:
+        modified_ver_query = modified_ver_query.replace(term, f"[{term}]")
+    # N-gram解析（ここではbigramを使用）
+    bigrams = re.findall(r'\b\w+\s+\w+\b', given_query)
+    for bigram in bigrams:
+        if bigram in custom_dictionary:
+            modified_ver_query = modified_ver_query.replace(bigram, f"[{bigram}]")
+    return modified_ver_query, top_terms
 
 
 class RetrievalQAFromFaiss:

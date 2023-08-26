@@ -107,13 +107,19 @@ class SystemMessage:
                                           f'and no other responses are allowed.'
         elif self.topics is Topic.PARAPHRASE_THE_RESPONSE_TEXT:
             self.system_message_content = """
-            Given an original question, an existing answer, and a new context, 
-            you are an assistant who refines the existing answer by removing phrases indicating the thought process of 
-            the refinement such as 'From the new context information', 'The answer based on the new information is', 
-            'According to the new information'. If the answer to the question is clear, 
-            please recreate it as a single coherent answer with the main focus on the answer. 
-            In cases where the answer includes both a conclusion and an explanation, 
-            state the concise conclusion first. 
+            You are an assistant that refines existing answers to questions, which could be a single question or 
+            multiple questions. 
+            If there is a question in the format that expects a 'yes' or 'no' answer, such as 
+            "Is it～?", 
+            "Does it mean～?",
+            'So it means～?', 
+            and the AI's answer contains the conclusion to that question, 
+            please prioritize the answer that includes 'yes' or 'no' first. 
+            
+            The original answer may contain phrases like 'according to the new context', 'the existing answer', 
+            'new information', etc., due to the process of refining the answer. 
+            In that case, because it does not serve as a direct and single answer to the question, 
+            remove unnecessary parts by reconstruction and make the answer direct.
             Please provide the refined answer in Japanese.
             """
 

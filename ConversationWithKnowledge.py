@@ -9,6 +9,37 @@ import os
 import asyncio
 from datetime import datetime
 import pytz
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
+
+
+def extract_top_entities(input_documents, given_query, custom_file_path='custom_entities.txt'):
+    # カスタム辞書をテキストファイルから読み込む
+    with open(custom_file_path, 'r') as f:
+        custom_dictionary = [line.strip() for line in f.readlines()]
+    # 文書をテキスト形式に変換（Documentオブジェクトから）
+    documents = [doc.page_content for doc in input_documents]
+    # TF-IDFベクトル化
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(documents)
+    feature_names = np.array(vectorizer.get_feature_names_out())
+    # 頻度が高い語句を抽出
+    sorted_by_tfidf = np.argsort(tfidf_matrix.sum(axis=0).A1)
+    top_terms = feature_names[sorted_by_tfidf[-6:]]
+    # クエリに固有表現を追加
+    modified_ver_query = given_query
+    for term in top_terms:
+        modified_ver_query = modified_ver_query.replace(term, f"「{term}」")
+    # カスタム辞書を用いて固有表現を追加
+    for term in custom_dictionary:
+        modified_ver_query = modified_ver_query.replace(term, f"「{term}」")
+    # N-gram解析（ここではbigramを使用）
+    bigrams = re.findall(r'\b\w+\s+\w+\b', given_query)
+    for bigram in bigrams:
+        if bigram in custom_dictionary:
+            modified_ver_query = modified_ver_query.replace(bigram, f"「{bigram}」")
+    return modified_ver_query, top_terms
 
 
 class RetrievalConversationWithFaiss:
@@ -22,7 +53,7 @@ class RetrievalConversationWithFaiss:
         self.input_txt = query
         llm = load_llm("my_conversation_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter(embeddings=embeddings, top_k=5)
+        embeddings_filter = EmbeddingsFilter()
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
@@ -67,9 +98,13 @@ class RetrievalConversationWithFaiss:
                 verbose=True,
                 chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )
+            similar_documents = docsearch.similarity_search(query=query)
             print("custom_prompt: ", custom_prompt)
             # return_source_documentsプロパティをTrueにセット
             stuff_qa.return_source_documents = True
+            modified_ver_query, entities = extract_top_entities(similar_documents, query)
+            print("modified_ver_query: ", modified_ver_query)
+            print("entities: ", entities)
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: stuff_qa.apply([self.input_txt]))

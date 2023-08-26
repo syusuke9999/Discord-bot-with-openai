@@ -1,9 +1,10 @@
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms.loading import load_llm
-from langchain.chains.question_answering import load_qa_chain
+from langchain.chains import RetrievalQA
 from langchain.vectorstores import FAISS
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI
 import os
 import asyncio
 from datetime import datetime
@@ -52,12 +53,12 @@ class RetrievalConversationWithFaiss:
         self.input_txt = query
         llm = load_llm("my_conversation_llm.json")
         embeddings = OpenAIEmbeddings()
+        embeddings_filter = EmbeddingsFilter()
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
-            similar_documents = docsearch.similarity_search(query=query)
-            modified_ver_query, entities = extract_top_entities(similar_documents, query)
-            print("modified_ver_query: ", modified_ver_query)
-            print("entities: ", entities)
+            compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
+                                                                   base_retriever=docsearch.as_retriever())
+
             # 現在の日付と時刻を取得します（日本時間）。
             now = datetime.now(pytz.timezone('Asia/Tokyo'))
             # 年、月、日を取得します。
@@ -90,12 +91,14 @@ class RetrievalConversationWithFaiss:
                 input_variables=["context", "question"]
             )
             chain_type_kwargs = {"prompt": stuff_prompt}
-            stuff_qa = load_qa_chain(
-                ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k-0613", top_p=0, max_tokens=500, presence_penalty=0.6),
+            stuff_qa = RetrievalQA.from_chain_type(
+                llm=llm,
                 chain_type="stuff",
-                document_prompt=stuff_prompt,
+                retriever=compression_retriever,
+                verbose=True,
                 chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )
+            similar_documents = docsearch.similarity_search(query=query)
             print("custom_prompt: ", custom_prompt)
             # return_source_documentsプロパティをTrueにセット
             stuff_qa.return_source_documents = True
@@ -104,8 +107,8 @@ class RetrievalConversationWithFaiss:
             print("entities: ", entities)
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([query]))
-            print(f"Input data: {query}")
+            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([modified_ver_query]))
+            print(f"modified_ver_query: {modified_ver_query}")
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 answer = response[0]["result"]

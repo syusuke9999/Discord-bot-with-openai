@@ -1,6 +1,7 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 import spacy
+from spacy.cli import download
 from spacy.matcher import Matcher
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
@@ -55,7 +56,11 @@ class RetrievalQAFromFaiss:
             )
             similar_documents = docsearch.similarity_search(query=initial_query)
             # spaCyの日本語モデルをロード
-            nlp = spacy.load("ja_core_news_sm")
+            try:
+                nlp = spacy.load("ja_core_news_sm")
+            except IOError:
+                download("ja_core_news_sm")
+                nlp = spacy.load("ja_core_news_sm")
             # マッチャーを初期化
             matcher = Matcher(nlp.vocab)
             # パターンを定義

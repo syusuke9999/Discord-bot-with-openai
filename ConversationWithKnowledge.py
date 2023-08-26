@@ -3,6 +3,7 @@ from langchain.llms.loading import load_llm
 from langchain.chains import RetrievalQA
 from langchain.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
+from langchain.chat_models import ChatOpenAI
 import os
 import asyncio
 from datetime import datetime
@@ -90,7 +91,7 @@ class RetrievalConversationWithFaiss:
             )
             chain_type_kwargs = {"prompt": stuff_prompt}
             stuff_qa = RetrievalQA.from_chain_type(
-                llm=llm,
+                ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k-0613", top_p=0, max_tokens=500, presence_penalty=0.6),
                 chain_type="stuff",
                 custom_prompt=stuff_prompt,
                 verbose=True,

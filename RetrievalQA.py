@@ -1,9 +1,5 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
-import re
-import spacy
-from spacy.cli import download
-from spacy.matcher import Matcher
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
 from langchain.chains.question_answering import load_qa_chain

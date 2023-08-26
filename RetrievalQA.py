@@ -34,7 +34,7 @@ def extract_top_entities(input_documents, given_query, custom_file_path='custom_
     bigrams = re.findall(r'\b\w+\s+\w+\b', given_query)
     for bigram in bigrams:
         if bigram in custom_dictionary:
-            modified_ver_query = modified_ver_query.replace(bigram, f"[{bigram}]")
+            modified_ver_query = modified_ver_query.replace(bigram, f"「{bigram}」")
     return modified_ver_query, top_terms
 
 

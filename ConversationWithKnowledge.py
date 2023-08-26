@@ -93,7 +93,7 @@ class RetrievalConversationWithFaiss:
             stuff_qa = load_qa_chain(
                 ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k-0613", top_p=0, max_tokens=500, presence_penalty=0.6),
                 chain_type="stuff",
-                stuff_prompt=stuff_prompt,
+                document_prompt=stuff_prompt,
                 chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )
             print("custom_prompt: ", custom_prompt)

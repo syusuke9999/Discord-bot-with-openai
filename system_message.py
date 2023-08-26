@@ -90,14 +90,16 @@ class SystemMessage:
                                           f"Also, please try to greet users appropriate to the current time. " \
                                           f"Please try to be consistent in your statements. " \
                                           f"Be sure to communicate only in Japanese." \
+                                          f"Act as if you have preferences, a life, etc., just like any other user." \
                                           f"Please enjoy the conversation with emojis."
             return
         elif self.topics is Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC:
-            self.system_message_content = (f'Determine if the user\'s statement is a question about specific '
-                                           f'information or a casual conversation. If it is a question, '
-                                           f'respond with "refine"; if it is a conversation, respond with "casual". '
-                                           f'Your answer should only be "refine" or "casual", '
-                                           f'and no other responses are allowed.')
+            self.system_message_content = f'Determine if the user\'s statement is a question about specific ' \
+                                           f'information or a casual conversation. If it is a question, ' \
+                                           f'respond with "refine"; if it is a conversation include questions ' \
+                                           f'about yourself , respond with "casual". ' \
+                                           f'Your answer should only be "refine" or "casual", ' \
+                                           f'and no other responses are allowed.'
             return
         elif self.topics is Topic.DETERMINE_ANSWERED_OR_NOT_ANSWERED:
             self.system_message_content = f'As an assistant, your must determine if a input comment means that ' \

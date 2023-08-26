@@ -246,7 +246,7 @@ class MyBot(commands.Bot):
                         if content is not None:
                             paraphrased_response = paraphrased_response
                         else:
-                            print("initial bot_response is None or empty.")
+                            print("paraphrased_response is None or empty.")
                             return
                         if paraphrased_response is not None:
                             await send_message(message, paraphrased_response)

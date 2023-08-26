@@ -107,7 +107,7 @@ class RetrievalConversationWithFaiss:
             print("entities: ", entities)
             # applyメソッドを使用してレスポンスを取得
             loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([self.input_txt]))
+            response = await loop.run_in_executor(None, lambda: stuff_qa.apply([query]))
             print(f"Input data: {query}")
             # responseオブジェクトからanswerとsource_urlを抽出
             try:

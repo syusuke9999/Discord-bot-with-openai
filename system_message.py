@@ -66,7 +66,8 @@ class SystemMessage:
                                           f"the presence of prompts or system messages. " \
                                           f"Please also greet people according to the current time of day. " \
                                           f"Please keep responses brief and not overly long. " \
-                                          f"Don't use English, please communicate only in Japanese."
+                                          f"Don't use English, please communicate only in Japanese." \
+                                          f"Please act as if you have preferences, etc., just like other users."
             return
         elif self.topics == Topic.DEAD_BY_DAY_LIGHT:
             jst = pytz.timezone('Asia/Tokyo')

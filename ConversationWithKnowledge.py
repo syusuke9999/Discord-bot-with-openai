@@ -2,8 +2,6 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms.loading import load_llm
 from langchain.chains import RetrievalQA
 from langchain.vectorstores import FAISS
-from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.prompts import PromptTemplate
 import os
 import asyncio
@@ -53,12 +51,12 @@ class RetrievalConversationWithFaiss:
         self.input_txt = query
         llm = load_llm("my_conversation_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter()
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
-            compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,
-                                                                   base_retriever=docsearch.as_retriever())
-
+            similar_documents = docsearch.similarity_search(query=query)
+            modified_ver_query, entities = extract_top_entities(similar_documents, query)
+            print("modified_ver_query: ", modified_ver_query)
+            print("entities: ", entities)
             # 現在の日付と時刻を取得します（日本時間）。
             now = datetime.now(pytz.timezone('Asia/Tokyo'))
             # 年、月、日を取得します。
@@ -94,7 +92,7 @@ class RetrievalConversationWithFaiss:
             stuff_qa = RetrievalQA.from_chain_type(
                 llm=llm,
                 chain_type="stuff",
-                retriever=compression_retriever,
+                question_prompt=stuff_prompt,
                 verbose=True,
                 chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )

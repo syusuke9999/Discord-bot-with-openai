@@ -182,7 +182,7 @@ class MyBot(commands.Bot):
                 return
             print("\033[93mAIによるユーザーの発言への反応の判定:\033[0m \033[91m", bot_classification, "\033[0m")
             # 「conversation」に分類されなかった場合は「search」と推定してRetrival QAを実行する（検索優先の原則）
-            if "search" in bot_classification:
+            if "refine" in bot_classification:
                 print("Retrival QAを実行します")
                 async with (message.channel.typing()):
                     start_time = time.time()
@@ -236,7 +236,7 @@ class MyBot(commands.Bot):
                         if bot_response is not None:
                             await send_message(message, bot_response)
             # 「会話」に分類されたか分類不能の場合は、gpt-3.5-turbo-16kを使用して会話を続ける
-            elif "conversation" in bot_classification:
+            elif "casual" in bot_classification:
                 self.max_tokens = 10000
                 self.model_name = "gpt-3.5-turbo-16k-0613"
                 self.model_frequency_penalty = 0.6

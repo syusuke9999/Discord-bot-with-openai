@@ -92,11 +92,11 @@ class SystemMessage:
                                           f"Please enjoy the conversation with emojis."
             return
         elif self.topics is Topic.IS_DEAD_BY_DAY_LIGHT_SPECIFIC_TOPIC:
-            self.system_message_content = f'You are an assistant who must determine if the user\'s statement is ' \
-                                          f'question about specific information about Dead by Daylight. ' \
-                                          f'If it is, respond with "search"; if not, respond with "conversation" ' \
-                                          f'Your answer should only be "search" or "conversation" ' \
-                                          f'and no other responses are allowed.'
+            self.system_message_content = (f'Determine if the user\'s statement is a question about specific '
+                                           f'information or a casual conversation. If it is a question, '
+                                           f'respond with "refine"; if it is a conversation, respond with "casual". '
+                                           f'Your answer should only be "refine" or "casual", '
+                                           f'and no other responses are allowed.')
             return
         elif self.topics is Topic.DETERMINE_ANSWERED_OR_NOT_ANSWERED:
             self.system_message_content = f'As an assistant, your must determine if a input comment means that ' \

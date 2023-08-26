@@ -160,7 +160,7 @@ class MyBot(commands.Bot):
             print("「検索」か「その他」かの判定を行うシステムメッセージ: ", system_message_content)
             # 判定にはgpt-4-0613を使用する
             self.model_name = "gpt-4-0613"
-            self.max_tokens = 1
+            self.max_tokens = 10
             self.model_temperature = 0
             self.model_top_p = 0
             self.model_presence_penalty = 0

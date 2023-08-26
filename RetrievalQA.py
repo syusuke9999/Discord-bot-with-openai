@@ -81,14 +81,18 @@ class RetrievalQAFromFaiss:
                 question_prompt=initial_qa_prompt,
                 refine_prompt=refine_prompt
             )
-            similar_documents = docsearch.similarity_search(query=initial_query)
+            similar_documents, scores = docsearch.similarity_search(query=initial_query)
+            # スコアが0.76以上のドキュメントだけをフィルタリング
+            relevant_documents = [doc for doc, score in zip(similar_documents, scores) if score >= 0.76]
+            # 関連性のあるドキュメントからsource URLを抽出
+            source_urls = [doc.metadata.get('source', 'Unknown source') for doc in relevant_documents]
             modified_ver_query, entities = extract_top_entities(similar_documents, initial_query)
             print("modified_ver_query: ", modified_ver_query)
             print("entities: ", entities)
             # FAISSを使用して類似度の高いドキュメントを検索
             similar_documents = docsearch.similarity_search(query=initial_query)
             # FAISSのスコアなどを基に関連性のあるドキュメントをフィルタリング
-            relevant_documents = [doc for doc in similar_documents if doc.some_score > 0.76]  # 仮の条件
+            relevant_documents = [doc for doc in similar_documents]  # 仮の条件
             # 関連性のあるドキュメントからsource URLを抽出
             source_urls = [doc.metadata.get('source', 'Unknown source') for doc in relevant_documents]
 

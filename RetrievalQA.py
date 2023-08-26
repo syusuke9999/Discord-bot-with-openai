@@ -56,7 +56,7 @@ class RetrievalQAFromFaiss:
             custom_dictionary = ["予想外の展開", "堕落の介入", "人々のために", "這いずり起こし"]
 
             # TF-IDFベクトル化
-            vectorizer = TfidfVectorizer(ngram_range=(1, 3))  # 1-gramから3-gramまで考慮
+            vectorizer = TfidfVectorizer(min_df=2, max_df=0.8)  # 1-gramから3-gramまで考慮
             # 'Documentオブジェクトからテキストを抽出（仮定）
             similar_documents_text = [doc.page_content for doc in similar_documents]
             X = vectorizer.fit_transform(similar_documents_text)

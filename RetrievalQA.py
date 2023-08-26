@@ -26,10 +26,10 @@ def extract_top_entities(input_documents, given_query, custom_file_path='custom_
     # クエリに固有表現を追加
     modified_ver_query = given_query
     for term in top_terms:
-        modified_ver_query = modified_ver_query.replace(term, f"[{term}]")
+        modified_ver_query = modified_ver_query.replace(term, f"「{term}」")
     # カスタム辞書を用いて固有表現を追加
     for term in custom_dictionary:
-        modified_ver_query = modified_ver_query.replace(term, f"[{term}]")
+        modified_ver_query = modified_ver_query.replace(term, f"「{term}」")
     # N-gram解析（ここではbigramを使用）
     bigrams = re.findall(r'\b\w+\s+\w+\b', given_query)
     for bigram in bigrams:

@@ -1,5 +1,3 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
-import numpy as np
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
 from langchain.chains.question_answering import load_qa_chain
@@ -7,6 +5,46 @@ from langchain.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
 import os
 import asyncio
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from collections import Counter
+
+
+def extract_top_entities(documents, query, top_n=6):
+    custom_dict = ["真新しいパーツ", "Ultra Rare"]  # カスタム辞書に追加する固有名詞やフレーズ
+    # TF-IDFベクトル化
+    vectorizer = TfidfVectorizer()
+    X = vectorizer.fit_transform(documents)
+
+    # feature_namesの初期化
+    feature_names = None
+    try:
+        feature_names = vectorizer.get_feature_names_out()
+    except AttributeError:
+        print("TfidfVectorizerが適切にフィットされていません。")
+
+    # TF-IDFでのトップ用語
+    top_terms_tfidf = []
+    if feature_names is not None:
+        sorted_by_tfidf = X.sum(axis=0).argsort()[::-1]
+        top_terms_tfidf = feature_names[sorted_by_tfidf[:top_n]]
+
+    # 頻度分析（Counterを使用）
+    word_freq = Counter(' '.join(documents).split())
+    top_terms_freq = [item[0] for item in word_freq.most_common(top_n)]
+
+    # N-gram解析（この例ではbigrams）
+    bigrams = [b for l in documents for b in zip(l.split(' ')[:-1], l.split(' ')[1:])]
+    bigram_freq = Counter(bigrams)
+    top_bigrams = [' '.join(item[0]) for item in bigram_freq.most_common(top_n)]
+    # すべてのトップ用語とbigramsを組み合わせる
+    _top_entities = list(set(top_terms_tfidf) | set(top_terms_freq) | set(top_bigrams) | set(custom_dict))
+    # オリジナルのクエリにトップエンティティを追加（ブラケットで囲む）
+    _modified_query = query
+    for entity in _top_entities:
+        _modified_query = _modified_query.replace(entity, f"[{entity}]")
+
+    return _modified_query, _top_entities
 
 
 class RetrievalQAFromFaiss:
@@ -52,43 +90,16 @@ class RetrievalQAFromFaiss:
                 refine_prompt=refine_prompt
             )
             similar_documents = docsearch.similarity_search(query=initial_query)
-            # カスタム辞書
-            custom_dictionary = ["予想外の展開", "堕落の介入", "人々のために", "這いずり起こし"]
-
-            # TF-IDFベクトル化
-            vectorizer = TfidfVectorizer(min_df=2, max_df=0.8)  # 1-gramから3-gramまで考慮
-            # 'Documentオブジェクトからテキストを抽出（仮定）
-            similar_documents_text = [doc.page_content for doc in similar_documents]
-            X = vectorizer.fit_transform(similar_documents_text)
-            # ローカル変数 'feature_names' の初期化
-            feature_names = None
-            try:
-                feature_names = np.array(vectorizer.get_feature_names_out())
-            except AttributeError:
-                print("TfidfVectorizerが適切にフィットされていません。")
-            modified_query = None
-            if feature_names is not None:
-                sorted_by_tfidf = np.argsort(X.sum(axis=0).A1)
-                top_terms = feature_names[sorted_by_tfidf[-6:]]
-                # クエリに固有表現を追加
-                modified_query = initial_query
-                # カスタム辞書を使用して固有表現を追加
-                for term in custom_dictionary:
-                    modified_query = modified_query.replace(term, f"「{term}」")
-                # TF-IDFで抽出した語句を使用して固有表現を追加
-                for term in top_terms:
-                    modified_query = modified_query.replace(term, f"「{term}」")
-                print("modified_query: ", modified_query)
-            print(f"Modified Query: {modified_query}")
-            for doc in similar_documents:
-                print("page_content= ", doc.page_content)
-                print("metadata= ", str(doc.metadata))
+            modified_ver_query, entities = extract_top_entities(similar_documents, initial_query)
+            print("modified_ver_query: ", modified_ver_query)
+            print("entities: ", entities)
+            # for doc in similar_documents:
+            #    print("page_content= ", doc.page_content)
+            #    print("metadata= ", str(doc.metadata))
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: qa_chain({"input_documents":
-                                                                         similar_documents,
-                                                                         "question": modified_query},
-                                                                         return_only_outputs=True)
-                                                  )
+                                                  similar_documents, "question": modified_ver_query},
+                                                                         return_only_outputs=True))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:
                 answer = response['output_text']

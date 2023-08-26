@@ -1,6 +1,6 @@
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms.loading import load_llm
-from langchain.chains import RetrievalQA
+from langchain.chains.question_answering import load_qa_chain
 from langchain.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
@@ -90,14 +90,13 @@ class RetrievalConversationWithFaiss:
                 input_variables=["context", "question"]
             )
             chain_type_kwargs = {"prompt": stuff_prompt}
-            stuff_qa = RetrievalQA.from_chain_type(
+            stuff_qa = load_qa_chain(
                 ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k-0613", top_p=0, max_tokens=500, presence_penalty=0.6),
                 chain_type="stuff",
-                custom_prompt=stuff_prompt,
+                question_prompt=stuff_prompt,
                 verbose=True,
                 chain_type_kwargs=chain_type_kwargs  # ここで変数stuff_promptを直接渡す
             )
-            similar_documents = docsearch.similarity_search(query=query)
             print("custom_prompt: ", custom_prompt)
             # return_source_documentsプロパティをTrueにセット
             stuff_qa.return_source_documents = True

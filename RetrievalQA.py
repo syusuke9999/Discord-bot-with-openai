@@ -11,7 +11,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 def extract_top_entities(input_documents, given_query):
     # カスタム辞書
-    custom_dictionary = ["予想外の展開", "堕落の介入", "人々のために", "這いずり起こし"]
+    custom_dictionary = ["予想外の展開", "堕落の介入", "人々のために", "這いずり起こし", "疲労", "瀕死", "瀕死状態",
+                         "瀕死状態の", "瀕死状態の生存者", "怨恨", "迅速", "迅速効果", "迅速効果の", "迅速効果の生存者",
+                         "起こす", "強窓", "強ポジ", "強ポジション", "負傷", "負傷状態", "負傷状態の", "負傷状態の生存者"]
 
     # Documentオブジェクトからテキストを抽出
     documents_text = [doc.page_content for doc in input_documents]

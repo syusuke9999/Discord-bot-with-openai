@@ -5,46 +5,34 @@ from langchain.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
 import os
 import asyncio
-
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-from collections import Counter
 
 
-def extract_top_entities(documents, query, top_n=6):
-    custom_dict = ["真新しいパーツ", "Ultra Rare"]  # カスタム辞書に追加する固有名詞やフレーズ
-    # TF-IDFベクトル化
-    vectorizer = TfidfVectorizer()
-    X = vectorizer.fit_transform(documents)
+def extract_top_entities(input_documents, given_query):
+    # カスタム辞書
+    custom_dictionary = ["予想外の展開", "堕落の介入", "人々のために", "這いずり起こし"]
 
-    # feature_namesの初期化
-    feature_names = None
-    try:
-        feature_names = vectorizer.get_feature_names_out()
-    except AttributeError:
-        print("TfidfVectorizerが適切にフィットされていません。")
+    # Documentオブジェクトからテキストを抽出
+    documents_text = [doc.page_content for doc in input_documents]
 
-    # TF-IDFでのトップ用語
-    top_terms_tfidf = []
-    if feature_names is not None:
-        sorted_by_tfidf = X.sum(axis=0).argsort()[::-1]
-        top_terms_tfidf = feature_names[sorted_by_tfidf[:top_n]]
+    # TF-IDFベクトル化（カスタム辞書を使用）
+    vectorizer = TfidfVectorizer(vocabulary=custom_dictionary)
+    X = vectorizer.fit_transform(documents_text)
 
-    # 頻度分析（Counterを使用）
-    word_freq = Counter(' '.join(documents).split())
-    top_terms_freq = [item[0] for item in word_freq.most_common(top_n)]
+    # 各語句のTF-IDFスコアを計算
+    feature_names = np.array(vectorizer.get_feature_names_out())
 
-    # N-gram解析（この例ではbigrams）
-    bigrams = [b for l in documents for b in zip(l.split(' ')[:-1], l.split(' ')[1:])]
-    bigram_freq = Counter(bigrams)
-    top_bigrams = [' '.join(item[0]) for item in bigram_freq.most_common(top_n)]
-    # すべてのトップ用語とbigramsを組み合わせる
-    _top_entities = list(set(top_terms_tfidf) | set(top_terms_freq) | set(top_bigrams) | set(custom_dict))
-    # オリジナルのクエリにトップエンティティを追加（ブラケットで囲む）
-    _modified_query = query
-    for entity in _top_entities:
-        _modified_query = _modified_query.replace(entity, f"[{entity}]")
+    # スコアが高い語句を抽出（ここでは上位6語）
+    sorted_by_tfidf = np.argsort(X.sum(axis=0).A1)
+    top_terms = feature_names[sorted_by_tfidf[-6:]]
 
-    return _modified_query, _top_entities
+    # クエリに固有表現を追加
+    modified_query = given_query
+    for term in top_terms:
+        modified_query = modified_query.replace(term, f"[{term}]")
+
+    return modified_query, top_terms
 
 
 class RetrievalQAFromFaiss:

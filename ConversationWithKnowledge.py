@@ -53,7 +53,7 @@ class RetrievalConversationWithFaiss:
         self.input_txt = query
         llm = load_llm("my_conversation_llm.json")
         embeddings = OpenAIEmbeddings()
-        embeddings_filter = EmbeddingsFilter()
+        embeddings_filter = EmbeddingsFilter(embeddings=embeddings)
         if os.path.exists("./faiss_index"):
             docsearch = FAISS.load_local("./faiss_index", embeddings)
             compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter,

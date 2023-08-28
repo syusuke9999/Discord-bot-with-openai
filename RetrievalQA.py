@@ -3,39 +3,40 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains.question_answering import load_qa_chain
 from langchain.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
-import os
 import asyncio
 import numpy as np
-import re
+
+import os
 from sklearn.feature_extraction.text import TfidfVectorizer
+import re
 
 
 def extract_top_entities(input_documents, given_query, custom_file_path='custom_entities.txt'):
+    entities = []
     # カスタム辞書をテキストファイルから読み込む
     with open(custom_file_path, 'r') as f:
-        custom_dictionary = [line.strip() for line in f.readlines()]
-    # 文書をテキスト形式に変換（Documentオブジェクトから）
-    documents = [doc.page_content for doc in input_documents]
-    # TF-IDFベクトル化
+        custom_entities = [line.strip() for line in f.readlines()]
+    # 文書を小文字に変換
+    documents = [doc.page_content.lower() for doc in input_documents]
+    # 文章をTF-IDFベクトル化し、各語句のTF-IDFスコアを計算
     vectorizer = TfidfVectorizer()
     tfidf_matrix = vectorizer.fit_transform(documents)
     feature_names = np.array(vectorizer.get_feature_names_out())
-    # 頻度が高い語句を抽出
     sorted_by_tfidf = np.argsort(tfidf_matrix.sum(axis=0).A1)
+    # IF-IDFスコアが高い語句を抽出して、top_termsリストに追加（ここでは上位6語）
     top_terms = feature_names[sorted_by_tfidf[-6:]]
-    # クエリに固有表現を追加
-    modified_ver_query = given_query
-    for term in top_terms:
-        modified_ver_query = modified_ver_query.replace(term, f"「{term}」")
-    # カスタム辞書を用いて固有表現を追加
-    for term in custom_dictionary:
-        modified_ver_query = modified_ver_query.replace(term, f"「{term}」")
-    # N-gram解析（ここではbigramを使用）
+    # N-gram解析（ここではbigramを使用）を行い、結果を一旦、bigramsリストに追加
     bigrams = re.findall(r'\b\w+\s+\w+\b', given_query)
-    for bigram in bigrams:
-        if bigram in custom_dictionary:
-            modified_ver_query = modified_ver_query.replace(bigram, f"「{bigram}」")
-    return modified_ver_query, top_terms
+    # カスタム辞書と結合
+    top_terms = list(set(top_terms) | set(custom_entities) | set(bigrams))
+    # クエリに固有表現を追加
+    modified_query = given_query
+    entities = []
+    for term in top_terms:
+        if term in modified_query:
+            modified_query = modified_query.replace(term, f"「{term}」")
+            entities.append(term)
+    return modified_query, entities
 
 
 class RetrievalQAFromFaiss:

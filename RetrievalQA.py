@@ -12,7 +12,6 @@ import re
 
 
 def extract_top_entities(input_documents, given_query, custom_file_path='custom_entities.txt'):
-    entities = []
     # カスタム辞書をテキストファイルから読み込む
     with open(custom_file_path, 'r') as f:
         custom_entities = [line.strip() for line in f.readlines()]

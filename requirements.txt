@@ -1,10 +1,10 @@
-discord
-redis
+discord~=2.3.1
+redis~=4.6.0
 tiktoken~=0.4.0
 httpx~=0.24.1
-tenacity
+tenacity~=8.2.2
 openai
-langchain
+langchain~=0.0.264
 pytz~=2023.3
 faiss-cpu
 wandb>=0.15.4
@@ -12,3 +12,5 @@ langdetect~=1.0.9
 numpy~=1.25.2
 scikit-learn~=1.3.0
 spacy
+boto3~=1.28.41
+botocore~=1.31.41

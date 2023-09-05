@@ -5,7 +5,7 @@ from langchain.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
 import asyncio
 import numpy as np
-
+from collections import Counter
 import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 import re
@@ -26,6 +26,14 @@ def extract_top_entities(input_documents, given_query, custom_file_path='custom_
     top_terms = feature_names[sorted_by_tfidf[-6:]]
     # N-gram解析（ここではbigramを使用）を行い、結果を一旦、bigramsリストに追加
     bigrams = re.findall(r'\b\w+\s+\w+\b', given_query)
+    # かぎ括弧で囲まれている固有表現を抽出
+    bracketed_entities = re.findall(r'「(.*?)」', input_documents)
+    # 頻度が多い固有表現をカスタム辞書に保存
+    entity_freq = Counter(bracketed_entities)
+    for entity, freq in entity_freq.items():
+        if freq > 1:
+            with open(custom_file_path, "a") as f:
+                f.write(f"{entity}\n")
     # カスタム辞書と結合
     top_terms = list(set(top_terms) | set(custom_entities) | set(bigrams))
     # クエリに固有表現を追加

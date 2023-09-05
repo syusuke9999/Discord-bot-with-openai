@@ -33,7 +33,7 @@ def extract_top_entities(input_documents, given_query, custom_file_path='custom_
     # 頻度が多い固有表現をカスタム辞書に保存
     entity_freq = Counter(bracketed_entities)
     for entity, freq in entity_freq.items():
-        if freq > 1:
+        if freq > 0:
             with open(custom_file_path, "a") as f:
                 f.write(f"{entity}\n")
     # カスタム辞書と結合

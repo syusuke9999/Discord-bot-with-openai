@@ -81,7 +81,7 @@ class RetrievalQAFromFaiss:
                 question_prompt=initial_qa_prompt,
                 refine_prompt=refine_prompt
             )
-            similar_documents = docsearch.similarity_search(query=initial_query)
+            similar_documents = docsearch.similarity_search(query=initial_query, top_k=6)
             modified_ver_query, entities = extract_top_entities(similar_documents, initial_query)
             print("modified_ver_query: ", modified_ver_query)
             print("entities: ", entities)

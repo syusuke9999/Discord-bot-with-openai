@@ -76,18 +76,15 @@ class RetrievalQAFromFaiss:
                 input_variables=["context_str", "question"], template=initial_qa_template
             )
             qa_chain = load_qa_chain(
-                ChatOpenAI(temperature=0, model_name="gpt-4-0613", top_p=0, max_tokens=500, presence_penalty=0.6),
+                ChatOpenAI(temperature=0, model_name="gpt-4-0613", top_p=0, max_tokens=500),
                 chain_type="refine",
                 question_prompt=initial_qa_prompt,
                 refine_prompt=refine_prompt
             )
-            similar_documents = docsearch.similarity_search(query=initial_query, top_k=6)
+            similar_documents = docsearch.similarity_search(query=initial_query)
             modified_ver_query, entities = extract_top_entities(similar_documents, initial_query)
             print("modified_ver_query: ", modified_ver_query)
             print("entities: ", entities)
-            # for doc in similar_documents:
-            #    print("page_content= ", doc.page_content)
-            #    print("metadata= ", str(doc.metadata))
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: qa_chain({"input_documents":
                                                   similar_documents, "question": modified_ver_query},

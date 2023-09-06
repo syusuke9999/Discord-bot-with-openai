@@ -4,66 +4,22 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
 import asyncio
-import numpy as np
 from collections import Counter
-from sklearn.feature_extraction.text import TfidfVectorizer
 import re
-import boto3
 import os
-from botocore.exceptions import NoCredentialsError
 
 
-def get_s3_client():
-    try:
-        # AWS SSOを使用している場合、プロファイル名を指定する
-        session = boto3.Session(profile_name='your-profile-name')
-        s3 = session.client('s3')
-        return s3
-    except NoCredentialsError:
-        print("認証情報が見つかりません。AWS SSOでログインしてください。")
-        return None
-
-
-def read_custom_entities_from_s3(bucket_name, file_name):
-    s3 = get_s3_client()
-    if s3 is None:
-        return []
-    try:
-        obj = s3.get_object(Bucket=bucket_name, Key=file_name)
-        custom_entities = obj['Body'].read().decode('utf-8').splitlines()
-        return custom_entities
-    except Exception as e:
-        print(f"S3からの読み取りに失敗しました: {e}")
-        return []
-
-
-def write_custom_entities_to_s3(bucket_name, file_name, entities):
-    s3 = get_s3_client()
-    if s3 is None:
-        return
-    try:
-        s3.put_object(Body='\n'.join(entities), Bucket=bucket_name, Key=file_name)
-    except Exception as e:
-        print(f"S3への書き込みに失敗しました: {e}")
-
-
-def extract_top_entities(input_documents, given_query, bucket='your-bucket', key='custom_entities.txt'):
-    # カスタム辞書をS3から読み込む
-    custom_entities = read_custom_entities_from_s3(bucket, key)
+def extract_top_entities(input_documents, given_query, custom_file_path='custom_entities.txt'):
+    # カスタム辞書をテキストファイルから読み込む
+    with open(custom_file_path, 'r') as f:
+        custom_entities = [line.strip() for line in f.readlines()]
     # 文書を小文字に変換
     documents = [doc.page_content.lower() for doc in input_documents]
-    # 文章をTF-IDFベクトル化し、各語句のTF-IDFスコアを計算
-    vectorizer = TfidfVectorizer()
-    tfidf_matrix = vectorizer.fit_transform(documents)
-    feature_names = np.array(vectorizer.get_feature_names_out())
-    sorted_by_tfidf = np.argsort(tfidf_matrix.sum(axis=0).A1)
-    # IF-IDFスコアが高い語句を抽出して、top_termsリストに追加（ここでは上位6語）
-    top_terms = feature_names[sorted_by_tfidf[-6:]]
     # N-gram解析（ここではbigramを使用）を行い、結果を一旦、bigramsリストに追加
-    bigrams = re.findall(r'\b\w+\s+\w+\b', given_query)
+    bigrams = re.findall(r'\b\w+\s+\w+\b', documents)
     # かぎ括弧で囲まれている固有表現を抽出
     bracketed_entities = []
-    for doc in input_documents:
+    for doc in documents:
         bracketed_entities.extend(re.findall(r'「(.*?)」', doc.page_content))
     # 頻度が多い固有表現をカスタム辞書に保存
     entity_freq = Counter(bracketed_entities)
@@ -71,10 +27,8 @@ def extract_top_entities(input_documents, given_query, bucket='your-bucket', key
     for entity, freq in entity_freq.items():
         if freq > 0:
             new_entities.append(entity)
-    # S3にカスタム辞書を保存
-    write_custom_entities_to_s3(new_entities, bucket, key)
     # カスタム辞書と結合
-    top_terms = list(set(top_terms) | set(custom_entities) | set(bigrams))
+    top_terms = list(set(bracketed_entities) | set(custom_entities) | set(bigrams))
     # クエリに固有表現を追加
     modified_query = given_query
     entities = []

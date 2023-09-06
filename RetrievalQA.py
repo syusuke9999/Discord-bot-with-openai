@@ -6,15 +6,50 @@ from langchain.prompts import PromptTemplate
 import asyncio
 import numpy as np
 from collections import Counter
-import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 import re
+import boto3
+import os
+from botocore.exceptions import NoCredentialsError
 
 
-def extract_top_entities(input_documents, given_query, custom_file_path='custom_entities.txt'):
-    # カスタム辞書をテキストファイルから読み込む
-    with open(custom_file_path, 'r') as f:
-        custom_entities = [line.strip() for line in f.readlines()]
+def get_s3_client():
+    try:
+        # AWS SSOを使用している場合、プロファイル名を指定する
+        session = boto3.Session(profile_name='your-profile-name')
+        s3 = session.client('s3')
+        return s3
+    except NoCredentialsError:
+        print("認証情報が見つかりません。AWS SSOでログインしてください。")
+        return None
+
+
+def read_custom_entities_from_s3(bucket_name, file_name):
+    s3 = get_s3_client()
+    if s3 is None:
+        return []
+    try:
+        obj = s3.get_object(Bucket=bucket_name, Key=file_name)
+        custom_entities = obj['Body'].read().decode('utf-8').splitlines()
+        return custom_entities
+    except Exception as e:
+        print(f"S3からの読み取りに失敗しました: {e}")
+        return []
+
+
+def write_custom_entities_to_s3(bucket_name, file_name, entities):
+    s3 = get_s3_client()
+    if s3 is None:
+        return
+    try:
+        s3.put_object(Body='\n'.join(entities), Bucket=bucket_name, Key=file_name)
+    except Exception as e:
+        print(f"S3への書き込みに失敗しました: {e}")
+
+
+def extract_top_entities(input_documents, given_query, bucket='your-bucket', key='custom_entities.txt'):
+    # カスタム辞書をS3から読み込む
+    custom_entities = read_custom_entities_from_s3(bucket, key)
     # 文書を小文字に変換
     documents = [doc.page_content.lower() for doc in input_documents]
     # 文章をTF-IDFベクトル化し、各語句のTF-IDFスコアを計算
@@ -32,10 +67,12 @@ def extract_top_entities(input_documents, given_query, custom_file_path='custom_
         bracketed_entities.extend(re.findall(r'「(.*?)」', doc.page_content))
     # 頻度が多い固有表現をカスタム辞書に保存
     entity_freq = Counter(bracketed_entities)
+    new_entities = []
     for entity, freq in entity_freq.items():
         if freq > 0:
-            with open(custom_file_path, "a") as f:
-                f.write(f"{entity}\n")
+            new_entities.append(entity)
+    # S3にカスタム辞書を保存
+    write_custom_entities_to_s3(new_entities, bucket, key)
     # カスタム辞書と結合
     top_terms = list(set(top_terms) | set(custom_entities) | set(bigrams))
     # クエリに固有表現を追加
@@ -45,6 +82,7 @@ def extract_top_entities(input_documents, given_query, custom_file_path='custom_
         if term in modified_query:
             modified_query = modified_query.replace(term, f"「{term}」")
             entities.append(term)
+
     return modified_query, entities
 
 
@@ -96,7 +134,8 @@ class RetrievalQAFromFaiss:
             print("entities: ", entities)
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: qa_chain({"input_documents":
-                                                  similar_documents, "question": modified_ver_query},
+                                                                         similar_documents,
+                                                                         "question": modified_ver_query},
                                                                          return_only_outputs=True))
             # responseオブジェクトからanswerとsource_urlを抽出
             try:

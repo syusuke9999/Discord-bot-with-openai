@@ -8,27 +8,32 @@ from collections import Counter
 import re
 import os
 
+from collections import Counter
+import re
+
 
 def extract_top_entities(input_documents, given_query, custom_file_path='custom_entities.txt'):
-    # カスタム辞書をテキストファイルから読み込む
-    with open(custom_file_path, 'r') as f:
-        custom_entities = [line.strip() for line in f.readlines()]
-    # 文書を小文字に変換
     documents = [doc.page_content.lower() for doc in input_documents]
-    # N-gram解析（ここではbigramを使用）を行い、結果を一旦、bigramsリストに追加
-    bigrams = re.findall(r'\b\w+\s+\w+\b', documents)
+
+    # 空のリストを用意
+    bigrams = []
+
+    # 各ドキュメントに対してbigramを抽出
+    for doc in documents:
+        bigrams.extend(re.findall(r'\b\w+\s+\w+\b', doc))
+
     # かぎ括弧で囲まれている固有表現を抽出
     bracketed_entities = []
     for doc in documents:
-        bracketed_entities.extend(re.findall(r'「(.*?)」', doc.page_content))
+        bracketed_entities.extend(re.findall(r'「(.*?)」', doc))
+
     # 頻度が多い固有表現をカスタム辞書に保存
     entity_freq = Counter(bracketed_entities)
-    new_entities = []
-    for entity, freq in entity_freq.items():
-        if freq > 0:
-            new_entities.append(entity)
-    # カスタム辞書と結合
-    top_terms = list(set(bracketed_entities) | set(custom_entities) | set(bigrams))
+    new_entities = [entity for entity, freq in entity_freq.items() if freq > 0]
+
+    # カスタム辞書と結合（custom_entitiesが未定義なので、この部分も修正が必要かもしれません）
+    top_terms = list(set(bracketed_entities) | set(new_entities) | set(bigrams))
+
     # クエリに固有表現を追加
     modified_query = given_query
     entities = []
@@ -54,7 +59,7 @@ class RetrievalQAFromFaiss:
             refine_prompt_template = (
                 "The original question is as follows:\n {question}\n"
                 "We have provided an existing answer:\n {existing_answer}\n"
-                "Please refine the above answer using the context information below (if needed).\n"
+                "Please refine the above answer using the context information below (Only if needed).\n"
                 "------------\n"
                 "{context_str}\n"
                 "------------\n"
@@ -71,18 +76,19 @@ class RetrievalQAFromFaiss:
                 "{context_str}"
                 "\n---------------------\n"
                 "Given the context information and not prior knowledge, "
-                "answer the question:\n {question} in Japanese.\n"
+                "answer the question:\n {question} in Japanese. If you couldn't find answer simply replay "
+                "「調べたデータからは分かりませんでした。」\n"
             )
             initial_qa_prompt = PromptTemplate(
                 input_variables=["context_str", "question"], template=initial_qa_template
             )
             qa_chain = load_qa_chain(
-                ChatOpenAI(temperature=0, model_name="gpt-4-0613", top_p=0, max_tokens=500),
+                ChatOpenAI(temperature=0, model_name="gpt-4-0613", max_tokens=500),
                 chain_type="refine",
                 question_prompt=initial_qa_prompt,
                 refine_prompt=refine_prompt
             )
-            similar_documents = docsearch.similarity_search(query=initial_query)
+            similar_documents = docsearch.max_marginal_relevance_search(query=initial_query)
             modified_ver_query, entities = extract_top_entities(similar_documents, initial_query)
             print("modified_ver_query: ", modified_ver_query)
             print("entities: ", entities)

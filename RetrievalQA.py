@@ -14,26 +14,20 @@ import re
 
 def extract_top_entities(input_documents, given_query, custom_file_path='custom_entities.txt'):
     documents = [doc.page_content.lower() for doc in input_documents]
-
     # 空のリストを用意
     bigrams = []
-
     # 各ドキュメントに対してbigramを抽出
     for doc in documents:
         bigrams.extend(re.findall(r'\b\w+\s+\w+\b', doc))
-
     # かぎ括弧で囲まれている固有表現を抽出
     bracketed_entities = []
     for doc in documents:
         bracketed_entities.extend(re.findall(r'「(.*?)」', doc))
-
     # 頻度が多い固有表現をカスタム辞書に保存
     entity_freq = Counter(bracketed_entities)
     new_entities = [entity for entity, freq in entity_freq.items() if freq > 0]
-
     # カスタム辞書と結合（custom_entitiesが未定義なので、この部分も修正が必要かもしれません）
     top_terms = list(set(bracketed_entities) | set(new_entities) | set(bigrams))
-
     # クエリに固有表現を追加
     modified_query = given_query
     entities = []
@@ -41,7 +35,6 @@ def extract_top_entities(input_documents, given_query, custom_file_path='custom_
         if term in modified_query:
             modified_query = modified_query.replace(term, f"「{term}」")
             entities.append(term)
-
     return modified_query, entities
 
 

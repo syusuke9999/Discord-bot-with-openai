@@ -108,7 +108,7 @@ class SystemMessage:
                                           f'the speaker lacks the knowledge to answer a question or not. ' \
                                           f'If speaker does not, respond simply "don\'t Know"; or he or she does, ' \
                                           f'simply respond "answered". ' \
-                                          f'Your answer should only be "don\'t Know", ' \
+                                          f'Your answer should only be "don\'t Know" or "answered", ' \
                                           f'and no other responses are allowed.'
         elif self.topics is Topic.PARAPHRASE_THE_RESPONSE_TEXT:
             self.system_message_content = """

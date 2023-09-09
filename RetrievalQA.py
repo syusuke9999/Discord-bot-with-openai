@@ -66,7 +66,6 @@ class RetrievalQAFromFaiss:
                 "------------\n"
                 "If the provided context contributes to a more concise and direct answer, "
                 "and is relevant to the original question, please use it to improve your responses. "
-                "Please make sure to avoid using unrelated words or phrases in your response."
             )
             refine_prompt = PromptTemplate(
                 input_variables=["question", "existing_answer", "context_str"],

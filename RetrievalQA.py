@@ -79,7 +79,7 @@ class RetrievalQAFromFaiss:
                 "\n---------------------\n"
                 "Given the context information and not prior knowledge, "
                 "answer the question:\n {question} in Japanese. If you couldn't find answer simply replay "
-                "「調べたデータからは分かりませんでした。」\n"
+                "「I don't know.」\n"
             )
             initial_qa_prompt = PromptTemplate(
                 input_variables=["context_str", "question"], template=initial_qa_template

@@ -73,7 +73,7 @@ class RetrievalQAFromFaiss:
                 "{context_str}"
                 "\n---------------------\n"
                 "Please answer the following question based on the context: {question}. "
-                "If you can't find the answer, just say so."
+                "If you can't find the answer, Please respond that you don't know to within your knowledge."
                 "Your answer should be in Japanese."
             )
             initial_qa_prompt = PromptTemplate(

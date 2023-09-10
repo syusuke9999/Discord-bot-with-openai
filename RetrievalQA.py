@@ -68,13 +68,11 @@ class RetrievalQAFromFaiss:
                 template=refine_prompt_template,
             )
             initial_qa_template = (
-                "Context information is below. \n"
+                "Here is the context: \n"
                 "---------------------\n"
                 "{context_str}"
                 "\n---------------------\n"
-                "Given the context information and not prior knowledge, "
-                "answer the question:\n {question} in Japanese. If you couldn't find answer simply replay "
-                "「I don't know.」\n"
+                "Please answer the following question based on the context: {question}. If you can't find the answer, just say so."
             )
             initial_qa_prompt = PromptTemplate(
                 input_variables=["context_str", "question"], template=initial_qa_template

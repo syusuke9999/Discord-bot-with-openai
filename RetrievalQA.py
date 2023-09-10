@@ -59,7 +59,8 @@ class RetrievalQAFromFaiss:
                 "------------\n"
                 "If the provided context contributes to a more concise and direct answer, "
                 "and is relevant to the original question, please use it to improve your responses. "
-                "However, if the context is not relevant to the question, please return the existing answer without any changes. "
+                "However, if the context is not relevant to the question, "
+                "ignore given content and return the existing answer without any changes. "
                 "Please ensure that your response is in Japanese."
             )
             refine_prompt = PromptTemplate(

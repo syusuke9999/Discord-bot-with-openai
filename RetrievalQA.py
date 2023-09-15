@@ -22,11 +22,11 @@ def extract_top_entities(input_documents, given_query, custom_file_path='custom_
     bigrams = []
     # 各ドキュメントに対してbigramを抽出
     for doc in input_documents:
-        bigrams.extend(re.findall(r'\b\w+\s+\w+\b', doc))
+        bigrams.extend(re.findall(r'\b\w+\s+\w+\b', doc.page_content))
     # かぎ括弧で囲まれている固有表現を抽出
     bracketed_entities = []
     for doc in input_documents:
-        bracketed_entities.extend(re.findall(r'「(.*?)」', doc))
+        bracketed_entities.extend(re.findall(r'「(.*?)」', doc.page_content))
     # 頻度が多い固有表現をカスタム辞書に保存
     entity_freq = Counter(bracketed_entities)
     new_entities = [entity for entity, freq in entity_freq.items() if freq > 0]

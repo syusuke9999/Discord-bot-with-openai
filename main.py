@@ -193,7 +193,7 @@ class MyBot(commands.Bot):
                     user_key = f'{user_id}_{user_name}'
                     retrival_qa = RetrievalQAFromFaiss()
                     # クローリングしたデータからユーザーの質問に関係のありそうなものを探し、GPT-4が質問に対する答えだと判断した場合はここで答えが返ってくる
-                    bot_response, input_query = await retrival_qa.GetAnswerFromFaiss(message.content)
+                    bot_response, input_query = await retrival_qa.GetAnswerFromFaiss(message.content, user_key)
                     elapsed_time = time.time() - start_time
                     print(f"The retrieval qa process took {elapsed_time} seconds.")
                     system_message_instance = SystemMessage(topic=Topic.DETERMINE_ANSWERED_OR_NOT_ANSWERED)

@@ -73,10 +73,8 @@ class RetrievalQAFromFaiss:
             refine_prompt_template = (
                     f"Today is the year {year}, the month is {month} and the date {day}."
                     f"The current time is {now}." + "\n"
-                    f"Here is Previous Conversation: {dialogue_format}\n"
                     "Refine the answer to the following question, taking into account "
-                    "recent conversations as "
-                    "well as the current date, as indicated above." + "\n"
+                    "the current date, as indicated above." + "\n"
                     "The original question is as follows:\n {question}\n"
                     "We have provided an existing answer:\n {existing_answer}\n"
                     "Please refine the above answer using the context information below "
@@ -87,7 +85,7 @@ class RetrievalQAFromFaiss:
                     "If the provided context contributes to a more concise and direct answer, "
                     "and is relevant to the original question, please use it to improve your responses. "
                     "However, if the context is not relevant to the question, "
-                    "ignore given content and return the existing answer. "
+                    "ignore given content and return the existing answer without any changes. "
                     "Please ensure that your response is in Japanese."
             )
             refine_prompt = PromptTemplate(

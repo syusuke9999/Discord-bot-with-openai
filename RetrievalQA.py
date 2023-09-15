@@ -58,7 +58,10 @@ class RetrievalQAFromFaiss:
         month = now.month
         day = now.day
         # 直近のメッセージを取得
-        recent_messages = self.message_histories[user_key][-4:]  # 2往復分なので、最後の4メッセージ
+        try:
+            recent_messages = self.message_histories[user_key][-4:]  # 2往復分なので、最後の4メッセージ
+        except KeyError:
+            recent_messages = []
         # 対話形式に変換
         dialogue_format = ""
         for msg in recent_messages:
